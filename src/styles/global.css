@@ -187,6 +187,30 @@ input[type='text']:focus {
   justify-content: center;
 }
 
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.player-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.player-row .player-select {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.player-row .player-remove {
+  background: var(--danger);
+  font-weight: 600;
+}
+
 .game-canvas-wrap {
   width: 100%;
   height: 100vh;
