@@ -12,12 +12,14 @@ import { balloonSvg, type BalloonOptions } from './placeholders/balloon';
 import { cactusSpikeSvg, type CactusSpikeOptions } from './placeholders/cactusSpike';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
+import { starSvg, type StarOptions } from './placeholders/star';
 
 export type AssetOptions =
   | BalloonOptions
   | CactusSpikeOptions
   | ClanCardOptions
   | CharacterOptions
+  | StarOptions
   | undefined;
 
 export type AssetEntry =
@@ -29,6 +31,7 @@ export const ASSETS: Record<string, AssetEntry> = {
   'cactus.spike': { kind: 'svg', generate: (opts) => cactusSpikeSvg(opts as CactusSpikeOptions) },
   'card.frame': { kind: 'svg', generate: (opts) => clanCardSvg(opts as ClanCardOptions) },
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
+  star: { kind: 'svg', generate: (opts) => starSvg(opts as StarOptions) },
 };
 
 /** Resolve a manifest key to a URL (data URL for SVG, file path for PNG). */

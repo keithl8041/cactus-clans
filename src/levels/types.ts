@@ -20,6 +20,14 @@ export interface LevelResult {
   passed: boolean;
   miniGamePoints: number;
   elapsedMs: number;
+  /** Optional in-game pickups (e.g. golden stars). Added straight to the score. */
+  bonusPoints?: number;
+}
+
+export interface LevelInstructions {
+  objective: string;
+  controls: { label: string; value: string }[];
+  tips?: string[];
 }
 
 /**
@@ -34,6 +42,9 @@ export interface LevelDefinition {
   blurb: string;       // one-line teaser for the level map
   passThreshold: number; // mini-game-specific points required to pass
 
+  /** Pre-game briefing: objective, controls, optional tips. */
+  instructions: LevelInstructions;
+
   /** Build the Phaser scene for this level given runtime context. */
   buildScene: (ctx: LevelContext) => Phaser.Scene;
 
@@ -41,8 +52,12 @@ export interface LevelDefinition {
   scoreFor: (r: LevelResult) => number;
 }
 
-/** Default hybrid scoring rule: 10 points per mini-game point, minus elapsed seconds. */
+/**
+ * Default hybrid scoring rule: 10 points per mini-game point, plus any bonus
+ * pickups, minus elapsed seconds. Failed runs still score — pass simply gates
+ * progression, not the leaderboard entry.
+ */
 export function defaultScoreFor(r: LevelResult): number {
-  if (!r.passed) return 0;
-  return Math.max(0, r.miniGamePoints * 10 - Math.floor(r.elapsedMs / 1000));
+  const bonus = r.bonusPoints ?? 0;
+  return Math.max(0, r.miniGamePoints * 10 + bonus - Math.floor(r.elapsedMs / 1000));
 }

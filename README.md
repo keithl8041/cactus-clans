@@ -7,18 +7,20 @@ The online companion to the **Cactus Clans** physical trading card game. Pick a 
 - **Vite + TypeScript + React 18** for the build, dev server, and shell UI (splash, nickname, clan select, level map, leaderboard, game container)
 - **Phaser 3** with Arcade Physics for the in-level mini-games
 - **Zustand** for cross-screen state (player, run, progress)
-- **Supabase** (optional) for player accounts and the public leaderboard — when not configured, the app falls back to a localStorage-only mock so dev still works end-to-end
+- **Cloudflare Worker + D1** for player accounts and the public leaderboard — when running `vite dev` (no Worker), the app falls back to a localStorage-only mock so dev still works end-to-end
 - Procedural **SVG placeholders** behind a central asset manifest so real art can be dropped in one line at a time
 
 ## Run locally
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173 (also exposed on the LAN for phone testing)
-npm run typecheck    # strict TS
-npm run build        # production build → dist/
-npm run preview      # serve the built bundle
-npm run parse-cards  # regenerate src/data/cards.json from _docs/CactusClan_trading.xlsx
+npm run dev            # http://localhost:5173 (also exposed on the LAN for phone testing)
+npm run typecheck      # strict TS — runs against both client (src/) and worker/
+npm run build          # production build → dist/
+npm run preview        # serve the built bundle
+npm run parse-cards    # regenerate src/data/cards.json from _docs/CactusClan_trading.xlsx
+npm run worker:dev     # run the Cloudflare Worker locally with a local D1
+npm run worker:deploy  # build + `wrangler deploy` (Worker + static assets together)
 ```
 
 The dev server binds to `0.0.0.0` so you can play on a phone over the LAN — open the `Network:` URL Vite prints when it starts.
@@ -41,11 +43,15 @@ src/
     cards.json               Generated from the spreadsheet
     cards.ts, clans.ts       Typed data accessors
   services/
-    supabase.ts              Client singleton, null when env unset
+    api.ts                   /api fetch helper + usingRealBackend flag
     session.ts               Nickname-based "auth" (no real credentials)
     progress.ts              Run + level result persistence
     leaderboard.ts           Global leaderboard queries
   store/gameStore.ts         Zustand store
+worker/
+  index.ts                   Cloudflare Worker handling /api/*, falls through to static assets
+  schema.sql                 D1 schema (players, runs, level_results)
+  tsconfig.json              Workers-types typecheck for the Worker
 scripts/
   parse-cards.mjs            One-shot xlsx → JSON converter (no runtime dep)
 _docs/CactusClan_trading.xlsx  Source of truth for card data
@@ -79,71 +85,33 @@ balloon: { kind: 'png', src: '/art/balloon.png' },
 
 Drop the PNG into `public/art/`. That's it.
 
-## Supabase setup (optional)
+## Cloudflare D1 setup
 
-If `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are unset, the app uses localStorage and the leaderboard is local-only. To wire up real shared persistence:
+The deployed app uses a Cloudflare Worker (`worker/index.ts`) that talks to a D1 database. Local `npm run dev` does **not** run the Worker and falls back to localStorage, so this is only needed once before deploying.
 
-1. Create a new project at https://supabase.com.
-2. In the SQL editor, run:
+1. Create the D1 database:
 
-   ```sql
-   create extension if not exists "pgcrypto";
-
-   create table players (
-     id uuid primary key default gen_random_uuid(),
-     nickname text unique not null,
-     created_at timestamptz default now()
-   );
-
-   create table runs (
-     id uuid primary key default gen_random_uuid(),
-     player_id uuid references players(id) on delete cascade,
-     clan text not null,
-     started_at timestamptz default now(),
-     completed_at timestamptz,
-     total_score int default 0
-   );
-
-   create table level_results (
-     id uuid primary key default gen_random_uuid(),
-     run_id uuid references runs(id) on delete cascade,
-     level_number int not null,
-     passed bool not null,
-     mini_game_points int not null,
-     elapsed_ms int not null,
-     score int not null,
-     recorded_at timestamptz default now()
-   );
-
-   -- Open RLS for the no-real-auth model. Tighten later if needed.
-   alter table players enable row level security;
-   alter table runs enable row level security;
-   alter table level_results enable row level security;
-   create policy "anyone reads players" on players for select using (true);
-   create policy "anyone inserts players" on players for insert with check (true);
-   create policy "anyone reads runs" on runs for select using (true);
-   create policy "anyone writes runs" on runs for all using (true) with check (true);
-   create policy "anyone reads level_results" on level_results for select using (true);
-   create policy "anyone writes level_results" on level_results for all using (true) with check (true);
+   ```bash
+   npx wrangler d1 create cactus-clans
    ```
 
-3. Copy `.env.example` to `.env` and fill in your project URL + anon key.
-4. Restart `npm run dev`.
+   Copy the `database_id` it prints into `wrangler.jsonc` (replace `REPLACE_WITH_D1_DATABASE_ID`).
 
-> The "anyone writes" policy is a known trade-off for the nickname-only model. Sticky-fingered kids can spoof scores. That's fine for a family game; switch to magic-link auth + RLS-by-`auth.uid()` if it ever matters.
+2. Apply the schema to the remote D1:
 
-## Deploy to Cloudflare Pages
+   ```bash
+   npm run db:apply
+   ```
 
-The app is a static SPA — Cloudflare Pages serves it directly.
+   (Or `npm run db:apply:local` if you want to exercise `wrangler dev` against a local SQLite-backed D1.)
 
-1. Push the repo to GitHub.
-2. In the Cloudflare dashboard → **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**.
-3. Choose the repo. Build settings:
-   - **Framework preset**: *None*
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-   - **Node version**: 20 (set via `NODE_VERSION=20` environment variable)
-4. Add environment variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` if you want the shared leaderboard.
-5. Save and deploy. Subsequent pushes to `main` auto-deploy.
+3. Trust model: the Worker accepts whatever score the client posts — kids can spoof scores from devtools. That's fine for a family game; add a token or recompute server-side if it ever matters.
 
-SPA deep-link fallback is configured in `wrangler.jsonc` via `assets.not_found_handling: "single-page-application"`, so any unknown path falls back to `index.html` and the React router handles it.
+## Deploy to Cloudflare
+
+The app is deployed as a Worker with static assets — the same Worker that serves `dist/` also handles `/api/*` against D1.
+
+1. One-time: `npm run db:apply` (see above).
+2. `npm run worker:deploy` — runs `tsc && vite build`, then `wrangler deploy` (Worker + assets in one shot).
+
+SPA deep-link fallback is configured in `wrangler.jsonc` via `assets.not_found_handling: "single-page-application"`, so any unknown non-`/api` path falls back to `index.html` and the React router handles it.

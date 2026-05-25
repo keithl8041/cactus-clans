@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { apiFetch, usingRealBackend } from './api';
 
 export interface LeaderboardEntry {
   nickname: string;
@@ -27,26 +27,19 @@ function writeMock(rows: MockRow[]): void {
 }
 
 export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> {
-  if (supabase) {
-    // Best (max) total_score per player across completed runs.
-    const { data, error } = await supabase
-      .from('runs')
-      .select('total_score, completed_at, clan, players!inner(nickname)')
-      .not('completed_at', 'is', null)
-      .order('total_score', { ascending: false })
-      .limit(limit);
-    if (error) throw error;
-    type Row = {
-      total_score: number;
-      completed_at: string;
+  if (usingRealBackend) {
+    interface ApiRow {
+      nickname: string;
       clan: string;
-      players: { nickname: string } | { nickname: string }[];
-    };
-    return (data as Row[]).map((r) => ({
-      nickname: Array.isArray(r.players) ? r.players[0]?.nickname ?? '?' : r.players.nickname,
+      totalScore: number;
+      completedAt: string | null;
+    }
+    const rows = await apiFetch<ApiRow[]>(`/leaderboard?limit=${limit}`);
+    return rows.map((r) => ({
+      nickname: r.nickname,
       clan: r.clan,
-      totalScore: r.total_score,
-      completedAt: r.completed_at,
+      totalScore: r.totalScore,
+      completedAt: r.completedAt ?? undefined,
     }));
   }
 
@@ -56,12 +49,13 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
 }
 
 /**
- * Mock-only: record a completed run on the local leaderboard. The real
- * backend leaderboard is populated automatically via `recordLevelResult` and
- * `completeRun` in progress.ts.
+ * Mock-only: upsert the player's leaderboard row. Called on every level
+ * attempt so partial/failed runs still appear. The real backend leaderboard
+ * is populated automatically via `recordLevelResult` and `completeRun` in
+ * progress.ts.
  */
 export function submitMockRun(entry: MockRow): void {
-  if (supabase) return;
+  if (usingRealBackend) return;
   const all = readMock().filter((r) => r.playerId !== entry.playerId);
   all.push(entry);
   writeMock(all);

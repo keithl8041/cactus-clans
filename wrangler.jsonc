@@ -1,9 +1,18 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "cactus-clans",
-  "compatibility_date": "2025-05-01",
-  "assets": {
-    "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cactus-clans",
+	"main": "worker/index.ts",
+	"compatibility_date": "2025-05-01",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS",
+		"not_found_handling": "single-page-application"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "cactus-clans",
+			"database_id": "1455466b-575f-42f9-8e2d-5726d97dd01a"
+		}
+	]
 }

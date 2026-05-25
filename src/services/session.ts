@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { apiFetch, usingRealBackend } from './api';
 
 const STORAGE_KEY = 'cc.session.v1';
 
@@ -34,27 +34,14 @@ export async function signInWithNickname(nickname: string): Promise<PlayerSessio
   if (!cleaned) throw new Error('Nickname cannot be empty');
   if (cleaned.length > 24) throw new Error('Nickname is too long (max 24)');
 
-  if (supabase) {
-    // Upsert by nickname (unique). If a row exists, return it; else create.
-    const { data: existing, error: selErr } = await supabase
-      .from('players')
-      .select('id, nickname')
-      .eq('nickname', cleaned)
-      .maybeSingle();
-    if (selErr) throw selErr;
-    let row = existing;
-    if (!row) {
-      const { data: inserted, error: insErr } = await supabase
-        .from('players')
-        .insert({ nickname: cleaned })
-        .select('id, nickname')
-        .single();
-      if (insErr) throw insErr;
-      row = inserted;
-    }
+  if (usingRealBackend) {
+    const row = await apiFetch<PlayerSession>('/players', {
+      method: 'POST',
+      body: JSON.stringify({ nickname: cleaned }),
+    });
     const session: StoredSession = {
-      id: row!.id,
-      nickname: row!.nickname,
+      id: row.id,
+      nickname: row.nickname,
       createdAt: new Date().toISOString(),
     };
     writeStored(session);

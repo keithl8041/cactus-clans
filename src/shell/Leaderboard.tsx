@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchLeaderboard, type LeaderboardEntry } from '../services/leaderboard';
 import { useGameStore } from '../store/gameStore';
-import { usingRealBackend } from '../services/supabase';
+import { usingRealBackend } from '../services/api';
 
 export function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
@@ -43,6 +43,9 @@ export function Leaderboard() {
               <span>
                 <strong>{e.nickname}</strong>
                 <span style={{ color: 'var(--text-dim)', marginLeft: 8, fontSize: '0.85rem' }}>{e.clan}</span>
+                {!e.completedAt && (
+                  <span style={{ color: 'var(--accent-warm)', marginLeft: 8, fontSize: '0.75rem' }}>· in progress</span>
+                )}
               </span>
               <span style={{ fontWeight: 700, color: 'var(--accent)' }}>{e.totalScore}</span>
             </div>

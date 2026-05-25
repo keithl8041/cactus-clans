@@ -7,7 +7,7 @@ import { assetUrl } from '../assets/manifest';
 import { levelMetaByNumber, MAX_LEVEL } from '../levels/meta';
 import { completeRun } from '../services/progress';
 import { submitMockRun } from '../services/leaderboard';
-import { usingRealBackend } from '../services/supabase';
+import { usingRealBackend } from '../services/api';
 
 export function LevelMap() {
   const navigate = useNavigate();
@@ -61,12 +61,18 @@ export function LevelMap() {
           if (n <= cleared) cls += ' cleared';
           else if (n === cleared + 1) cls += ' current';
           else cls += ' locked';
-          const clickable = level != null && n === cleared + 1;
+          const clickable = level != null && n <= cleared + 1;
+          const titleText = level
+            ? n <= cleared
+              ? `${level.title} (replay)`
+              : level.title
+            : `Level ${n} (coming soon)`;
           return (
             <div
               key={n}
               className={cls}
-              title={level ? level.title : `Level ${n} (coming soon)`}
+              title={titleText}
+              style={clickable ? { cursor: 'pointer' } : undefined}
               onClick={() => clickable && navigate(`/play/${n}`)}
             >
               {n}

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { apiFetch, usingRealBackend } from './api';
 
 export interface LevelClearRecord {
   levelNumber: number;
@@ -39,18 +39,16 @@ function localRunId(playerId: string): string {
 }
 
 export async function startRun(playerId: string, clan: string): Promise<RunProgress> {
-  if (supabase) {
-    const { data, error } = await supabase
-      .from('runs')
-      .insert({ player_id: playerId, clan })
-      .select('id, started_at')
-      .single();
-    if (error) throw error;
+  if (usingRealBackend) {
+    const created = await apiFetch<{ id: string; startedAt: string }>('/runs', {
+      method: 'POST',
+      body: JSON.stringify({ playerId, clan }),
+    });
     const run: RunProgress = {
-      runId: data.id,
+      runId: created.id,
       playerId,
       clan,
-      startedAt: data.started_at ?? new Date().toISOString(),
+      startedAt: created.startedAt,
       totalScore: 0,
       levels: [],
     };
@@ -71,8 +69,8 @@ export async function startRun(playerId: string, clan: string): Promise<RunProgr
 }
 
 export async function getActiveRun(playerId: string): Promise<RunProgress | null> {
-  // localStorage is the source of truth for the active run even when Supabase
-  // is wired up — keeps in-progress state snappy and survives quick refreshes.
+  // localStorage is the source of truth for the active run even when the real
+  // backend is wired up — keeps in-progress state snappy and survives refreshes.
   return readRun(playerId);
 }
 
@@ -81,23 +79,36 @@ export async function recordLevelResult(
   record: Omit<LevelClearRecord, 'recordedAt'>,
 ): Promise<RunProgress> {
   const recorded: LevelClearRecord = { ...record, recordedAt: new Date().toISOString() };
-  // Drop any prior attempt at the same level so the latest replaces it.
-  const levels = run.levels.filter((l) => l.levelNumber !== recorded.levelNumber).concat(recorded);
+  // Replay rule: a pass is sticky (a later fail can't un-clear a level);
+  // otherwise keep the higher score. Bonus pickups mean failed runs can outscore
+  // earlier passes, but we still don't want them to downgrade clear status.
+  const prior = run.levels.find((l) => l.levelNumber === recorded.levelNumber);
+  let keep: LevelClearRecord;
+  if (!prior) keep = recorded;
+  else if (prior.passed && !recorded.passed) keep = prior;
+  else if (!prior.passed && recorded.passed) keep = recorded;
+  else keep = recorded.score > prior.score ? recorded : prior;
+  const levels = run.levels.filter((l) => l.levelNumber !== recorded.levelNumber).concat(keep);
   const totalScore = levels.reduce((acc, l) => acc + l.score, 0);
   const next: RunProgress = { ...run, levels, totalScore };
   writeRun(next);
 
-  if (supabase) {
-    const { error } = await supabase.from('level_results').insert({
-      run_id: run.runId,
-      level_number: recorded.levelNumber,
-      passed: recorded.passed,
-      mini_game_points: recorded.miniGamePoints,
-      elapsed_ms: recorded.elapsedMs,
-      score: recorded.score,
-    });
-    if (error) console.warn('level_results insert failed', error);
-    await supabase.from('runs').update({ total_score: totalScore }).eq('id', run.runId);
+  if (usingRealBackend) {
+    try {
+      await apiFetch(`/runs/${encodeURIComponent(run.runId)}/levels`, {
+        method: 'POST',
+        body: JSON.stringify({
+          levelNumber: recorded.levelNumber,
+          passed: recorded.passed,
+          miniGamePoints: recorded.miniGamePoints,
+          elapsedMs: recorded.elapsedMs,
+          score: recorded.score,
+          totalScore,
+        }),
+      });
+    } catch (err) {
+      console.warn('level_results write failed', err);
+    }
   }
   return next;
 }
@@ -106,12 +117,15 @@ export async function completeRun(run: RunProgress): Promise<RunProgress> {
   const completedAt = new Date().toISOString();
   const next: RunProgress = { ...run, completedAt };
   writeRun(next);
-  if (supabase) {
-    const { error } = await supabase
-      .from('runs')
-      .update({ completed_at: completedAt, total_score: run.totalScore })
-      .eq('id', run.runId);
-    if (error) console.warn('runs complete update failed', error);
+  if (usingRealBackend) {
+    try {
+      await apiFetch(`/runs/${encodeURIComponent(run.runId)}/complete`, {
+        method: 'POST',
+        body: JSON.stringify({ totalScore: run.totalScore }),
+      });
+    } catch (err) {
+      console.warn('run complete failed', err);
+    }
   }
   return next;
 }
