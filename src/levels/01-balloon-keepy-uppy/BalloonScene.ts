@@ -154,7 +154,8 @@ export class BalloonScene extends Phaser.Scene {
 
     this.physics.add.overlap(this.balloon, this.floorSpikeGroup, () => this.fail('Pop! The balloon hit a cactus.'));
     this.physics.add.overlap(this.balloon, this.hazardSpikeGroup, () => this.fail('Pop! The balloon hit a cactus.'));
-    this.physics.add.overlap(this.player, this.hazardSpikeGroup, () => this.fail('Ouch! You ran into a cactus.'));
+    // Player passes through wall cacti freely — only the balloon pops on them.
+    // Lets the player jump up to head the balloon over a cactus without dying.
   }
 
   private setupInput(): void {
