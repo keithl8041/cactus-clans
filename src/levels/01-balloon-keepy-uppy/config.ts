@@ -50,6 +50,6 @@ export const BALLOON_CONFIG = {
   starFirstDelayMs: 4000,       // wait this long after the level starts before the first star
   starMinDelayMs: 6000,         // random gap between stars: lower bound
   starMaxDelayMs: 14000,        // upper bound — "not too often"
-  starLifetimeMs: 5500,         // star disappears on its own after this long
+  starLifetimeMs: 11000,        // star disappears on its own after this long
   starTopOffset: 36,            // distance from top of canvas where star sits
 } as const;
