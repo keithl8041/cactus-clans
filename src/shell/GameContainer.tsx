@@ -12,6 +12,7 @@ import type { LevelResult } from '../levels/types';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
 import { InstructionsModal } from './InstructionsModal';
+import { enterFullscreen, exitFullscreen, isTouchDevice } from './fullscreen';
 
 interface FinishedState {
   passed: boolean;
@@ -135,6 +136,15 @@ export function GameContainer() {
     }
   }, [needsRotate, attempt]);
 
+  // Drop out of fullscreen when leaving the level entirely (not on retry / not
+  // when the result overlay shows — those stay in fullscreen so the page can't
+  // jiggle back to showing the URL bar between attempts).
+  useEffect(() => {
+    return () => {
+      void exitFullscreen();
+    };
+  }, []);
+
   function retry() {
     setFinished(null);
     setAttempt((a) => a + 1);
@@ -168,7 +178,12 @@ export function GameContainer() {
           title={level.title}
           passThreshold={level.passThreshold}
           instructions={level.instructions}
-          onStart={() => setStarted(true)}
+          onStart={() => {
+            setStarted(true);
+            // Hide mobile browser chrome (URL bar etc) while playing. Must run
+            // inside this gesture handler or the browser rejects the request.
+            if (isTouchDevice()) void enterFullscreen();
+          }}
           onCancel={() => navigate('/journey')}
         />
       )}
