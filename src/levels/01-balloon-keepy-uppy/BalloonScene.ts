@@ -174,7 +174,7 @@ export class BalloonScene extends Phaser.Scene {
 
   private setupHud(): void {
     const { width } = this.scale;
-    this.hitText = this.add.text(16, 16, 'Hits: 0', {
+    this.hitText = this.add.text(16, 16, `Hits: 0 / ${CFG.passThreshold}`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '24px',
       color: '#f7c948',
@@ -270,7 +270,7 @@ export class BalloonScene extends Phaser.Scene {
     this.balloon.y = this.player.y - this.player.displayHeight / 2 - this.balloon.displayHeight / 2 - 2;
 
     this.hitCount += 1;
-    this.hitText.setText(`Hits: ${this.hitCount}`);
+    this.hitText.setText(`Hits: ${this.hitCount} / ${CFG.passThreshold}`);
 
     this.spawnDifficultySpikes();
 
@@ -282,14 +282,17 @@ export class BalloonScene extends Phaser.Scene {
   private spawnDifficultySpikes(): void {
     const { width, height } = this.scale;
 
+    // Wall spikes sit in the lower half so the player can still jump high
+    // enough to bat the balloon over them — at y < ~0.65*height the spikes are
+    // above the player's peak jump and effectively unavoidable.
     if (this.hitCount === CFG.firstWallSpikeAt) {
-      this.spawnCactus(this.hazardSpikeGroup, CFG.wallPadding, height * 0.5, 'right');
-      this.spawnCactus(this.hazardSpikeGroup, width - CFG.wallPadding, height * 0.5, 'left');
+      this.spawnCactus(this.hazardSpikeGroup, CFG.wallPadding, height * 0.72, 'right');
+      this.spawnCactus(this.hazardSpikeGroup, width - CFG.wallPadding, height * 0.72, 'left');
     }
     if (this.hitCount > CFG.firstWallSpikeAt && (this.hitCount - CFG.firstWallSpikeAt) % CFG.spikeRampEvery === 0) {
       const sideLeft = this.hitCount % 2 === 0;
       const x = sideLeft ? CFG.wallPadding : width - CFG.wallPadding;
-      const y = Phaser.Math.Between(Math.floor(height * 0.25), Math.floor(height * 0.65));
+      const y = Phaser.Math.Between(Math.floor(height * 0.68), Math.floor(height * 0.82));
       this.spawnCactus(this.hazardSpikeGroup, x, y, sideLeft ? 'right' : 'left');
     }
   }
