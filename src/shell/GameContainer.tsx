@@ -100,11 +100,15 @@ export function GameContainer() {
       type: Phaser.AUTO,
       parent: hostRef.current!,
       backgroundColor: '#16291c',
+      // Fixed logical canvas so the play arena is identical on phone and desktop —
+      // FIT scales the canvas down to fit the viewport (letterboxing as needed).
+      // Without this the canvas was matching viewport pixels, so a short landscape
+      // phone gave the balloon almost no ceiling and play felt cramped.
       scale: {
-        mode: Phaser.Scale.RESIZE,
+        mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: '100%',
-        height: '100%',
+        width: 1280,
+        height: 720,
       },
       physics: {
         default: 'arcade',
