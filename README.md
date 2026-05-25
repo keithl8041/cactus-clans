@@ -146,10 +146,4 @@ The app is a static SPA — Cloudflare Pages serves it directly.
 4. Add environment variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` if you want the shared leaderboard.
 5. Save and deploy. Subsequent pushes to `main` auto-deploy.
 
-Because the app uses client-side routing, add a `_redirects` file so deep links work:
-
-```bash
-echo "/* /index.html 200" > public/_redirects
-```
-
-This is already included in the project.
+SPA deep-link fallback is configured in `wrangler.jsonc` via `assets.not_found_handling: "single-page-application"`, so any unknown path falls back to `index.html` and the React router handles it.
