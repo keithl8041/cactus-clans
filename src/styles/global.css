@@ -1,0 +1,246 @@
+:root {
+  --bg: #0f1d12;
+  --bg-elev: #16291c;
+  --panel: #1f6f3f;
+  --panel-dim: #14502c;
+  --accent: #f7c948;
+  --accent-warm: #e87a3a;
+  --text: #f3efe0;
+  --text-dim: #b8c6b2;
+  --danger: #d24a3a;
+  --radius: 12px;
+  --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.05s ease, background 0.15s ease;
+}
+
+button:hover {
+  background: var(--panel-dim);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.primary {
+  background: var(--accent);
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+input[type='text'] {
+  font-family: inherit;
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: 2px solid var(--panel-dim);
+  background: var(--bg-elev);
+  color: var(--text);
+  width: 100%;
+  max-width: 320px;
+}
+
+input[type='text']:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.screen h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.logo {
+  width: clamp(220px, 60vw, 360px);
+  height: auto;
+  background: #fff;
+  border-radius: 24px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+  display: block;
+}
+
+.screen h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: 960px;
+}
+
+.card-tile {
+  background: var(--bg-elev);
+  border: 2px solid var(--panel-dim);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.05s ease;
+}
+
+.card-tile:hover {
+  border-color: var(--accent);
+}
+
+.card-tile.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(247, 201, 72, 0.25);
+}
+
+.card-tile img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.level-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.level-node {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--panel-dim);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.level-node.cleared {
+  background: var(--accent);
+  color: #1a1a1a;
+}
+
+.level-node.current {
+  background: var(--accent-warm);
+  color: #1a1a1a;
+  box-shadow: 0 0 0 4px rgba(232, 122, 58, 0.3);
+}
+
+.level-node.locked {
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.game-canvas-wrap {
+  width: 100%;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+
+.hud .pill {
+  background: rgba(0, 0, 0, 0.45);
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  pointer-events: auto;
+}
+
+.leaderboard-list {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-elev);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+}
+
+.leaderboard-row .rank {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.leaderboard-row.me {
+  border: 2px solid var(--accent);
+}

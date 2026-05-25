@@ -1,0 +1,1687 @@
+[
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Chamelion",
+    "description": "Masters of disguise from the very start. Observes, learns, adapts.",
+    "strengths": [
+      "Hard to spot",
+      "Quick thinker",
+      "Adaptable"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Low damage",
+      "Easily startled"
+    ],
+    "attack": 10,
+    "defence": 10,
+    "speed": 25,
+    "health": 30,
+    "overallScore": 40
+  },
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Leaflink",
+    "description": "Blends with the leaves and moves like the wind. Trust is earned, not given.",
+    "strengths": [
+      "Agile",
+      "Good memory",
+      "Blend expert"
+    ],
+    "weaknesses": [
+      "Average power",
+      "Distrusts strangers",
+      "Overthinks"
+    ],
+    "attack": 20,
+    "defence": 20,
+    "speed": 35,
+    "health": 45,
+    "overallScore": 60
+  },
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Mossshift",
+    "description": "One with the moss and shadows of the wild. Patient and persistent.",
+    "strengths": [
+      "Stealthy",
+      "Resourceful",
+      "Survivalist"
+    ],
+    "weaknesses": [
+      "Low strength",
+      "Takes time to act",
+      "Hates open areas"
+    ],
+    "attack": 30,
+    "defence": 35,
+    "speed": 40,
+    "health": 60,
+    "overallScore": 85
+  },
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Barkhide",
+    "description": "Wears the trees as armor and stands as silent guardian. Thinks before it moves.",
+    "strengths": [
+      "Strong defense",
+      "Natural armor",
+      "Tactical mind"
+    ],
+    "weaknesses": [
+      "Slow to adapt",
+      "Low speed",
+      "Can be stubborn"
+    ],
+    "attack": 35,
+    "defence": 55,
+    "speed": 30,
+    "health": 80,
+    "overallScore": 100
+  },
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Stoneveil",
+    "description": "Becomes part of the stone. Unshakable and unseen. Wisdom in stillness.",
+    "strengths": [
+      "High defense",
+      "Blend master",
+      "Calm under pressure"
+    ],
+    "weaknesses": [
+      "Low agility",
+      "Slow starter",
+      "Avoids risk"
+    ],
+    "attack": 40,
+    "defence": 65,
+    "speed": 30,
+    "health": 100,
+    "overallScore": 120
+  },
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Shadowstrike",
+    "description": "Strikes from the shadows. Every move is planned, every step is silent.",
+    "strengths": [
+      "High speed",
+      "Critical thinker",
+      "Deadly aim"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Overconfident",
+      "Works alone"
+    ],
+    "attack": 60,
+    "defence": 40,
+    "speed": 60,
+    "health": 90,
+    "overallScore": 150
+  },
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Fernwatcher",
+    "description": "Sees all, speaks little. Guides the clan with insight and deep connection to nature.",
+    "strengths": [
+      "Wise sage",
+      "Elemental bond",
+      "Supports allies"
+    ],
+    "weaknesses": [
+      "Low damage",
+      "Physically weak",
+      "Hates conflict"
+    ],
+    "attack": 60,
+    "defence": 70,
+    "speed": 45,
+    "health": 110,
+    "overallScore": 170
+  },
+  {
+    "clan": "Camo Clan",
+    "form": 1,
+    "name": "Chameleon King",
+    "description": "The unseen ruler. Keeper of balance and peace. Friends to all, enemy to none.",
+    "strengths": [
+      "Master of disguise",
+      "High intelligence",
+      "Unites all clans"
+    ],
+    "weaknesses": [
+      "Avoids direct fights",
+      "Bears great burden",
+      "Easy to underestimate"
+    ],
+    "attack": 80,
+    "defence": 80,
+    "speed": 60,
+    "health": 140,
+    "overallScore": 220
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Spiren",
+    "description": "A silent sprout in the dark. Quick, quiet, and deadly.",
+    "strengths": [
+      "Silent",
+      "Quick",
+      "Stealthy"
+    ],
+    "weaknesses": [
+      "Fragile",
+      "Low health",
+      "Light armor"
+    ],
+    "attack": 20,
+    "defence": 20,
+    "speed": 60,
+    "health": 40,
+    "overallScore": 99
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Shadowspike",
+    "description": "Honed by stealth. A deadly strike from the shadows.",
+    "strengths": [
+      "Quick learner",
+      "Agile",
+      "Brave heart"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Inexperienced",
+      "Easily distracted"
+    ],
+    "attack": 20,
+    "defence": 20,
+    "speed": 60,
+    "health": 40,
+    "overallScore": 100
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Nightbloom",
+    "description": "Blooms in darkness. A relentless hunter of the weak.",
+    "strengths": [
+      "High defense",
+      "Durable",
+      "Protective"
+    ],
+    "weaknesses": [
+      "Lower speed",
+      "Heavy",
+      "Slow to adapt"
+    ],
+    "attack": 55,
+    "defence": 80,
+    "speed": 40,
+    "health": 70,
+    "overallScore": 99
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Voidlord",
+    "description": "Feared commander. Leads with cunning and cruelty.",
+    "strengths": [
+      "Strong leader",
+      "High attack",
+      "Strategic",
+      "Inspires allies"
+    ],
+    "weaknesses": [
+      "Prideful",
+      "Takes risks",
+      "Vulnerable to magic"
+    ],
+    "attack": 80,
+    "defence": 70,
+    "speed": 50,
+    "health": 60,
+    "overallScore": "1000-2499"
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Dusk Emperor",
+    "description": "Emperor of the night. Bringer of ruin, conqueror of all.",
+    "strengths": [
+      "Massive power",
+      "High defense",
+      "Area control",
+      "Intimidating"
+    ],
+    "weaknesses": [
+      "Very slow",
+      "High mana cost",
+      "Targeted by all"
+    ],
+    "attack": 95,
+    "defence": 95,
+    "speed": 20,
+    "health": 100,
+    "overallScore": "2500+"
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Twilightseed",
+    "description": "Drifter of the void. Spreads darkness where it lands.",
+    "strengths": [
+      "High magic",
+      "High defense",
+      "Area control",
+      "Unstoppable"
+    ],
+    "weaknesses": [
+      "Very slow",
+      "High mana cost",
+      "Vulnerable to light"
+    ],
+    "attack": 75,
+    "defence": 60,
+    "speed": 20,
+    "health": 80,
+    "overallScore": "750-1499"
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Obliviarch",
+    "description": "Weaver of silence. Bends minds and breaks wills.",
+    "strengths": [
+      "Ranged expert",
+      "Crowd control",
+      "High intelligence",
+      "Mana mastery"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Slow cast time",
+      "Mana dependent"
+    ],
+    "attack": 70,
+    "defence": 40,
+    "speed": 30,
+    "health": 60,
+    "overallScore": "1500-2999"
+  },
+  {
+    "clan": "Duskerns",
+    "form": 1,
+    "name": "Eclipse Wraith",
+    "description": "Born of eclipse. A shadow that consumes all.",
+    "strengths": [
+      "High agility",
+      "Lifesteal",
+      "Burst damage",
+      "Unstoppable"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Vulnerable to light",
+      "No allies"
+    ],
+    "attack": 85,
+    "defence": 25,
+    "speed": 95,
+    "health": 40,
+    "overallScore": "3000+"
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Stonebud",
+    "description": "Born from the soil. Small but steady.",
+    "strengths": [
+      "Resilient",
+      "Steady growth",
+      "Hard to break"
+    ],
+    "weaknesses": [
+      "Slow and small",
+      "Low speed",
+      "Vulnerable early"
+    ],
+    "attack": 10,
+    "defence": 10,
+    "speed": 10,
+    "health": 20,
+    "overallScore": 40
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Rockroot",
+    "description": "Deep roots, strong body.",
+    "strengths": [
+      "High defense",
+      "Hard hitting",
+      "Strong foundation"
+    ],
+    "weaknesses": [
+      "Slow to move",
+      "Low agility",
+      "Needs time to build"
+    ],
+    "attack": 25,
+    "defence": 25,
+    "speed": 15,
+    "health": 50,
+    "overallScore": 115
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Terrashaper",
+    "description": "Shapes the land and raises walls.",
+    "strengths": [
+      "Area control",
+      "High durability",
+      "Supportive"
+    ],
+    "weaknesses": [
+      "Slow attack",
+      "High energy cost",
+      "Predictable"
+    ],
+    "attack": 35,
+    "defence": 35,
+    "speed": 20,
+    "health": 70,
+    "overallScore": 160
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Stonewarden",
+    "description": "Guardian of strongholds.",
+    "strengths": [
+      "Very high defense",
+      "Taunts enemies",
+      "Protects allies"
+    ],
+    "weaknesses": [
+      "Low speed",
+      "Vulnerable to magic",
+      "High stamina cost"
+    ],
+    "attack": 60,
+    "defence": 60,
+    "speed": 25,
+    "health": 110,
+    "overallScore": 255
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Gaius Sovereign",
+    "description": "Commands mountains and earthquakes.",
+    "strengths": [
+      "Massive area damage",
+      "Very high durability",
+      "Regenerates"
+    ],
+    "weaknesses": [
+      "Very slow",
+      "High energy cost",
+      "Long cooldowns"
+    ],
+    "attack": 95,
+    "defence": 95,
+    "speed": 30,
+    "health": 150,
+    "overallScore": "370+"
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Mountainborn",
+    "description": "Born in the mountains.",
+    "strengths": [
+      "High health",
+      "Knockback power",
+      "Excellent frontline"
+    ],
+    "weaknesses": [
+      "Low speed",
+      "Easily kited",
+      "High stamina cost"
+    ],
+    "attack": 70,
+    "defence": 80,
+    "speed": 20,
+    "health": 130,
+    "overallScore": 280
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Earthfury",
+    "description": "Wrath of the wild earth.",
+    "strengths": [
+      "High burst damage",
+      "Stuns and disrupts",
+      "Great duelist"
+    ],
+    "weaknesses": [
+      "Medium range",
+      "High cooldowns",
+      "Resource hungry"
+    ],
+    "attack": 85,
+    "defence": 45,
+    "speed": 65,
+    "health": 90,
+    "overallScore": 230
+  },
+  {
+    "clan": "Earth Clan",
+    "form": 1,
+    "name": "Terramancer",
+    "description": "Voice of the deep.",
+    "strengths": [
+      "Range support",
+      "Healing and buffs",
+      "Battlefield control"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Fragile",
+      "Needs protection"
+    ],
+    "attack": 40,
+    "defence": 30,
+    "speed": 45,
+    "health": 70,
+    "overallScore": 150
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "Diggodgy Dog",
+    "description": "Tiny pup with a big appetite.",
+    "strengths": [
+      "Small but feisty",
+      "Quick feet",
+      "Surprisingly tough"
+    ],
+    "weaknesses": [
+      "Tiny brain",
+      "Easily scared",
+      "Not very smart"
+    ],
+    "attack": 10,
+    "defence": 10,
+    "speed": 20,
+    "health": 30,
+    "overallScore": 40
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "Ketchup Kid",
+    "description": "Shoots ketchup with glee.",
+    "strengths": [
+      "Fast squirter",
+      "Energetic",
+      "Hard to hit"
+    ],
+    "weaknesses": [
+      "Small brain",
+      "Forgets things",
+      "Talks too much"
+    ],
+    "attack": 20,
+    "defence": 15,
+    "speed": 30,
+    "health": 40,
+    "overallScore": 60
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "Wiener Warrior",
+    "description": "Brave fighter with ketchup on the brain.",
+    "strengths": [
+      "Good aim",
+      "Bold",
+      "Loyal to friends"
+    ],
+    "weaknesses": [
+      "Not very bright",
+      "Gets distracted",
+      "Overconfident"
+    ],
+    "attack": 35,
+    "defence": 25,
+    "speed": 35,
+    "health": 60,
+    "overallScore": 85
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "Saucy Soldier",
+    "description": "Protects the clan with pride.",
+    "strengths": [
+      "Strong defense",
+      "Team player",
+      "Reliable"
+    ],
+    "weaknesses": [
+      "Slow thinker",
+      "Follows orders too much",
+      "Fear of pickles"
+    ],
+    "attack": 40,
+    "defence": 45,
+    "speed": 30,
+    "health": 75,
+    "overallScore": 100
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "Chili Chef",
+    "description": "Master of the kitchen battlefield.",
+    "strengths": [
+      "Creative",
+      "Strong attacks",
+      "Heals allies"
+    ],
+    "weaknesses": [
+      "Forgets recipes",
+      "Too messy",
+      "Easily confused"
+    ],
+    "attack": 50,
+    "defence": 35,
+    "speed": 40,
+    "health": 90,
+    "overallScore": 120
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "Mustard Mauler",
+    "description": "Hits hard and squirts hot.",
+    "strengths": [
+      "High strength",
+      "Great endurance",
+      "Intimidating"
+    ],
+    "weaknesses": [
+      "Low intelligence",
+      "Hard to control",
+      "Doesn't listen"
+    ],
+    "attack": 60,
+    "defence": 50,
+    "speed": 40,
+    "health": 110,
+    "overallScore": 150
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "Flame Dawg",
+    "description": "Runs in, sets things on fire.",
+    "strengths": [
+      "Extreme damage",
+      "Fast and wild",
+      "Loves a fight"
+    ],
+    "weaknesses": [
+      "Short attention span",
+      "Hot-headed",
+      "Bad decision maker"
+    ],
+    "attack": 70,
+    "defence": 60,
+    "speed": 60,
+    "health": 130,
+    "overallScore": 190
+  },
+  {
+    "clan": "Hot Dog Clan",
+    "form": 1,
+    "name": "The Big Bun Boss",
+    "description": "The mighty ruler of buns.",
+    "strengths": [
+      "Massive power",
+      "Flaming ketchup",
+      "Rules the clan"
+    ],
+    "weaknesses": [
+      "Tiny brain",
+      "Thinks he's smarter",
+      "Hates being ignored"
+    ],
+    "attack": 90,
+    "defence": 75,
+    "speed": 50,
+    "health": 150,
+    "overallScore": "250+"
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Ironbud",
+    "description": "Forged with purpose.",
+    "strengths": [
+      "Sturdy",
+      "Reliable",
+      "Well-crafted"
+    ],
+    "weaknesses": [
+      "Low speed",
+      "Low damage",
+      "Not adaptable"
+    ],
+    "attack": 10,
+    "defence": 15,
+    "speed": 20,
+    "health": 40,
+    "overallScore": 40
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Steelspike",
+    "description": "Disciplined and sharp.",
+    "strengths": [
+      "Balanced",
+      "Quick learner",
+      "Shield expert"
+    ],
+    "weaknesses": [
+      "Overconfident",
+      "Slow to adapt",
+      "Predictable"
+    ],
+    "attack": 20,
+    "defence": 25,
+    "speed": 30,
+    "health": 50,
+    "overallScore": 60
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Chromesentry",
+    "description": "Sentinel of the clan.",
+    "strengths": [
+      "High defense",
+      "Reflective armor",
+      "Tactical mind"
+    ],
+    "weaknesses": [
+      "Low mobility",
+      "Resistant to change",
+      "Overly cautious"
+    ],
+    "attack": 35,
+    "defence": 40,
+    "speed": 25,
+    "health": 70,
+    "overallScore": 85
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Goldenbloom",
+    "description": "Leads with honor and grace.",
+    "strengths": [
+      "Strong leader",
+      "High attack",
+      "Inspires allies"
+    ],
+    "weaknesses": [
+      "Prideful",
+      "Risk taker",
+      "Values honor over self"
+    ],
+    "attack": 50,
+    "defence": 40,
+    "speed": 35,
+    "health": 85,
+    "overallScore": 110
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Platinum Sage",
+    "description": "Wise mind and calm heart.",
+    "strengths": [
+      "Powerful magic",
+      "Strategic genius",
+      "Supportive"
+    ],
+    "weaknesses": [
+      "Low attack",
+      "Physically weak",
+      "Prioritizes peace"
+    ],
+    "attack": 30,
+    "defence": 50,
+    "speed": 30,
+    "health": 90,
+    "overallScore": 120
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Iridium Champion",
+    "description": "Unstoppable force.",
+    "strengths": [
+      "High damage",
+      "High defense",
+      "Hard to break"
+    ],
+    "weaknesses": [
+      "Slow speed",
+      "Needs support",
+      "Can be stubborn"
+    ],
+    "attack": 70,
+    "defence": 60,
+    "speed": 25,
+    "health": 110,
+    "overallScore": 150
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Auroraforge",
+    "description": "Forged in brilliance.",
+    "strengths": [
+      "Massive power",
+      "Versatile",
+      "Adaptive"
+    ],
+    "weaknesses": [
+      "High maintenance",
+      "Attracts attention",
+      "Overthinks"
+    ],
+    "attack": 85,
+    "defence": 70,
+    "speed": 40,
+    "health": 130,
+    "overallScore": 190
+  },
+  {
+    "clan": "Metal Clan",
+    "form": 1,
+    "name": "Ancient Pricklord",
+    "description": "Oldest of the clan.",
+    "strengths": [
+      "Legendary power",
+      "Battle wisdom",
+      "Command aura"
+    ],
+    "weaknesses": [
+      "Old and damaged",
+      "Slow to move",
+      "Haunted by war"
+    ],
+    "attack": 90,
+    "defence": 85,
+    "speed": 25,
+    "health": 150,
+    "overallScore": 220
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Sprouting",
+    "description": "A new life emerges where water flows.",
+    "strengths": [
+      "Gentle",
+      "Curious",
+      "Adaptable"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Inexperienced",
+      "Avoids conflict"
+    ],
+    "attack": 20,
+    "defence": 15,
+    "speed": 50,
+    "health": 30,
+    "overallScore": 99
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Palmfrond",
+    "description": "Grows with the oasis.",
+    "strengths": [
+      "Quick learner",
+      "Agile",
+      "Loyal"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Impulsive",
+      "Easily distracted"
+    ],
+    "attack": 35,
+    "defence": 25,
+    "speed": 70,
+    "health": 40,
+    "overallScore": 100
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Dunesage",
+    "description": "Commands water and sand.",
+    "strengths": [
+      "Wise",
+      "Resilient",
+      "Supportive"
+    ],
+    "weaknesses": [
+      "Slow attack",
+      "Reluctant to harm",
+      "Takes time to act"
+    ],
+    "attack": 55,
+    "defence": 60,
+    "speed": 35,
+    "health": 70,
+    "overallScore": 99
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Mirageguard",
+    "description": "Guardian of the oasis.",
+    "strengths": [
+      "Strong defense",
+      "Illusion magic",
+      "Protective"
+    ],
+    "weaknesses": [
+      "Low speed",
+      "Overconfident",
+      "Vulnerable to fire"
+    ],
+    "attack": 70,
+    "defence": 80,
+    "speed": 40,
+    "health": 80,
+    "overallScore": "1000-2499"
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Oasis Sovereign",
+    "description": "Keeper of all waters.",
+    "strengths": [
+      "Powerful magic",
+      "Leadership",
+      "Healer"
+    ],
+    "weaknesses": [
+      "High mana cost",
+      "Targeted by enemies",
+      "Needs allies"
+    ],
+    "attack": 95,
+    "defence": 95,
+    "speed": 30,
+    "health": 100,
+    "overallScore": "2500+"
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Tidestrider",
+    "description": "Rides the tides with grace.",
+    "strengths": [
+      "High speed",
+      "Evasion",
+      "Quick strikes"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Low defense",
+      "Risk taker"
+    ],
+    "attack": 70,
+    "defence": 30,
+    "speed": 95,
+    "health": 40,
+    "overallScore": 110
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Aquasage",
+    "description": "Master of waters and wisdom.",
+    "strengths": [
+      "Healing magic",
+      "Area control",
+      "High intelligence"
+    ],
+    "weaknesses": [
+      "Low attack",
+      "Fragile",
+      "Needs protection"
+    ],
+    "attack": 40,
+    "defence": 60,
+    "speed": 35,
+    "health": 70,
+    "overallScore": "1500-2499"
+  },
+  {
+    "clan": "Oasis Clan",
+    "form": 1,
+    "name": "Dunesoverlord",
+    "description": "Lord of sand and sea.",
+    "strengths": [
+      "Ranged expert",
+      "Area damage",
+      "Battle control"
+    ],
+    "weaknesses": [
+      "Very high mana cost",
+      "Slow cast time",
+      "Depends on terrain"
+    ],
+    "attack": 95,
+    "defence": 85,
+    "speed": 25,
+    "health": 100,
+    "overallScore": "3000+"
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Prickling",
+    "description": "Youngest of the clan.",
+    "strengths": [
+      "Quick learner",
+      "Agile",
+      "Brave heart"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Inexperienced",
+      "Easily distracted"
+    ],
+    "attack": 20,
+    "defence": 20,
+    "speed": 60,
+    "health": 40,
+    "overallScore": 99
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Spiket",
+    "description": "Trusted fighter of the clan.",
+    "strengths": [
+      "Sharp attack",
+      "Fast and agile",
+      "Loyal"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Overconfident",
+      "Solo fighter"
+    ],
+    "attack": 60,
+    "defence": 30,
+    "speed": 70,
+    "health": 30,
+    "overallScore": 100
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Bloomguard",
+    "description": "Blooms with strength.",
+    "strengths": [
+      "High defense",
+      "Durable",
+      "Protective"
+    ],
+    "weaknesses": [
+      "Lower speed",
+      "Heavy",
+      "Slow to adapt"
+    ],
+    "attack": 55,
+    "defence": 80,
+    "speed": 40,
+    "health": 70,
+    "overallScore": 99
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Thorncrown",
+    "description": "Leader among warriors.",
+    "strengths": [
+      "Strong leader",
+      "High attack",
+      "Strategic"
+    ],
+    "weaknesses": [
+      "Prideful",
+      "Takes risks",
+      "Vulnerable to magic"
+    ],
+    "attack": 80,
+    "defence": 70,
+    "speed": 50,
+    "health": 60,
+    "overallScore": 100
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Desert Titan",
+    "description": "Legend of the desert.",
+    "strengths": [
+      "Massive power",
+      "High defense",
+      "Area control"
+    ],
+    "weaknesses": [
+      "Very slow",
+      "High mana cost",
+      "Targeted by all"
+    ],
+    "attack": 95,
+    "defence": 95,
+    "speed": 20,
+    "health": 100,
+    "overallScore": "2500+"
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Sunspire",
+    "description": "Bringer of light and life.",
+    "strengths": [
+      "Healing abilities",
+      "Supportive",
+      "Bright aura"
+    ],
+    "weaknesses": [
+      "Low physical defense",
+      "Depends on allies",
+      "Low health"
+    ],
+    "attack": 40,
+    "defence": 40,
+    "speed": 60,
+    "health": 50,
+    "overallScore": 120
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Sandstalker",
+    "description": "Moves like the desert wind.",
+    "strengths": [
+      "Stealthy",
+      "High speed",
+      "Critical strikes"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Low health",
+      "Risky fighter"
+    ],
+    "attack": 70,
+    "defence": 25,
+    "speed": 90,
+    "health": 30,
+    "overallScore": 110
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Prickshot",
+    "description": "From afar, no one is safe.",
+    "strengths": [
+      "Ranged expert",
+      "Precise aim",
+      "High agility"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Fragile",
+      "Needs distance"
+    ],
+    "attack": 65,
+    "defence": 30,
+    "speed": 65,
+    "health": 35,
+    "overallScore": 105
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Coconi",
+    "description": "Small in size, big in heart.",
+    "strengths": [
+      "Friendly nature",
+      "Quick learner",
+      "Adaptable"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Low damage",
+      "Naive"
+    ],
+    "attack": 10,
+    "defence": 10,
+    "speed": 20,
+    "health": 30,
+    "overallScore": 40
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Pinebud",
+    "description": "Energetic and bold.",
+    "strengths": [
+      "Brave spirit",
+      "Fast and agile",
+      "Team player"
+    ],
+    "weaknesses": [
+      "Overconfident",
+      "Easily distracted",
+      "Low endurance"
+    ],
+    "attack": 20,
+    "defence": 15,
+    "speed": 35,
+    "health": 40,
+    "overallScore": 60
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Mangolo",
+    "description": "Quick on its feet.",
+    "strengths": [
+      "High speed",
+      "Strong defender",
+      "Resilient"
+    ],
+    "weaknesses": [
+      "Stubborn",
+      "Hates to lose",
+      "Impulsive"
+    ],
+    "attack": 40,
+    "defence": 30,
+    "speed": 45,
+    "health": 60,
+    "overallScore": 85
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Papayo",
+    "description": "Gentle healer who brings peace.",
+    "strengths": [
+      "Healer",
+      "Calm under pressure",
+      "Wisdom"
+    ],
+    "weaknesses": [
+      "Low attack",
+      "Avoids conflict",
+      "Overthinks"
+    ],
+    "attack": 30,
+    "defence": 45,
+    "speed": 30,
+    "health": 70,
+    "overallScore": 100
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Banoni",
+    "description": "Steadfast and loyal.",
+    "strengths": [
+      "High stamina",
+      "Supportive",
+      "Loyal"
+    ],
+    "weaknesses": [
+      "Low damage",
+      "Too trusting",
+      "Hates cruelty"
+    ],
+    "attack": 35,
+    "defence": 55,
+    "speed": 35,
+    "health": 85,
+    "overallScore": 120
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Kiwini",
+    "description": "Wise and composed.",
+    "strengths": [
+      "Balanced",
+      "Wise strategist",
+      "Versatile"
+    ],
+    "weaknesses": [
+      "Slow to act",
+      "Hates chaos",
+      "Soft-hearted"
+    ],
+    "attack": 50,
+    "defence": 50,
+    "speed": 45,
+    "health": 100,
+    "overallScore": 150
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Dragopalm",
+    "description": "Radiant and inspiring.",
+    "strengths": [
+      "High magic",
+      "Area support",
+      "Inspires allies"
+    ],
+    "weaknesses": [
+      "Low physical defense",
+      "Needs rest",
+      "Overextends"
+    ],
+    "attack": 70,
+    "defence": 60,
+    "speed": 60,
+    "health": 130,
+    "overallScore": 190
+  },
+  {
+    "clan": "Tropica Clan",
+    "form": 1,
+    "name": "Watermelord",
+    "description": "Guardian of peace and prosperity.",
+    "strengths": [
+      "Supreme leader",
+      "Powerful magic",
+      "Peacekeeper"
+    ],
+    "weaknesses": [
+      "Too merciful",
+      "Carries the burden",
+      "Rarely rests"
+    ],
+    "attack": 90,
+    "defence": 80,
+    "speed": 70,
+    "health": 150,
+    "overallScore": "250+"
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Dustling",
+    "description": "Small, light, and full of potential.",
+    "strengths": [
+      "Lightweight",
+      "Adaptable",
+      "Hard to catch"
+    ],
+    "weaknesses": [
+      "Very weak",
+      "No defense",
+      "Easily stopped"
+    ],
+    "attack": 10,
+    "defence": 10,
+    "speed": 80,
+    "health": 20,
+    "overallScore": 30
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Whirler",
+    "description": "Uses speed to outmaneuver foes.",
+    "strengths": [
+      "Fast mover",
+      "Quick reflexes",
+      "Surprising"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Low strength",
+      "Vulnerable to fire"
+    ],
+    "attack": 25,
+    "defence": 20,
+    "speed": 90,
+    "health": 40,
+    "overallScore": 60
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Galebinder",
+    "description": "Commands wind and terrain.",
+    "strengths": [
+      "Wind control",
+      "Tactical mind",
+      "Area disruption"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Needs space",
+      "Weak up close"
+    ],
+    "attack": 60,
+    "defence": 40,
+    "speed": 70,
+    "health": 60,
+    "overallScore": 90
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Duststorm",
+    "description": "Walking storm of destruction.",
+    "strengths": [
+      "Massive speed",
+      "Area damage",
+      "Unstoppable"
+    ],
+    "weaknesses": [
+      "Hard to control",
+      "Weak to water",
+      "Low precision"
+    ],
+    "attack": 85,
+    "defence": 50,
+    "speed": 95,
+    "health": 70,
+    "overallScore": 150
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Sandlord",
+    "description": "Ruler of desert winds.",
+    "strengths": [
+      "High power",
+      "Storm control",
+      "Natural leader"
+    ],
+    "weaknesses": [
+      "Large target",
+      "Energy draining",
+      "Needs dry sands"
+    ],
+    "attack": 95,
+    "defence": 75,
+    "speed": 80,
+    "health": 90,
+    "overallScore": 180
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Dunehunter",
+    "description": "Silent stalker across the dunes.",
+    "strengths": [
+      "High accuracy",
+      "Stealthy",
+      "First strike"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Low health",
+      "Weak in storms"
+    ],
+    "attack": 70,
+    "defence": 30,
+    "speed": 85,
+    "health": 50,
+    "overallScore": 120
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Sandsweeper",
+    "description": "Crushes foes beneath its relentless roll.",
+    "strengths": [
+      "Crushing power",
+      "High durability",
+      "Area control"
+    ],
+    "weaknesses": [
+      "Slow turning",
+      "Poor aim",
+      "Needs momentum"
+    ],
+    "attack": 80,
+    "defence": 80,
+    "speed": 40,
+    "health": 100,
+    "overallScore": 150
+  },
+  {
+    "clan": "Tumbleweed Clan",
+    "form": 1,
+    "name": "Windseer",
+    "description": "Sees the winds before they come.",
+    "strengths": [
+      "Wind prediction",
+      "Support abilities",
+      "Strategic mind"
+    ],
+    "weaknesses": [
+      "Low attack",
+      "Fragile body",
+      "Depends on allies"
+    ],
+    "attack": 30,
+    "defence": 40,
+    "speed": 70,
+    "health": 60,
+    "overallScore": 100
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Spark",
+    "description": "Tiny ember given life.",
+    "strengths": [
+      "Silent",
+      "Quick",
+      "Stealthy"
+    ],
+    "weaknesses": [
+      "Fragile",
+      "Low health",
+      "Light armor"
+    ],
+    "attack": 20,
+    "defence": 20,
+    "speed": 60,
+    "health": 40,
+    "overallScore": 99
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Flareling",
+    "description": "Burns brighter and faster.",
+    "strengths": [
+      "Quick learner",
+      "Agile",
+      "Brave heart"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Inexperienced",
+      "Easily distracted"
+    ],
+    "attack": 20,
+    "defence": 20,
+    "speed": 60,
+    "health": 40,
+    "overallScore": 100
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Infernoblade",
+    "description": "Seasoned fighter forged in heat.",
+    "strengths": [
+      "High defense",
+      "Durable",
+      "Protective"
+    ],
+    "weaknesses": [
+      "Lower speed",
+      "Heavy",
+      "Slow to adapt"
+    ],
+    "attack": 55,
+    "defence": 80,
+    "speed": 40,
+    "health": 70,
+    "overallScore": 99
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Conflagrator",
+    "description": "Commands firestorms and chaos.",
+    "strengths": [
+      "Strong leader",
+      "High attack",
+      "Strategic"
+    ],
+    "weaknesses": [
+      "Prideful",
+      "Takes risks",
+      "Vulnerable to magic"
+    ],
+    "attack": 80,
+    "defence": 70,
+    "speed": 50,
+    "health": 60,
+    "overallScore": "1000-2499"
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Wildfire Lord",
+    "description": "Living inferno consuming all.",
+    "strengths": [
+      "Massive power",
+      "High defense",
+      "Area control"
+    ],
+    "weaknesses": [
+      "Very slow",
+      "High mana cost",
+      "Targeted by all"
+    ],
+    "attack": 95,
+    "defence": 95,
+    "speed": 20,
+    "health": 100,
+    "overallScore": "2500+"
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Ashstalker",
+    "description": "Moves like smoke.",
+    "strengths": [
+      "Stealthy",
+      "High speed",
+      "Critical strikes"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Low health",
+      "Risky fighter"
+    ],
+    "attack": 70,
+    "defence": 25,
+    "speed": 90,
+    "health": 30,
+    "overallScore": 110
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Emberwraith",
+    "description": "Wraith of living flame.",
+    "strengths": [
+      "High magic",
+      "Life steal",
+      "Burn damage"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Vulnerable to light",
+      "No allies"
+    ],
+    "attack": 85,
+    "defence": 25,
+    "speed": 85,
+    "health": 40,
+    "overallScore": "1500-2999"
+  },
+  {
+    "clan": "Wildfire Clan",
+    "form": 1,
+    "name": "Pyroclast",
+    "description": "Born from magma.",
+    "strengths": [
+      "Ranged expert",
+      "Area damage",
+      "High durability"
+    ],
+    "weaknesses": [
+      "Low agility",
+      "Slow attack speed",
+      "High mana cost"
+    ],
+    "attack": 90,
+    "defence": 95,
+    "speed": 30,
+    "health": 120,
+    "overallScore": "3000+"
+  }
+]
