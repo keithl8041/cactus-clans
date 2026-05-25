@@ -282,9 +282,6 @@ export class BalloonScene extends Phaser.Scene {
   private spawnDifficultySpikes(): void {
     const { width, height } = this.scale;
 
-    if (this.hitCount === CFG.firstCeilingSpikeAt) {
-      this.spawnCactus(this.hazardSpikeGroup, width * 0.5, CFG.ceilingPadding, 'down');
-    }
     if (this.hitCount === CFG.firstWallSpikeAt) {
       this.spawnCactus(this.hazardSpikeGroup, CFG.wallPadding, height * 0.5, 'right');
       this.spawnCactus(this.hazardSpikeGroup, width - CFG.wallPadding, height * 0.5, 'left');

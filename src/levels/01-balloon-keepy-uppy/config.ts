@@ -32,10 +32,8 @@ export const BALLOON_CONFIG = {
   hitCooldownMs: 250,
 
   // Difficulty: spikes
-  firstCeilingSpikeAt: 6,
   firstWallSpikeAt: 12,
   spikeRampEvery: 4,
-  ceilingPadding: 16,
   wallPadding: 16,
 
   // Difficulty: wind
