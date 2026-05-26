@@ -20,8 +20,10 @@ import { lizardSvg, type LizardOptions } from './placeholders/lizard';
 import { petCactusSvg, type PetCactusOptions } from './placeholders/petCactus';
 import { potSvg, type PotOptions } from './placeholders/pot';
 import { rainOverlaySvg, type RainOverlayOptions } from './placeholders/rainOverlay';
+import { sliceableCactusSvg, type SliceableCactusOptions } from './placeholders/sliceableCactus';
 import { starSvg, type StarOptions } from './placeholders/star';
 import { sunOverlaySvg, type SunOverlayOptions } from './placeholders/sunOverlay';
+import { tarantulaSvg, type TarantulaOptions } from './placeholders/tarantula';
 import { wateringCanSvg, type WateringCanOptions } from './placeholders/wateringCan';
 
 export type AssetOptions =
@@ -34,8 +36,10 @@ export type AssetOptions =
   | PetCactusOptions
   | PotOptions
   | RainOverlayOptions
+  | SliceableCactusOptions
   | StarOptions
   | SunOverlayOptions
+  | TarantulaOptions
   | WateringCanOptions
   | undefined;
 
@@ -57,10 +61,14 @@ export const ASSETS: Record<string, AssetEntry> = {
   'lizard.down': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'down' }) },
   'lizard.bandit': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'up', bandit: true }) },
   'cactus.pet': { kind: 'svg', generate: (opts) => petCactusSvg(opts as PetCactusOptions) },
+  'cactus.whole': { kind: 'svg', generate: (opts) => sliceableCactusSvg({ ...(opts as SliceableCactusOptions), side: 'whole' }) },
+  'cactus.half.left': { kind: 'svg', generate: (opts) => sliceableCactusSvg({ ...(opts as SliceableCactusOptions), side: 'left' }) },
+  'cactus.half.right': { kind: 'svg', generate: (opts) => sliceableCactusSvg({ ...(opts as SliceableCactusOptions), side: 'right' }) },
   pot: { kind: 'svg', generate: (opts) => potSvg(opts as PotOptions) },
   rainOverlay: { kind: 'svg', generate: (opts) => rainOverlaySvg(opts as RainOverlayOptions) },
   star: { kind: 'svg', generate: (opts) => starSvg(opts as StarOptions) },
   sunOverlay: { kind: 'svg', generate: (opts) => sunOverlaySvg(opts as SunOverlayOptions) },
+  tarantula: { kind: 'svg', generate: (opts) => tarantulaSvg(opts as TarantulaOptions) },
   wateringCan: { kind: 'svg', generate: (opts) => wateringCanSvg(opts as WateringCanOptions) },
 };
 

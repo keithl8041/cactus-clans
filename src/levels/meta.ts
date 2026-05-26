@@ -39,6 +39,13 @@ export const LEVEL_META: LevelMeta[] = [
     blurb: 'Keep your pet cactus happy. Water it just enough — not too dry, not too soaked.',
     passThreshold: 24, // keep in sync with CACTUS_CARE_CONFIG.passThreshold
   },
+  {
+    id: '05-cactus-slicing',
+    number: 5,
+    title: 'Cactus Slicing',
+    blurb: 'Slash flying cacti — but watch out for tarantulas!',
+    passThreshold: 45, // keep in sync with CACTUS_SLICING_CONFIG.passThreshold
+  },
 ];
 
 export const MAX_LEVEL = 8;
