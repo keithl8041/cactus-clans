@@ -9,10 +9,6 @@ type SpikeOrientation = 'up' | 'down' | 'left' | 'right';
 
 interface ActivePointer {
   side: 'left' | 'right';
-  downAt: number;
-  downX: number;
-  downY: number;
-  moved: boolean;
 }
 
 export class BalloonScene extends Phaser.Scene {
@@ -43,10 +39,13 @@ export class BalloonScene extends Phaser.Scene {
   private keyA!: Phaser.Input.Keyboard.Key;
   private keyD!: Phaser.Input.Keyboard.Key;
 
-  // Pointer hold-zone state. Each active touch is tracked: which half it's
-  // currently on (steers that direction), and whether it has moved/held long
-  // enough to disqualify it as a tap (a quick tap fires `tryJump` on release).
+  // Pointer hold-zone state. Each active touch is tracked by which half of the
+  // screen it's currently on — that steers the player in that direction.
+  // Jumping is a separate on-screen button (see `setupJumpButton`).
   private activePointers = new Map<number, ActivePointer>();
+  private jumpButtonBg!: Phaser.GameObjects.Arc;
+  private jumpButtonLabel!: Phaser.GameObjects.Text;
+  private jumpButtonHit!: Phaser.Geom.Circle;
 
   private lastHitAt = 0;
   private windTimer?: Phaser.Time.TimerEvent;
@@ -89,6 +88,7 @@ export class BalloonScene extends Phaser.Scene {
     this.setupSpikes();
     this.setupInput();
     this.setupHud();
+    this.setupJumpButton();
 
     this.startedAt = this.time.now;
     this.scheduleWind();
@@ -184,7 +184,7 @@ export class BalloonScene extends Phaser.Scene {
 
   private setupInput(): void {
     // Phaser starts with 2 pointers (mouse + one touch). Add 2 more so a player
-    // can hold a steering finger AND tap-jump with another finger comfortably.
+    // can hold a steering finger AND press the jump button with another finger.
     this.input.addPointer(2);
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.handlePointerDown(p));
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.handlePointerMove(p));
@@ -224,16 +224,40 @@ export class BalloonScene extends Phaser.Scene {
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(10);
   }
 
+  private setupJumpButton(): void {
+    const { width, height } = this.scale;
+    const r = CFG.jumpButtonRadius;
+    const cx = width - CFG.jumpButtonMargin - r;
+    const cy = height - CFG.floorPadding - CFG.jumpButtonMargin - r;
+
+    this.jumpButtonBg = this.add.circle(cx, cy, r, 0xf7c948, 0.85)
+      .setStrokeStyle(3, 0x7a4d0c)
+      .setScrollFactor(0)
+      .setDepth(12);
+    this.jumpButtonLabel = this.add.text(cx, cy, '↑', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '40px',
+      color: '#3d2a07',
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(13);
+
+    // Hit area is slightly larger than the visible circle for forgiving taps.
+    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 8);
+  }
+
   // ----- Input handlers -----
 
   private handlePointerDown(p: Phaser.Input.Pointer): void {
     if (this.finished) return;
+    // Jump button takes priority over steering hold-zones so a tap on the
+    // button doesn't also drag the player toward that side.
+    if (Phaser.Geom.Circle.Contains(this.jumpButtonHit, p.x, p.y)) {
+      this.pressJumpButton();
+      this.tryJump();
+      return;
+    }
     this.activePointers.set(p.id, {
       side: p.x < this.scale.width / 2 ? 'left' : 'right',
-      downAt: this.time.now,
-      downX: p.x,
-      downY: p.y,
-      moved: false,
     });
   }
 
@@ -241,24 +265,26 @@ export class BalloonScene extends Phaser.Scene {
     if (this.finished || !p.isDown) return;
     const entry = this.activePointers.get(p.id);
     if (!entry) return;
-    const dx = Math.abs(p.x - entry.downX);
-    const dy = Math.abs(p.y - entry.downY);
-    if (!entry.moved && (dx > CFG.tapMoveThresholdPx || dy > CFG.tapMoveThresholdPx)) {
-      entry.moved = true;
-    }
     // Live re-evaluation of the side so the player can slide across the middle
     // line without lifting their finger.
     entry.side = p.x < this.scale.width / 2 ? 'left' : 'right';
   }
 
   private handlePointerUp(p: Phaser.Input.Pointer): void {
-    const entry = this.activePointers.get(p.id);
     this.activePointers.delete(p.id);
-    if (this.finished || !entry) return;
-    const heldMs = this.time.now - entry.downAt;
-    if (!entry.moved && heldMs < CFG.tapMaxMs) {
-      this.tryJump();
-    }
+  }
+
+  private pressJumpButton(): void {
+    this.tweens.killTweensOf(this.jumpButtonBg);
+    this.tweens.killTweensOf(this.jumpButtonLabel);
+    this.jumpButtonBg.setScale(0.88);
+    this.jumpButtonLabel.setScale(0.88);
+    this.tweens.add({
+      targets: [this.jumpButtonBg, this.jumpButtonLabel],
+      scale: 1,
+      duration: 140,
+      ease: 'Back.easeOut',
+    });
   }
 
   // ----- Gameplay -----

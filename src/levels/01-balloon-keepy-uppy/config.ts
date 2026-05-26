@@ -19,9 +19,9 @@ export const BALLOON_CONFIG = {
   playerJumpImpulse: -520,
   playerGroundDrag: 1200,       // horizontal drag when no input (px/sec^2)
 
-  // Input
-  tapMoveThresholdPx: 14,       // pointer travel above which a press is treated as a hold, not a tap
-  tapMaxMs: 220,                // pointer held longer than this is not a tap
+  // Input — touch jump button
+  jumpButtonRadius: 48,         // visible radius (px); hit area is slightly larger
+  jumpButtonMargin: 18,         // distance from the bottom-right corner (above the floor strip)
 
   // Balloon bounce off player
   balloonMaxBounceVX: 280,
