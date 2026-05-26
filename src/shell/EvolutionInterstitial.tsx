@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { assetUrl } from '../assets/manifest';
+import { assetUrl, resolveCharacterKey } from '../assets/manifest';
 import { cardFor } from '../data/cards';
 
 interface Props {
@@ -28,8 +28,8 @@ export function EvolutionInterstitial({ clanName, clanColor, fromForm, toForm, o
     return () => window.removeEventListener('keydown', onKey);
   }, [onContinue]);
 
-  const fromUrl = assetUrl('character', { clanColor, formNumber: fromForm, size: 240 });
-  const toUrl = assetUrl('character', { clanColor, formNumber: toForm, size: 240 });
+  const fromUrl = assetUrl(resolveCharacterKey(clanName, fromForm), { clanColor, formNumber: fromForm, size: 240 });
+  const toUrl = assetUrl(resolveCharacterKey(clanName, toForm), { clanColor, formNumber: toForm, size: 240 });
   const fromCard = cardFor(clanName, fromForm);
   const toCard = cardFor(clanName, toForm);
 
@@ -37,8 +37,8 @@ export function EvolutionInterstitial({ clanName, clanColor, fromForm, toForm, o
     <div className="evolution-overlay">
       <h1>Evolving…</h1>
       <div className="evolution-stage">
-        <img src={fromUrl} className={`evolution-img ${phase === 'from' ? 'in' : 'out'}`} alt={`Form ${fromForm}`} />
-        <img src={toUrl} className={`evolution-img ${phase === 'to' ? 'in' : 'out'}`} alt={`Form ${toForm}`} />
+        <img src={fromUrl} className={`evolution-img ${phase === 'from' ? 'in' : 'out'}`} alt={`Form ${fromForm}`} width={240} />
+        <img src={toUrl} className={`evolution-img ${phase === 'to' ? 'in' : 'out'}`} alt={`Form ${toForm}`} width={240} />
       </div>
       <h2>
         <span className={phase === 'from' ? 'evolution-name in' : 'evolution-name out'}>

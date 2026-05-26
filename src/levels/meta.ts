@@ -18,6 +18,13 @@ export const LEVEL_META: LevelMeta[] = [
     blurb: 'Tap to keep the balloon airborne. Watch out for cactus spikes!',
     passThreshold: 20,
   },
+  {
+    id: '02-cactus-darts',
+    number: 2,
+    title: 'Cactus Dart Toss',
+    blurb: 'Sling cactus spikes at the dartboard. Bullseyes count for the most.',
+    passThreshold: 12,
+  },
 ];
 
 export const MAX_LEVEL = 8;

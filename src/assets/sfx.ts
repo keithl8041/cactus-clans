@@ -89,6 +89,24 @@ export const sfx = {
     tone({ freq: 784, durationMs: 110, type: 'triangle', volume: 0.22, delayMs: 220 }); // G5
     tone({ freq: 1047, durationMs: 260, type: 'triangle', volume: 0.24, delayMs: 330 }); // C6
   },
+  /** Cactus spike released from the slingshot. Short rising whoosh. */
+  throw(): void {
+    tone({ freq: 200, endFreq: 500, durationMs: 90, type: 'sine', volume: 0.16 });
+  },
+  /** Spike lands on the dartboard. Thuddy hit. */
+  thunk(): void {
+    tone({ freq: 380, endFreq: 180, durationMs: 140, type: 'square', volume: 0.18 });
+  },
+  /** Bullseye! Triumphant arpeggio. */
+  bullseye(): void {
+    tone({ freq: 523, durationMs: 70, type: 'triangle', volume: 0.22 }); // C5
+    tone({ freq: 659, durationMs: 70, type: 'triangle', volume: 0.22, delayMs: 70 }); // E5
+    tone({ freq: 784, durationMs: 140, type: 'triangle', volume: 0.24, delayMs: 140 }); // G5
+  },
+  /** Spike fell off-screen without hitting the board. Soft descending plip. */
+  miss(): void {
+    tone({ freq: 300, endFreq: 180, durationMs: 120, type: 'sine', volume: 0.12 });
+  },
   setMuted(value: boolean): void {
     muted = value;
   },

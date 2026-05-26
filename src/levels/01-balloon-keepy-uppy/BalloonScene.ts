@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
+import { resolveBalloonKey, resolveCharacterKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import type { LevelContext } from '../types';
 import { BALLOON_CONFIG as CFG } from './config';
@@ -57,9 +58,12 @@ export class BalloonScene extends Phaser.Scene {
   }
 
   preload(): void {
-    loadAsset(this, 'balloon', 'balloon', { color: this.ctx.clan.color, size: CFG.balloonSize });
-    loadAsset(this, 'cactus.spike', 'cactus.spike', { height: CFG.cactusSize, width: CFG.cactusSize * 0.7 });
-    loadAsset(this, 'character', 'character', {
+    loadAsset(this, 'balloon', resolveBalloonKey(this.ctx.clan.name), {
+      color: this.ctx.clan.color,
+      size: CFG.balloonSize,
+    });
+    loadAsset(this, 'cactus.spike', 'cactus.spike');
+    loadAsset(this, 'character', resolveCharacterKey(this.ctx.clan.name, this.ctx.formNumber), {
       clanColor: this.ctx.clan.color,
       formNumber: this.ctx.formNumber,
       size: CFG.playerSize,
@@ -122,19 +126,25 @@ export class BalloonScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const spawnY = height - CFG.floorPadding - CFG.playerSize / 2;
     this.player = this.physics.add.sprite(width / 2, spawnY, 'character');
+    // Scale to the configured player size while preserving aspect ratio. The
+    // procedural SVG is already sized to fit, so this is ~no-op for the
+    // fallback; the static-art PNGs (280×280) get downscaled to 96px tall.
+    this.player.setScale(CFG.playerSize / this.player.height);
     this.player.setCollideWorldBounds(true);
     this.player.setMaxVelocity(CFG.playerMaxSpeed, CFG.playerMaxFallSpeed);
     this.player.setDragX(CFG.playerGroundDrag);
     // Shrink the body so the balloon can perch on the head without immediate re-overlap.
+    // setSize/setOffset are in texture pixels — Phaser applies the sprite's scale.
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    body.setSize(this.player.displayWidth * 0.6, this.player.displayHeight * 0.85);
-    body.setOffset(this.player.displayWidth * 0.2, this.player.displayHeight * 0.1);
+    body.setSize(this.player.width * 0.6, this.player.height * 0.85);
+    body.setOffset(this.player.width * 0.2, this.player.height * 0.1);
     this.physics.add.collider(this.player, this.floor);
   }
 
   private setupBalloon(): void {
     const { width, height } = this.scale;
     this.balloon = this.physics.add.sprite(width / 2, height * 0.3, 'balloon');
+    this.balloon.setScale(CFG.balloonSize / this.balloon.height);
     this.balloon.setCollideWorldBounds(true, 0.85, 0.85);
     this.balloon.setMaxVelocity(400, CFG.maxFallSpeed);
     this.balloon.setDragX(20);
@@ -142,9 +152,9 @@ export class BalloonScene extends Phaser.Scene {
     const body = this.balloon.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(true);
     body.setGravityY(CFG.balloonGravityY - CFG.baseGravity);
-    // Slight body shrink for fairer hit detection.
-    body.setSize(this.balloon.displayWidth * 0.85, this.balloon.displayHeight * 0.85);
-    body.setOffset(this.balloon.displayWidth * 0.075, this.balloon.displayHeight * 0.075);
+    // Slight body shrink for fairer hit detection. Texture pixels — Phaser scales.
+    body.setSize(this.balloon.width * 0.85, this.balloon.height * 0.85);
+    body.setOffset(this.balloon.width * 0.075, this.balloon.height * 0.075);
 
     // Player-balloon overlap = the hit
     this.physics.add.overlap(this.player, this.balloon, () => this.onPlayerHitsBalloon());
@@ -370,6 +380,7 @@ export class BalloonScene extends Phaser.Scene {
     orientation: SpikeOrientation,
   ): void {
     const s = group.create(x, y, 'cactus.spike') as Phaser.Physics.Arcade.Sprite;
+    s.setScale(CFG.cactusSize / s.height);
     switch (orientation) {
       case 'up':
         s.setOrigin(0.5, 1);
@@ -391,12 +402,13 @@ export class BalloonScene extends Phaser.Scene {
     s.refreshBody();
     const body = s.body as Phaser.Physics.Arcade.StaticBody;
     // For up/down the spike is narrow horizontally; for left/right it's narrow vertically.
+    // setSize/setOffset use texture pixels — Phaser applies the sprite's scale.
     if (orientation === 'up' || orientation === 'down') {
-      body.setSize(s.displayWidth * 0.5, s.displayHeight * 0.85);
-      body.setOffset(s.displayWidth * 0.25, s.displayHeight * 0.1);
+      body.setSize(s.width * 0.5, s.height * 0.85);
+      body.setOffset(s.width * 0.25, s.height * 0.1);
     } else {
-      body.setSize(s.displayWidth * 0.85, s.displayHeight * 0.5);
-      body.setOffset(s.displayWidth * 0.1, s.displayHeight * 0.25);
+      body.setSize(s.width * 0.85, s.height * 0.5);
+      body.setOffset(s.width * 0.1, s.height * 0.25);
     }
   }
 

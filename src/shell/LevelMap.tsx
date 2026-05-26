@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGameStore, highestClearedLevel } from '../store/gameStore';
 import { clanByName } from '../data/clans';
 import { cardFor } from '../data/cards';
-import { assetUrl } from '../assets/manifest';
+import { assetUrl, resolveCharacterKey } from '../assets/manifest';
 import { levelMetaByNumber, MAX_LEVEL } from '../levels/meta';
 import { completeRun } from '../services/progress';
 import { submitMockRun } from '../services/leaderboard';
@@ -26,7 +26,13 @@ export function LevelMap() {
   const cleared = highestClearedLevel(run);
   const currentForm = Math.min(cleared + 1, MAX_LEVEL);
   const card = clan ? cardFor(clan.name, currentForm) : undefined;
-  const characterUrl = clan ? assetUrl('character', { clanColor: clan.color, formNumber: currentForm, size: 140 }) : '';
+  const characterUrl = clan
+    ? assetUrl(resolveCharacterKey(clan.name, currentForm), {
+        clanColor: clan.color,
+        formNumber: currentForm,
+        size: 140,
+      })
+    : '';
 
   async function finishRun() {
     if (!run || run.completedAt) return;
@@ -50,7 +56,7 @@ export function LevelMap() {
       <h2>
         Form {currentForm} of {MAX_LEVEL}: {card?.name ?? '???'}
       </h2>
-      {characterUrl && <img src={characterUrl} alt={`Form ${currentForm}`} style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))' }} />}
+      {characterUrl && <img src={characterUrl} alt={`Form ${currentForm}`} width={140} style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.4))' }} />}
       <div style={{ maxWidth: 480, color: 'var(--text-dim)' }}>{card?.description}</div>
 
       <div className="level-track">
