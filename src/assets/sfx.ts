@@ -45,23 +45,40 @@ function tone(opts: ToneOptions): void {
   if (muted) return;
   const ctx = getCtx();
   if (!ctx) return;
-  const t0 = ctx.currentTime + (opts.delayMs ?? 0) / 1000;
-  const t1 = t0 + opts.durationMs / 1000;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = opts.type ?? 'sine';
-  osc.frequency.setValueAtTime(opts.freq, t0);
-  if (opts.endFreq != null) {
-    // exponentialRamp can't hit 0 — endFreq must be > 0, which it always is here.
-    osc.frequency.exponentialRampToValueAtTime(opts.endFreq, t1);
+  try {
+    const t0 = ctx.currentTime + (opts.delayMs ?? 0) / 1000;
+    const t1 = t0 + opts.durationMs / 1000;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = opts.type ?? 'sine';
+    osc.frequency.setValueAtTime(opts.freq, t0);
+    if (opts.endFreq != null) {
+      // exponentialRamp can't hit 0 — endFreq must be > 0, which it always is here.
+      osc.frequency.exponentialRampToValueAtTime(opts.endFreq, t1);
+    }
+    const peak = opts.volume ?? 0.2;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t1);
+    osc.connect(gain).connect(ctx.destination);
+    // Disconnect explicitly when the node finishes — some browsers (notably
+    // some Chromium builds) will start throwing once short-lived nodes pile
+    // up in the audio graph without being released. The default GC isn't
+    // aggressive enough during heavy input bursts (rapid jumps).
+    osc.onended = () => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+      } catch {
+        /* ignore — already disconnected */
+      }
+    };
+    osc.start(t0);
+    osc.stop(t1 + 0.02);
+  } catch {
+    // If audio ever throws (node limit, closed context, etc.) we never want
+    // it to break the calling scene's input handler.
   }
-  const peak = opts.volume ?? 0.2;
-  gain.gain.setValueAtTime(0.0001, t0);
-  gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, t1);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(t0);
-  osc.stop(t1 + 0.02);
 }
 
 export const sfx = {

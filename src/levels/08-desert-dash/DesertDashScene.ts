@@ -53,6 +53,15 @@ export class DesertDashScene extends Phaser.Scene {
   private floor!: Phaser.GameObjects.Zone;
   private usedDoubleJump = false;
   private wasGrounded = true;
+  // Coyote time (still allow a ground jump shortly after leaving the floor) and
+  // jump buffer (a press just before landing fires on touch-down). Without these,
+  // `body.touching.down` can be stale by one frame at the landing instant, so a
+  // mash-jump near the ground is mis-classified as a double jump — burning the
+  // air jump and making subsequent presses appear to be ignored.
+  private coyoteUntil = 0;
+  private bufferedJumpUntil = 0;
+  private readonly COYOTE_MS = 100;
+  private readonly JUMP_BUFFER_MS = 130;
 
   // ----- Parallax -----
   private parallaxFar!: Phaser.GameObjects.TileSprite;
@@ -175,11 +184,22 @@ export class DesertDashScene extends Phaser.Scene {
         break;
     }
 
-    // Reset double-jump availability when grounded (any phase that uses physics).
+    // Track ground transitions for coyote time, jump buffer, and double-jump reset.
     if (this.phase !== 'ended') {
       const grounded = this.isGrounded();
-      if (grounded && !this.wasGrounded) {
+      if (grounded) {
+        // Force-reset every frame on the ground, not just on the airborne→grounded
+        // edge — defends against any case where `wasGrounded` got out of sync.
         this.usedDoubleJump = false;
+        // Consume a buffered jump press from just before touchdown.
+        if (this.time.now < this.bufferedJumpUntil) {
+          this.bufferedJumpUntil = 0;
+          this.player.setVelocityY(CFG.jumpImpulse);
+          sfx.jump();
+        }
+      } else if (this.wasGrounded) {
+        // Just left the ground: open coyote window.
+        this.coyoteUntil = this.time.now + this.COYOTE_MS;
       }
       this.wasGrounded = grounded;
     }
@@ -345,17 +365,31 @@ export class DesertDashScene extends Phaser.Scene {
 
   private isGrounded(): boolean {
     const body = this.player.body as Phaser.Physics.Arcade.Body;
-    return body.blocked.down || body.touching.down;
+    if (body.blocked.down || body.touching.down) return true;
+    // Fallback: Arcade Physics can leave `touching.down` false on a frame
+    // even when the body is logically at rest on a static collider — the
+    // collision is only registered when actual penetration is detected, and
+    // a body sitting flush with the floor can flicker between "no overlap"
+    // and "overlap" between frames. Treat near-zero vy + body bottom flush
+    // with the floor strip as grounded too.
+    if (Math.abs(body.velocity.y) > 5) return false;
+    const floorTop = this.scale.height - CFG.floorPaddingPx;
+    return body.bottom >= floorTop - 2;
   }
 
   private tryJump(): void {
     if (this.finished) return;
     if (this.phase === 'ended' || this.phase === 'bossDefeated') return;
-    if (this.isGrounded()) {
+    const now = this.time.now;
+    const canGroundJump = this.isGrounded() || now < this.coyoteUntil;
+    if (canGroundJump) {
       this.player.setVelocityY(CFG.jumpImpulse);
       this.usedDoubleJump = false;
+      this.coyoteUntil = 0;
       sfx.jump();
-    } else if (!this.usedDoubleJump) {
+      return;
+    }
+    if (!this.usedDoubleJump) {
       this.player.setVelocityY(CFG.doubleJumpImpulse);
       this.usedDoubleJump = true;
       sfx.jump();
@@ -367,7 +401,10 @@ export class DesertDashScene extends Phaser.Scene {
         ease: 'Sine.easeOut',
         onComplete: () => this.player.setAngle(0),
       });
+      return;
     }
+    // Air-out of jumps — buffer the press so it fires the instant we land.
+    this.bufferedJumpUntil = now + this.JUMP_BUFFER_MS;
   }
 
   // ----- Running phase -----
