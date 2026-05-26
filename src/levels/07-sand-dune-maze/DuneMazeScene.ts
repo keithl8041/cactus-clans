@@ -27,9 +27,10 @@ interface ArtifactEntity {
   collected: boolean;
 }
 
-interface ActivePointer {
-  quadrantX: -1 | 0 | 1;
-  quadrantY: -1 | 0 | 1;
+interface TouchTarget {
+  worldX: number;
+  worldY: number;
+  pointerId: number;
 }
 
 export class DuneMazeScene extends Phaser.Scene {
@@ -53,7 +54,9 @@ export class DuneMazeScene extends Phaser.Scene {
   private idleSince = 0;
   private lastBreadcrumbAt = 0;
 
-  private activePointers = new Map<number, ActivePointer>();
+  // Touch: the player accelerates toward this world point while held.
+  private touchTarget: TouchTarget | null = null;
+  private readonly touchStopRadius = CFG.tileSize * 0.35;
 
   // Keyboard
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -334,7 +337,6 @@ export class DuneMazeScene extends Phaser.Scene {
   }
 
   private setupInput(): void {
-    this.input.addPointer(2);
     this.input.on('pointerdown', this.handlePointerDown, this);
     this.input.on('pointermove', this.handlePointerMove, this);
     this.input.on('pointerup', this.handlePointerUp, this);
@@ -374,47 +376,43 @@ export class DuneMazeScene extends Phaser.Scene {
 
   private handlePointerDown(p: Phaser.Input.Pointer): void {
     if (this.finished) return;
-    this.activePointers.set(p.id, this.quadrantFromPointer(p));
+    const wp = this.cameras.main.getWorldPoint(p.x, p.y);
+    this.touchTarget = { worldX: wp.x, worldY: wp.y, pointerId: p.id };
   }
 
   private handlePointerMove(p: Phaser.Input.Pointer): void {
     if (this.finished) return;
     if (!p.isDown) return;
-    if (!this.activePointers.has(p.id)) return;
-    this.activePointers.set(p.id, this.quadrantFromPointer(p));
+    if (!this.touchTarget || this.touchTarget.pointerId !== p.id) return;
+    const wp = this.cameras.main.getWorldPoint(p.x, p.y);
+    this.touchTarget.worldX = wp.x;
+    this.touchTarget.worldY = wp.y;
   }
 
   private handlePointerUp(p: Phaser.Input.Pointer): void {
-    this.activePointers.delete(p.id);
-  }
-
-  private quadrantFromPointer(p: Phaser.Input.Pointer): ActivePointer {
-    const { width, height } = this.scale;
-    const dx = p.x - width / 2;
-    const dy = p.y - height / 2;
-    // Dead-band cross at the center prevents oscillation at the midline.
-    const deadband = 40;
-    const qx: -1 | 0 | 1 = dx > deadband ? 1 : dx < -deadband ? -1 : 0;
-    const qy: -1 | 0 | 1 = dy > deadband ? 1 : dy < -deadband ? -1 : 0;
-    return { quadrantX: qx, quadrantY: qy };
+    if (this.touchTarget && this.touchTarget.pointerId === p.id) {
+      this.touchTarget = null;
+    }
   }
 
   private readIntent(): { x: number; y: number } {
-    let x = 0;
-    let y = 0;
-    for (const entry of this.activePointers.values()) {
-      x += entry.quadrantX;
-      y += entry.quadrantY;
+    let kx = 0;
+    let ky = 0;
+    if (this.cursors.left?.isDown || this.keyA.isDown) kx -= 1;
+    if (this.cursors.right?.isDown || this.keyD.isDown) kx += 1;
+    if (this.cursors.up?.isDown || this.keyW.isDown) ky -= 1;
+    if (this.cursors.down?.isDown || this.keyS.isDown) ky += 1;
+    if (kx !== 0 || ky !== 0) {
+      return { x: Math.sign(kx), y: Math.sign(ky) };
     }
-    // Keyboard
-    if (this.cursors.left?.isDown || this.keyA.isDown) x -= 1;
-    if (this.cursors.right?.isDown || this.keyD.isDown) x += 1;
-    if (this.cursors.up?.isDown || this.keyW.isDown) y -= 1;
-    if (this.cursors.down?.isDown || this.keyS.isDown) y += 1;
-    // Normalize to ±1
-    x = Math.sign(x);
-    y = Math.sign(y);
-    return { x, y };
+    if (this.touchTarget) {
+      const dx = this.touchTarget.worldX - this.player.x;
+      const dy = this.touchTarget.worldY - this.player.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < this.touchStopRadius) return { x: 0, y: 0 };
+      return { x: dx / dist, y: dy / dist };
+    }
+    return { x: 0, y: 0 };
   }
 
   // ----- End state -----
