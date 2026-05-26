@@ -57,7 +57,7 @@ export function ClanSelect() {
         })}
       </div>
       <div className="row">
-        <button onClick={() => navigate('/')}>Back</button>
+        <button onClick={() => navigate('/', { state: { pickPlayer: true } })}>Back</button>
         <button className="primary" disabled={!selected || busy} onClick={confirm}>
           {busy ? 'Starting…' : selected ? `Begin as ${selected}` : 'Pick a clan'}
         </button>

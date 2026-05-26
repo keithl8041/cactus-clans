@@ -92,19 +92,29 @@ export function removeKnownPlayer(id: string): void {
   if (active?.id === id) signOut();
 }
 
-export async function signInWithNickname(nickname: string): Promise<PlayerSession> {
+export async function signInWithNickname(nickname: string, pin: string): Promise<PlayerSession> {
   const cleaned = nickname.trim();
   if (!cleaned) throw new Error('Nickname cannot be empty');
   if (cleaned.length > 24) throw new Error('Nickname is too long (max 24)');
+  if (!/^\d{4}$/.test(pin)) throw new Error('PIN must be 4 digits');
 
   let session: PlayerSession;
   if (usingRealBackend) {
-    session = await apiFetch<PlayerSession>('/players', {
-      method: 'POST',
-      body: JSON.stringify({ nickname: cleaned }),
-    });
+    try {
+      session = await apiFetch<PlayerSession>('/players', {
+        method: 'POST',
+        body: JSON.stringify({ nickname: cleaned, pin }),
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('wrong_pin')) {
+        throw new Error("That PIN doesn't match this nickname. Try again, or pick a different nickname.");
+      }
+      throw err;
+    }
   } else {
-    // Mock backend: generate a stable id from the nickname.
+    // Mock backend (no Worker running): PIN is not enforced, just echo back a
+    // stable id. The dual-mode pattern keeps `npm run dev` usable end-to-end.
     const id = `mock-${cleaned.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
     session = { id, nickname: cleaned };
   }

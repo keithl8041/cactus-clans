@@ -37,21 +37,27 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
   const method = request.method;
 
   if (pathname === '/api/players' && method === 'POST') {
-    const { nickname } = await readJson<{ nickname?: string }>(request);
+    const { nickname, pin } = await readJson<{ nickname?: string; pin?: string }>(request);
     const cleaned = (nickname ?? '').trim();
     if (!cleaned) return json({ error: 'nickname required' }, 400);
     if (cleaned.length > 24) return json({ error: 'nickname too long' }, 400);
+    if (!pin || !/^\d{4}$/.test(pin)) return json({ error: 'pin must be 4 digits' }, 400);
 
     const existing = await env.DB.prepare(
-      'SELECT id, nickname FROM players WHERE nickname = ?',
+      'SELECT id, nickname, pin_hash AS pinHash FROM players WHERE nickname = ?',
     )
       .bind(cleaned)
-      .first<PlayerRow>();
-    if (existing) return json(existing);
+      .first<PlayerRow & { pinHash: string }>();
+    if (existing) {
+      const ok = await verifyPin(pin, existing.pinHash);
+      if (!ok) return json({ error: 'wrong_pin' }, 401);
+      return json({ id: existing.id, nickname: existing.nickname });
+    }
 
     const id = crypto.randomUUID();
-    await env.DB.prepare('INSERT INTO players (id, nickname) VALUES (?, ?)')
-      .bind(id, cleaned)
+    const pinHash = await hashPin(pin);
+    await env.DB.prepare('INSERT INTO players (id, nickname, pin_hash) VALUES (?, ?, ?)')
+      .bind(id, cleaned, pinHash)
       .run();
     return json({ id, nickname: cleaned });
   }
@@ -147,4 +153,57 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { 'content-type': 'application/json' },
   });
+}
+
+const PIN_ITERATIONS = 100_000;
+const PIN_SALT_BYTES = 16;
+const PIN_KEY_BITS = 256;
+
+async function hashPin(pin: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(PIN_SALT_BYTES));
+  const hash = await derivePinBits(pin, salt, PIN_ITERATIONS);
+  return `pbkdf2$${PIN_ITERATIONS}$${b64encode(salt)}$${b64encode(hash)}`;
+}
+
+async function verifyPin(pin: string, stored: string): Promise<boolean> {
+  const parts = stored.split('$');
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
+  const iterations = Number(parts[1]);
+  if (!Number.isFinite(iterations) || iterations < 1) return false;
+  const salt = b64decode(parts[2]);
+  const expected = b64decode(parts[3]);
+  const actual = new Uint8Array(await derivePinBits(pin, salt, iterations));
+  if (actual.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < actual.length; i++) diff |= actual[i] ^ expected[i];
+  return diff === 0;
+}
+
+async function derivePinBits(pin: string, salt: Uint8Array, iterations: number): Promise<ArrayBuffer> {
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(pin),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  return crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+    keyMaterial,
+    PIN_KEY_BITS,
+  );
+}
+
+function b64encode(bytes: ArrayBuffer | Uint8Array): string {
+  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let s = '';
+  for (let i = 0; i < arr.length; i++) s += String.fromCharCode(arr[i]);
+  return btoa(s);
+}
+
+function b64decode(s: string): Uint8Array {
+  const bin = atob(s);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
 }

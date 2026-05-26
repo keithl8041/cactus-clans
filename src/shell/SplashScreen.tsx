@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import {
   getCurrentSession,
@@ -14,12 +14,18 @@ import { IosInstallHint } from './IosInstallHint';
 
 export function SplashScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const setPlayer = useGameStore((s) => s.setPlayer);
   const setRun = useGameStore((s) => s.setRun);
   const player = useGameStore((s) => s.player);
 
   const [roster, setRoster] = useState<KnownPlayer[]>([]);
   const [editing, setEditing] = useState(false);
+
+  // When a navigator lands here with `state.pickPlayer === true` (e.g. the
+  // "Switch player" button on LevelMap), stay on the splash so the chip
+  // picker is visible. Otherwise, an active session auto-resumes into the game.
+  const pickPlayer = (location.state as { pickPlayer?: boolean } | null)?.pickPlayer === true;
 
   useEffect(() => {
     void (async () => {
@@ -29,9 +35,10 @@ export function SplashScreen() {
         setPlayer(session);
         const run = await getActiveRun(session.id);
         if (run) setRun(run);
+        if (!pickPlayer) navigate(run ? '/journey' : '/clans', { replace: true });
       }
     })();
-  }, [setPlayer, setRun]);
+  }, [setPlayer, setRun, navigate, pickPlayer]);
 
   async function choosePlayer(p: KnownPlayer) {
     const session: PlayerSession = { id: p.id, nickname: p.nickname };
@@ -63,9 +70,12 @@ export function SplashScreen() {
           <h2>An adventure through the prickly wilds</h2>
           <div className="row">
             <button className="primary" onClick={addPlayer}>
-              Start
+              Start or resume
             </button>
             <button onClick={() => navigate('/leaderboard')}>Leaderboard</button>
+          </div>
+          <div style={{ fontSize: '0.85rem', opacity: 0.7, marginTop: '0.5rem', maxWidth: '22rem', textAlign: 'center' }}>
+            Played before on another device? Tap "Start or resume" and enter your existing nickname + PIN.
           </div>
         </>
       ) : (

@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS players (
   id TEXT PRIMARY KEY,
   nickname TEXT UNIQUE NOT NULL,
+  pin_hash TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

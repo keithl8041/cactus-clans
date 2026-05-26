@@ -93,7 +93,7 @@ export function LevelMap() {
       </div>
 
       <div className="row">
-        <button onClick={() => navigate('/')}>Home</button>
+        <button onClick={() => navigate('/', { state: { pickPlayer: true } })}>Switch player</button>
         {cleared >= MAX_LEVEL && !run.completedAt && (
           <button className="primary" onClick={finishRun}>Submit run</button>
         )}
