@@ -139,11 +139,19 @@ export function generateMap(): ParsedMap {
   }
   shuffle(placeable);
 
+  // Traps act as walls once revealed — placing one in a 1-tile corridor that's
+  // the only path to the exit makes the level impossible. After each candidate
+  // placement, BFS from spawn (treating traps as impassable) and verify the
+  // exit is still reachable; revert if not.
   const traps: CellPos[] = [];
-  for (let i = 0; i < Math.min(CFG.trapCount, placeable.length); i++) {
+  while (traps.length < CFG.trapCount && placeable.length > 0) {
     const cell = placeable.pop();
     if (!cell) break;
     grid[cell.row][cell.col] = 'T';
+    if (!isReachableAvoidingTraps(grid, start, exit)) {
+      grid[cell.row][cell.col] = '.';
+      continue;
+    }
     traps.push(cell);
   }
   const quicksand: CellPos[] = [];
@@ -183,6 +191,33 @@ export function generateMap(): ParsedMap {
     worldWidthPx: cols * t,
     worldHeightPx: rows * t,
   };
+}
+
+function isReachableAvoidingTraps(grid: Tile[][], from: CellPos, to: CellPos): boolean {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const visited: boolean[][] = Array.from({ length: rows }, () => Array(cols).fill(false));
+  const queue: CellPos[] = [from];
+  visited[from.row][from.col] = true;
+  while (queue.length > 0) {
+    const cur = queue.shift()!;
+    if (cur.row === to.row && cur.col === to.col) return true;
+    const neighbors: [number, number][] = [
+      [cur.row - 1, cur.col],
+      [cur.row + 1, cur.col],
+      [cur.row, cur.col - 1],
+      [cur.row, cur.col + 1],
+    ];
+    for (const [nr, nc] of neighbors) {
+      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+      const t = grid[nr][nc];
+      if (t === '#' || t === 'T') continue;
+      if (visited[nr][nc]) continue;
+      visited[nr][nc] = true;
+      queue.push({ col: nc, row: nr });
+    }
+  }
+  return false;
 }
 
 function bfsDistances(grid: Tile[][], from: CellPos): number[][] {
