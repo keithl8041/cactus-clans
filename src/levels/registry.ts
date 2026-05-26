@@ -1,6 +1,7 @@
 import type { LevelDefinition } from './types';
 import { balloonLevel } from './01-balloon-keepy-uppy';
 import { cactusDartsLevel } from './02-cactus-darts';
+import { lizardWhackLevel } from './03-lizard-whack';
 
 // Full level registry — includes Phaser scene factories. Imported only from
 // the lazy GameContainer so Phaser stays out of the main bundle.
@@ -9,6 +10,7 @@ import { cactusDartsLevel } from './02-cactus-darts';
 export const LEVELS: LevelDefinition[] = [
   balloonLevel,
   cactusDartsLevel,
+  lizardWhackLevel,
 ];
 
 export function levelByNumber(n: number): LevelDefinition | undefined {

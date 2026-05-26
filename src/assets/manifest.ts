@@ -15,6 +15,9 @@ import { balloonSvg, type BalloonOptions } from './placeholders/balloon';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
 import { dartboardSvg, type DartboardOptions } from './placeholders/dartboard';
+import { hitSplatSvg, type HitSplatOptions } from './placeholders/hitSplat';
+import { lizardSvg, type LizardOptions } from './placeholders/lizard';
+import { potSvg, type PotOptions } from './placeholders/pot';
 import { starSvg, type StarOptions } from './placeholders/star';
 
 export type AssetOptions =
@@ -22,6 +25,9 @@ export type AssetOptions =
   | ClanCardOptions
   | CharacterOptions
   | DartboardOptions
+  | HitSplatOptions
+  | LizardOptions
+  | PotOptions
   | StarOptions
   | undefined;
 
@@ -38,6 +44,11 @@ export const ASSETS: Record<string, AssetEntry> = {
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
   'character.prickling.1': { kind: 'image', src: '/art/prickling-prickling-clan-form1.png' },
   'character.prickling.8': { kind: 'image', src: '/art/desert-titan-prickling-clan-form8.png' },
+  'hit.splat': { kind: 'svg', generate: (opts) => hitSplatSvg(opts as HitSplatOptions) },
+  'lizard.up': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'up' }) },
+  'lizard.down': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'down' }) },
+  'lizard.bandit': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'up', bandit: true }) },
+  pot: { kind: 'svg', generate: (opts) => potSvg(opts as PotOptions) },
   star: { kind: 'svg', generate: (opts) => starSvg(opts as StarOptions) },
 };
 

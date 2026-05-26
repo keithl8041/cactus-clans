@@ -25,6 +25,13 @@ export const LEVEL_META: LevelMeta[] = [
     blurb: 'Sling cactus spikes at the dartboard. Bullseyes count for the most.',
     passThreshold: 12,
   },
+  {
+    id: '03-lizard-whack',
+    number: 3,
+    title: 'Lizard Whack-a-Mole',
+    blurb: 'Tap the lizards as they pop out of the cactus pots — quick taps score more!',
+    passThreshold: 18, // keep in sync with LIZARD_WHACK_CONFIG.passThreshold
+  },
 ];
 
 export const MAX_LEVEL = 8;
