@@ -114,8 +114,10 @@ export class BalloonScene extends Phaser.Scene {
     const right = pointerRight || this.cursors.right?.isDown || this.keyD.isDown;
     if (left && !right) {
       this.player.setVelocityX(-CFG.playerMaxSpeed);
+      this.player.setFlipX(false);
     } else if (right && !left) {
       this.player.setVelocityX(CFG.playerMaxSpeed);
+      this.player.setFlipX(true);
     }
     // No active input: ground drag (set on the body) decelerates the player naturally.
   }

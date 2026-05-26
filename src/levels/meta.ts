@@ -16,7 +16,7 @@ export const LEVEL_META: LevelMeta[] = [
     number: 1,
     title: 'Balloon Keepy-Uppy',
     blurb: 'Tap to keep the balloon airborne. Watch out for cactus spikes!',
-    passThreshold: 20,
+    passThreshold: 15,
   },
   {
     id: '02-cactus-darts',
