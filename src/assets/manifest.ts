@@ -74,7 +74,7 @@ export type AssetEntry =
 export const ASSETS: Record<string, AssetEntry> = {
   balloon: { kind: 'svg', generate: (opts) => balloonSvg(opts as BalloonOptions) },
   'balloon.prickling': { kind: 'image', src: '/art/balloon-prickling-clan.png' },
-  'cactus.spike': { kind: 'image', src: '/art/cactus-spike.svg' },
+  'cactus.spike': { kind: 'image', src: '/art/cactus-spike.png' },
   'card.frame': { kind: 'svg', generate: (opts) => clanCardSvg(opts as ClanCardOptions) },
   dartboard: { kind: 'svg', generate: (opts) => dartboardSvg(opts as DartboardOptions) },
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
