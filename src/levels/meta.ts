@@ -60,6 +60,13 @@ export const LEVEL_META: LevelMeta[] = [
     blurb: 'Find your way through the dunes — dodge quicksand and trip-spikes, grab artifacts for bonus points!',
     passThreshold: 30, // keep in sync with DUNE_MAZE_CONFIG.passThreshold
   },
+  {
+    id: '08-desert-dash',
+    number: 8,
+    title: 'Desert Dash',
+    blurb: 'Sprint across the dunes, then face the Giant Sand Tarantula. Stomp it three times to win the journey!',
+    passThreshold: 100, // keep in sync with DESERT_DASH_CONFIG.passThreshold
+  },
 ];
 
 export const MAX_LEVEL = 8;

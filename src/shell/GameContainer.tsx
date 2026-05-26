@@ -13,6 +13,7 @@ import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
 import { InstructionsModal } from './InstructionsModal';
 import { EvolutionInterstitial } from './EvolutionInterstitial';
+import { Confetti } from './Confetti';
 import { enterFullscreen, exitFullscreen, isTouchDevice } from './fullscreen';
 import { MAX_LEVEL } from '../levels/meta';
 
@@ -208,19 +209,39 @@ export function GameContainer() {
       )}
       {finished && !showEvolution && (
         <div className="screen" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)' }}>
-          <h1 style={{ color: finished.passed ? 'var(--accent)' : 'var(--danger)' }}>
-            {finished.passed ? 'Cleared!' : 'Try again'}
-          </h1>
-          <h2>
-            {finished.miniGamePoints} hits
-            {finished.bonusPoints > 0 && ` · ★ +${finished.bonusPoints}`}
-            {' · '}
-            {(finished.elapsedMs / 1000).toFixed(1)}s · score {finished.score}
-          </h2>
-          {!finished.passed && (
-            <div style={{ color: 'var(--text-dim)', maxWidth: '24rem', textAlign: 'center' }}>
-              Your score still counts — it's on the leaderboard.
-            </div>
+          {finished.passed && level.number === MAX_LEVEL && <Confetti />}
+          {finished.passed && level.number === MAX_LEVEL ? (
+            <>
+              <h1 className="victory-headline" style={{ fontSize: '2.6rem', textAlign: 'center' }}>
+                You beat Cactus Clans!
+              </h1>
+              <h2 style={{ color: 'var(--accent)', textAlign: 'center' }}>
+                The Desert Titan rises. Grand finale cleared.
+              </h2>
+              <h2 style={{ color: 'var(--text-dim)' }}>
+                {finished.miniGamePoints} pts
+                {finished.bonusPoints > 0 && ` · ★ +${finished.bonusPoints}`}
+                {' · '}
+                {(finished.elapsedMs / 1000).toFixed(1)}s · score {finished.score}
+              </h2>
+            </>
+          ) : (
+            <>
+              <h1 style={{ color: finished.passed ? 'var(--accent)' : 'var(--danger)' }}>
+                {finished.passed ? 'Cleared!' : 'Try again'}
+              </h1>
+              <h2>
+                {finished.miniGamePoints} hits
+                {finished.bonusPoints > 0 && ` · ★ +${finished.bonusPoints}`}
+                {' · '}
+                {(finished.elapsedMs / 1000).toFixed(1)}s · score {finished.score}
+              </h2>
+              {!finished.passed && (
+                <div style={{ color: 'var(--text-dim)', maxWidth: '24rem', textAlign: 'center' }}>
+                  Your score still counts — it's on the leaderboard.
+                </div>
+              )}
+            </>
           )}
           <div className="row">
             {!finished.passed && (
@@ -233,7 +254,11 @@ export function GameContainer() {
               onClick={finished.passed ? continueFromResult : () => navigate('/journey')}
               autoFocus={finished.passed}
             >
-              {finished.passed ? 'Continue (Enter)' : 'Back to map'}
+              {finished.passed
+                ? level.number === MAX_LEVEL
+                  ? 'Back to map (Enter)'
+                  : 'Continue (Enter)'
+                : 'Back to map'}
             </button>
           </div>
         </div>

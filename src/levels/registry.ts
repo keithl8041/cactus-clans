@@ -6,6 +6,7 @@ import { cactusCareLevel } from './04-cactus-care';
 import { cactusSlicingLevel } from './05-cactus-slicing';
 import { camelRaceLevel } from './06-camel-race';
 import { duneMazeLevel } from './07-sand-dune-maze';
+import { desertDashLevel } from './08-desert-dash';
 
 // Full level registry — includes Phaser scene factories. Imported only from
 // the lazy GameContainer so Phaser stays out of the main bundle.
@@ -19,6 +20,7 @@ export const LEVELS: LevelDefinition[] = [
   cactusSlicingLevel,
   camelRaceLevel,
   duneMazeLevel,
+  desertDashLevel,
 ];
 
 export function levelByNumber(n: number): LevelDefinition | undefined {
