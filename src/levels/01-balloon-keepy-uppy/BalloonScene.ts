@@ -28,6 +28,7 @@ export class BalloonScene extends Phaser.Scene {
   private bonusPoints = 0;
   private startedAt = 0;
   private finished = false;
+  private passed = false;
   private hitText!: Phaser.GameObjects.Text;
   private bonusText!: Phaser.GameObjects.Text;
   private timeText!: Phaser.GameObjects.Text;
@@ -283,14 +284,65 @@ export class BalloonScene extends Phaser.Scene {
     this.balloon.y = this.player.y - this.player.displayHeight / 2 - this.balloon.displayHeight / 2 - 2;
 
     this.hitCount += 1;
-    this.hitText.setText(`Hits: ${this.hitCount} / ${CFG.passThreshold}`);
+    this.updateHitText();
     sfx.hit();
 
     this.spawnDifficultySpikes();
 
-    if (this.hitCount >= CFG.passThreshold) {
-      this.win();
+    if (!this.passed && this.hitCount >= CFG.passThreshold) {
+      this.markUnlocked();
     }
+  }
+
+  private updateHitText(): void {
+    if (this.passed) {
+      this.hitText.setText(`Hits: ${this.hitCount} ✓`);
+    } else {
+      this.hitText.setText(`Hits: ${this.hitCount} / ${CFG.passThreshold}`);
+    }
+  }
+
+  /**
+   * Threshold reached — next level is now unlocked, but the player keeps going
+   * until the balloon pops. The unlock cue + a brief celebration overlay tell
+   * them they're safe, then play continues. `passed` is stamped onto the final
+   * result whenever they eventually fail.
+   */
+  private markUnlocked(): void {
+    this.passed = true;
+    sfx.unlock();
+    this.updateHitText();
+    this.hitText.setColor('#9efc9b');
+
+    const { width, height } = this.scale;
+    const banner = this.add.text(width / 2, height / 2, 'Level Unlocked!\nKeep going for bonus hits', {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '34px',
+      color: '#fff5b7',
+      fontStyle: 'bold',
+      stroke: '#1f5a2d',
+      strokeThickness: 5,
+      align: 'center',
+    }).setOrigin(0.5).setDepth(25).setAlpha(0);
+
+    this.tweens.add({
+      targets: banner,
+      alpha: { from: 0, to: 1 },
+      scale: { from: 0.6, to: 1 },
+      duration: 280,
+      ease: 'Back.easeOut',
+    });
+    this.time.delayedCall(1700, () => {
+      if (!banner.active) return;
+      this.tweens.add({
+        targets: banner,
+        alpha: 0,
+        y: banner.y - 30,
+        duration: 500,
+        ease: 'Sine.easeIn',
+        onComplete: () => banner.destroy(),
+      });
+    });
   }
 
   private spawnDifficultySpikes(): void {
@@ -467,25 +519,13 @@ export class BalloonScene extends Phaser.Scene {
     });
   }
 
-  // ----- End states -----
+  // ----- End state -----
 
-  private win(): void {
-    if (this.finished) return;
-    this.finished = true;
-    this.cancelTimers();
-    sfx.win();
-    const elapsedMs = this.time.now - this.startedAt;
-    this.showStatus(`Cleared! ${this.hitCount} hits in ${(elapsedMs / 1000).toFixed(1)}s`, '#f7c948');
-    this.time.delayedCall(800, () => {
-      this.ctx.onComplete({
-        passed: true,
-        miniGamePoints: this.hitCount,
-        elapsedMs,
-        bonusPoints: this.bonusPoints,
-      });
-    });
-  }
-
+  /**
+   * The only way a run ends — the balloon pops. If `passed` is set the player
+   * already hit the threshold and the result screen shows "Cleared"; otherwise
+   * it shows "Try again".
+   */
   private fail(message: string): void {
     if (this.finished) return;
     this.finished = true;
@@ -493,10 +533,13 @@ export class BalloonScene extends Phaser.Scene {
     sfx.pop();
     const elapsedMs = this.time.now - this.startedAt;
     this.balloon.setActive(false).setVisible(false);
-    this.showStatus(message, '#d24a3a');
+    const headline = this.passed
+      ? `${message}\nFinal: ${this.hitCount} hits`
+      : message;
+    this.showStatus(headline, this.passed ? '#f7c948' : '#d24a3a');
     this.time.delayedCall(1200, () => {
       this.ctx.onComplete({
-        passed: false,
+        passed: this.passed,
         miniGamePoints: this.hitCount,
         elapsedMs,
         bonusPoints: this.bonusPoints,

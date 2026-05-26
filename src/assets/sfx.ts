@@ -82,11 +82,12 @@ export const sfx = {
   pop(): void {
     tone({ freq: 220, endFreq: 80, durationMs: 180, type: 'sawtooth', volume: 0.22 });
   },
-  /** Level cleared. Major triad fanfare. */
-  win(): void {
-    tone({ freq: 523, durationMs: 120, type: 'triangle', volume: 0.20 }); // C5
-    tone({ freq: 659, durationMs: 120, type: 'triangle', volume: 0.20, delayMs: 120 }); // E5
-    tone({ freq: 784, durationMs: 240, type: 'triangle', volume: 0.22, delayMs: 240 }); // G5
+  /** Level threshold reached — next level unlocked. Four-note ascending chime. */
+  unlock(): void {
+    tone({ freq: 523, durationMs: 110, type: 'triangle', volume: 0.20 }); // C5
+    tone({ freq: 659, durationMs: 110, type: 'triangle', volume: 0.20, delayMs: 110 }); // E5
+    tone({ freq: 784, durationMs: 110, type: 'triangle', volume: 0.22, delayMs: 220 }); // G5
+    tone({ freq: 1047, durationMs: 260, type: 'triangle', volume: 0.24, delayMs: 330 }); // C6
   },
   setMuted(value: boolean): void {
     muted = value;
