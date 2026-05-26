@@ -12,34 +12,44 @@
 // placeholder when clan-specific art hasn't landed yet.
 
 import { balloonSvg, type BalloonOptions } from './placeholders/balloon';
+import { camelSvg, type CamelOptions } from './placeholders/camel';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
 import { dartboardSvg, type DartboardOptions } from './placeholders/dartboard';
+import { desertParallaxSvg, type DesertParallaxOptions } from './placeholders/desertParallax';
+import { finishBannerSvg, type FinishBannerOptions } from './placeholders/finishBanner';
 import { hitSplatSvg, type HitSplatOptions } from './placeholders/hitSplat';
 import { lizardSvg, type LizardOptions } from './placeholders/lizard';
 import { petCactusSvg, type PetCactusOptions } from './placeholders/petCactus';
 import { potSvg, type PotOptions } from './placeholders/pot';
 import { rainOverlaySvg, type RainOverlayOptions } from './placeholders/rainOverlay';
+import { rockSvg, type RockOptions } from './placeholders/rock';
 import { sliceableCactusSvg, type SliceableCactusOptions } from './placeholders/sliceableCactus';
 import { starSvg, type StarOptions } from './placeholders/star';
 import { sunOverlaySvg, type SunOverlayOptions } from './placeholders/sunOverlay';
 import { tarantulaSvg, type TarantulaOptions } from './placeholders/tarantula';
+import { waterFlaskSvg, type WaterFlaskOptions } from './placeholders/waterFlask';
 import { wateringCanSvg, type WateringCanOptions } from './placeholders/wateringCan';
 
 export type AssetOptions =
   | BalloonOptions
+  | CamelOptions
   | ClanCardOptions
   | CharacterOptions
   | DartboardOptions
+  | DesertParallaxOptions
+  | FinishBannerOptions
   | HitSplatOptions
   | LizardOptions
   | PetCactusOptions
   | PotOptions
   | RainOverlayOptions
+  | RockOptions
   | SliceableCactusOptions
   | StarOptions
   | SunOverlayOptions
   | TarantulaOptions
+  | WaterFlaskOptions
   | WateringCanOptions
   | undefined;
 
@@ -69,6 +79,13 @@ export const ASSETS: Record<string, AssetEntry> = {
   star: { kind: 'svg', generate: (opts) => starSvg(opts as StarOptions) },
   sunOverlay: { kind: 'svg', generate: (opts) => sunOverlaySvg(opts as SunOverlayOptions) },
   tarantula: { kind: 'svg', generate: (opts) => tarantulaSvg(opts as TarantulaOptions) },
+  camel: { kind: 'svg', generate: (opts) => camelSvg(opts as CamelOptions) },
+  rock: { kind: 'svg', generate: (opts) => rockSvg(opts as RockOptions) },
+  waterFlask: { kind: 'svg', generate: (opts) => waterFlaskSvg(opts as WaterFlaskOptions) },
+  'desert.parallax.far': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'far' }) },
+  'desert.parallax.mid': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'mid' }) },
+  'desert.parallax.near': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'near' }) },
+  finishBanner: { kind: 'svg', generate: (opts) => finishBannerSvg(opts as FinishBannerOptions) },
   wateringCan: { kind: 'svg', generate: (opts) => wateringCanSvg(opts as WateringCanOptions) },
 };
 
@@ -94,4 +111,10 @@ export function resolveBalloonKey(clanName: string): string {
 export function resolveCharacterKey(clanName: string, formNumber: number): string {
   const key = `character.${clanAssetSlug(clanName)}.${formNumber}`;
   return key in ASSETS ? key : 'character';
+}
+
+/** Returns the clan-specific camel key if registered, else the generic placeholder. */
+export function resolveCamelKey(clanName: string): string {
+  const key = `camel.${clanAssetSlug(clanName)}`;
+  return key in ASSETS ? key : 'camel';
 }

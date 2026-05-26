@@ -46,6 +46,13 @@ export const LEVEL_META: LevelMeta[] = [
     blurb: 'Slash flying cacti — but watch out for tarantulas!',
     passThreshold: 45, // keep in sync with CACTUS_SLICING_CONFIG.passThreshold
   },
+  {
+    id: '06-camel-race',
+    number: 6,
+    title: 'Camel Sprint',
+    blurb: 'Race your camel across the dunes. Tap to switch lanes; hold to dash and grab water.',
+    passThreshold: 153, // keep in sync with CAMEL_RACE_CONFIG.passThreshold
+  },
 ];
 
 export const MAX_LEVEL = 8;
