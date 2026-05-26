@@ -32,6 +32,13 @@ export const LEVEL_META: LevelMeta[] = [
     blurb: 'Tap the lizards as they pop out of the cactus pots — quick taps score more!',
     passThreshold: 18, // keep in sync with LIZARD_WHACK_CONFIG.passThreshold
   },
+  {
+    id: '04-cactus-care',
+    number: 4,
+    title: 'Cactus Care',
+    blurb: 'Keep your pet cactus happy. Water it just enough — not too dry, not too soaked.',
+    passThreshold: 24, // keep in sync with CACTUS_CARE_CONFIG.passThreshold
+  },
 ];
 
 export const MAX_LEVEL = 8;
