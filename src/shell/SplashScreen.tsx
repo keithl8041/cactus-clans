@@ -10,6 +10,7 @@ import {
   type PlayerSession,
 } from '../services/session';
 import { getActiveRun } from '../services/progress';
+import { IosInstallHint } from './IosInstallHint';
 
 export function SplashScreen() {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ export function SplashScreen() {
   return (
     <div className="screen">
       <img src="/logo.jpg" alt="Cactus Clans" className="logo" />
+      <IosInstallHint />
       {roster.length === 0 ? (
         <>
           <h2>An adventure through the prickly wilds</h2>

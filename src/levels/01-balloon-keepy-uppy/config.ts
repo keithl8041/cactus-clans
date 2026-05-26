@@ -17,11 +17,10 @@ export const BALLOON_CONFIG = {
   playerMaxSpeed: 360,
   playerMaxFallSpeed: 800,
   playerJumpImpulse: -520,
-  playerDragGain: 12,           // drag-position responsiveness: vx = (target - x) * gain, clamped
   playerGroundDrag: 1200,       // horizontal drag when no input (px/sec^2)
 
   // Input
-  dragThresholdPx: 8,           // pointer travel above which we consider it a drag
+  tapMoveThresholdPx: 14,       // pointer travel above which a press is treated as a hold, not a tap
   tapMaxMs: 220,                // pointer held longer than this is not a tap
 
   // Balloon bounce off player

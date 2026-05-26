@@ -1,0 +1,14 @@
+{
+  "name": "Cactus Clans",
+  "short_name": "Cactus Clans",
+  "description": "Mini-game journey through the prickly cactus tribes.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0f1d12",
+  "theme_color": "#1f6f3f",
+  "icons": [
+    { "src": "/logo.jpg", "type": "image/jpeg", "sizes": "any", "purpose": "any" }
+  ]
+}

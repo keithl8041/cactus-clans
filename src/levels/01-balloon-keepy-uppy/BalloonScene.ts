@@ -5,6 +5,14 @@ import { BALLOON_CONFIG as CFG } from './config';
 
 type SpikeOrientation = 'up' | 'down' | 'left' | 'right';
 
+interface ActivePointer {
+  side: 'left' | 'right';
+  downAt: number;
+  downX: number;
+  downY: number;
+  moved: boolean;
+}
+
 export class BalloonScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
 
@@ -32,12 +40,10 @@ export class BalloonScene extends Phaser.Scene {
   private keyA!: Phaser.Input.Keyboard.Key;
   private keyD!: Phaser.Input.Keyboard.Key;
 
-  // Pointer drag/tap state
-  private pointerDownAt = 0;
-  private pointerDownX = 0;
-  private pointerDownY = 0;
-  private pointerIsDragging = false;
-  private dragTargetX: number | null = null;
+  // Pointer hold-zone state. Each active touch is tracked: which half it's
+  // currently on (steers that direction), and whether it has moved/held long
+  // enough to disqualify it as a tap (a quick tap fires `tryJump` on release).
+  private activePointers = new Map<number, ActivePointer>();
 
   private lastHitAt = 0;
   private windTimer?: Phaser.Time.TimerEvent;
@@ -89,14 +95,18 @@ export class BalloonScene extends Phaser.Scene {
     const elapsedMs = this.time.now - this.startedAt;
     this.timeText.setText(`Time: ${(elapsedMs / 1000).toFixed(1)}s`);
 
-    // Movement: drag steering takes priority, else keyboard.
-    const left = this.cursors.left?.isDown || this.keyA.isDown;
-    const right = this.cursors.right?.isDown || this.keyD.isDown;
-    if (this.dragTargetX !== null) {
-      const dx = this.dragTargetX - this.player.x;
-      const vx = Phaser.Math.Clamp(dx * CFG.playerDragGain, -CFG.playerMaxSpeed, CFG.playerMaxSpeed);
-      this.player.setVelocityX(vx);
-    } else if (left && !right) {
+    // Movement: hold-zone touches and keyboard arrows feed the same left/right
+    // intent. If both sides are held (left finger + right finger, or arrow keys
+    // pressed against pointer hold) they cancel and ground drag decelerates us.
+    let pointerLeft = false;
+    let pointerRight = false;
+    for (const entry of this.activePointers.values()) {
+      if (entry.side === 'left') pointerLeft = true;
+      else pointerRight = true;
+    }
+    const left = pointerLeft || this.cursors.left?.isDown || this.keyA.isDown;
+    const right = pointerRight || this.cursors.right?.isDown || this.keyD.isDown;
+    if (left && !right) {
       this.player.setVelocityX(-CFG.playerMaxSpeed);
     } else if (right && !left) {
       this.player.setVelocityX(CFG.playerMaxSpeed);
@@ -159,6 +169,9 @@ export class BalloonScene extends Phaser.Scene {
   }
 
   private setupInput(): void {
+    // Phaser starts with 2 pointers (mouse + one touch). Add 2 more so a player
+    // can hold a steering finger AND tap-jump with another finger comfortably.
+    this.input.addPointer(2);
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.handlePointerDown(p));
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.handlePointerMove(p));
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => this.handlePointerUp(p));
@@ -201,40 +214,37 @@ export class BalloonScene extends Phaser.Scene {
 
   private handlePointerDown(p: Phaser.Input.Pointer): void {
     if (this.finished) return;
-    this.pointerDownAt = this.time.now;
-    this.pointerDownX = p.x;
-    this.pointerDownY = p.y;
-    this.pointerIsDragging = false;
-    this.dragTargetX = null;
+    this.activePointers.set(p.id, {
+      side: p.x < this.scale.width / 2 ? 'left' : 'right',
+      downAt: this.time.now,
+      downX: p.x,
+      downY: p.y,
+      moved: false,
+    });
   }
 
   private handlePointerMove(p: Phaser.Input.Pointer): void {
     if (this.finished || !p.isDown) return;
-    const dx = Math.abs(p.x - this.pointerDownX);
-    const dy = Math.abs(p.y - this.pointerDownY);
-    const heldMs = this.time.now - this.pointerDownAt;
-    if (!this.pointerIsDragging && (dx > CFG.dragThresholdPx || dy > CFG.dragThresholdPx || heldMs > CFG.tapMaxMs)) {
-      this.pointerIsDragging = true;
+    const entry = this.activePointers.get(p.id);
+    if (!entry) return;
+    const dx = Math.abs(p.x - entry.downX);
+    const dy = Math.abs(p.y - entry.downY);
+    if (!entry.moved && (dx > CFG.tapMoveThresholdPx || dy > CFG.tapMoveThresholdPx)) {
+      entry.moved = true;
     }
-    if (this.pointerIsDragging) {
-      this.dragTargetX = p.x;
-    }
+    // Live re-evaluation of the side so the player can slide across the middle
+    // line without lifting their finger.
+    entry.side = p.x < this.scale.width / 2 ? 'left' : 'right';
   }
 
   private handlePointerUp(p: Phaser.Input.Pointer): void {
-    if (this.finished) {
-      this.pointerIsDragging = false;
-      this.dragTargetX = null;
-      return;
-    }
-    const dt = this.time.now - this.pointerDownAt;
-    const totalDx = Math.abs(p.x - this.pointerDownX);
-    const totalDy = Math.abs(p.y - this.pointerDownY);
-    if (!this.pointerIsDragging && dt < CFG.tapMaxMs && totalDx < CFG.dragThresholdPx && totalDy < CFG.dragThresholdPx) {
+    const entry = this.activePointers.get(p.id);
+    this.activePointers.delete(p.id);
+    if (this.finished || !entry) return;
+    const heldMs = this.time.now - entry.downAt;
+    if (!entry.moved && heldMs < CFG.tapMaxMs) {
       this.tryJump();
     }
-    this.pointerIsDragging = false;
-    this.dragTargetX = null;
   }
 
   // ----- Gameplay -----
