@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
+import { sfx } from '../../assets/sfx';
 import type { LevelContext } from '../types';
 import { BALLOON_CONFIG as CFG } from './config';
 
@@ -253,6 +254,7 @@ export class BalloonScene extends Phaser.Scene {
     if (this.finished) return;
     if (!this.isGrounded()) return;
     this.player.setVelocityY(CFG.playerJumpImpulse);
+    sfx.jump();
   }
 
   private isGrounded(): boolean {
@@ -282,6 +284,7 @@ export class BalloonScene extends Phaser.Scene {
 
     this.hitCount += 1;
     this.hitText.setText(`Hits: ${this.hitCount} / ${CFG.passThreshold}`);
+    sfx.hit();
 
     this.spawnDifficultySpikes();
 
@@ -388,6 +391,7 @@ export class BalloonScene extends Phaser.Scene {
     this.bonusPoints += CFG.starBonusPoints;
     this.bonusText.setText(`★ Bonus: +${this.bonusPoints}`);
     this.showFloatingText(this.star.x, this.star.y, `+${CFG.starBonusPoints}`);
+    sfx.star();
     this.despawnStar(true);
   }
 
@@ -469,6 +473,7 @@ export class BalloonScene extends Phaser.Scene {
     if (this.finished) return;
     this.finished = true;
     this.cancelTimers();
+    sfx.win();
     const elapsedMs = this.time.now - this.startedAt;
     this.showStatus(`Cleared! ${this.hitCount} hits in ${(elapsedMs / 1000).toFixed(1)}s`, '#f7c948');
     this.time.delayedCall(800, () => {
@@ -485,6 +490,7 @@ export class BalloonScene extends Phaser.Scene {
     if (this.finished) return;
     this.finished = true;
     this.cancelTimers();
+    sfx.pop();
     const elapsedMs = this.time.now - this.startedAt;
     this.balloon.setActive(false).setVisible(false);
     this.showStatus(message, '#d24a3a');
