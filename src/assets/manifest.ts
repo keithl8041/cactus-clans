@@ -11,44 +11,58 @@
 // `resolveCharacterKey` so callers automatically fall back to the procedural
 // placeholder when clan-specific art hasn't landed yet.
 
+import { artifactSvg, type ArtifactOptions } from './placeholders/artifact';
 import { balloonSvg, type BalloonOptions } from './placeholders/balloon';
+import { breadcrumbSvg, type BreadcrumbOptions } from './placeholders/breadcrumb';
 import { camelSvg, type CamelOptions } from './placeholders/camel';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
 import { dartboardSvg, type DartboardOptions } from './placeholders/dartboard';
 import { desertParallaxSvg, type DesertParallaxOptions } from './placeholders/desertParallax';
+import { duneFloorSvg, type DuneFloorOptions } from './placeholders/duneFloor';
+import { duneWallSvg, type DuneWallOptions } from './placeholders/duneWall';
+import { exitSvg, type ExitOptions } from './placeholders/exit';
 import { finishBannerSvg, type FinishBannerOptions } from './placeholders/finishBanner';
 import { hitSplatSvg, type HitSplatOptions } from './placeholders/hitSplat';
 import { lizardSvg, type LizardOptions } from './placeholders/lizard';
 import { petCactusSvg, type PetCactusOptions } from './placeholders/petCactus';
 import { potSvg, type PotOptions } from './placeholders/pot';
+import { quicksandSvg, type QuicksandOptions } from './placeholders/quicksand';
 import { rainOverlaySvg, type RainOverlayOptions } from './placeholders/rainOverlay';
 import { rockSvg, type RockOptions } from './placeholders/rock';
 import { sliceableCactusSvg, type SliceableCactusOptions } from './placeholders/sliceableCactus';
 import { starSvg, type StarOptions } from './placeholders/star';
 import { sunOverlaySvg, type SunOverlayOptions } from './placeholders/sunOverlay';
 import { tarantulaSvg, type TarantulaOptions } from './placeholders/tarantula';
+import { trapSvg, type TrapOptions } from './placeholders/trap';
 import { waterFlaskSvg, type WaterFlaskOptions } from './placeholders/waterFlask';
 import { wateringCanSvg, type WateringCanOptions } from './placeholders/wateringCan';
 
 export type AssetOptions =
+  | ArtifactOptions
   | BalloonOptions
+  | BreadcrumbOptions
   | CamelOptions
   | ClanCardOptions
   | CharacterOptions
   | DartboardOptions
   | DesertParallaxOptions
+  | DuneFloorOptions
+  | DuneWallOptions
+  | ExitOptions
   | FinishBannerOptions
   | HitSplatOptions
   | LizardOptions
   | PetCactusOptions
   | PotOptions
+  | QuicksandOptions
   | RainOverlayOptions
   | RockOptions
   | SliceableCactusOptions
   | StarOptions
   | SunOverlayOptions
   | TarantulaOptions
+  | TrapOptions
   | WaterFlaskOptions
   | WateringCanOptions
   | undefined;
@@ -86,6 +100,13 @@ export const ASSETS: Record<string, AssetEntry> = {
   'desert.parallax.mid': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'mid' }) },
   'desert.parallax.near': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'near' }) },
   finishBanner: { kind: 'svg', generate: (opts) => finishBannerSvg(opts as FinishBannerOptions) },
+  'dune.floor': { kind: 'svg', generate: (opts) => duneFloorSvg(opts as DuneFloorOptions) },
+  'dune.wall': { kind: 'svg', generate: (opts) => duneWallSvg(opts as DuneWallOptions) },
+  'dune.quicksand': { kind: 'svg', generate: (opts) => quicksandSvg(opts as QuicksandOptions) },
+  'dune.trap': { kind: 'svg', generate: (opts) => trapSvg(opts as TrapOptions) },
+  'dune.exit': { kind: 'svg', generate: (opts) => exitSvg(opts as ExitOptions) },
+  'dune.artifact': { kind: 'svg', generate: (opts) => artifactSvg(opts as ArtifactOptions) },
+  'dune.breadcrumb': { kind: 'svg', generate: (opts) => breadcrumbSvg(opts as BreadcrumbOptions) },
   wateringCan: { kind: 'svg', generate: (opts) => wateringCanSvg(opts as WateringCanOptions) },
 };
 

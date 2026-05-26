@@ -53,6 +53,13 @@ export const LEVEL_META: LevelMeta[] = [
     blurb: 'Race your camel across the dunes. Tap to switch lanes; hold to dash and grab water.',
     passThreshold: 153, // keep in sync with CAMEL_RACE_CONFIG.passThreshold
   },
+  {
+    id: '07-sand-dune-maze',
+    number: 7,
+    title: 'Sand Dune Maze',
+    blurb: 'Find your way through the dunes — dodge quicksand and trip-spikes, grab artifacts for bonus points!',
+    passThreshold: 30, // keep in sync with DUNE_MAZE_CONFIG.passThreshold
+  },
 ];
 
 export const MAX_LEVEL = 8;
