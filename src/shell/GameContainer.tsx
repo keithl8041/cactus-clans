@@ -12,7 +12,9 @@ import type { LevelResult } from '../levels/types';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
 import { InstructionsModal } from './InstructionsModal';
+import { EvolutionInterstitial } from './EvolutionInterstitial';
 import { enterFullscreen, exitFullscreen, isTouchDevice } from './fullscreen';
+import { MAX_LEVEL } from '../levels/meta';
 
 interface FinishedState {
   passed: boolean;
@@ -34,6 +36,7 @@ export function GameContainer() {
   const [finished, setFinished] = useState<FinishedState | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [started, setStarted] = useState(false);
+  const [showEvolution, setShowEvolution] = useState(false);
   const needsRotate = useNeedsRotate();
 
   const n = Number(levelNumber);
@@ -150,19 +153,35 @@ export function GameContainer() {
     setAttempt((a) => a + 1);
   }
 
+  // Form N → N+1 on pass (level.number is the form you just became — see LevelMap).
+  const fromForm = level ? level.number : 0;
+  const toForm = Math.min(fromForm + 1, MAX_LEVEL);
+  const hasEvolution = toForm > fromForm;
+
+  function continueFromResult() {
+    if (finished?.passed && hasEvolution) {
+      setShowEvolution(true);
+    } else {
+      navigate('/journey');
+    }
+  }
+
   useEffect(() => {
     if (!finished) return;
+    if (showEvolution) return; // EvolutionInterstitial owns the keyboard while it's up
     function onKey(e: KeyboardEvent) {
       if (e.key !== 'Enter' && e.code !== 'Space') return;
       e.preventDefault();
-      if (finished!.passed) navigate('/journey');
+      if (finished!.passed) continueFromResult();
       else retry();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [finished, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished, showEvolution, navigate]);
 
   if (!level) return null;
+  const clan = run ? clanByName(run.clan) : undefined;
 
   return (
     <div className="game-canvas-wrap">
@@ -187,7 +206,7 @@ export function GameContainer() {
           onCancel={() => navigate('/journey')}
         />
       )}
-      {finished && (
+      {finished && !showEvolution && (
         <div className="screen" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)' }}>
           <h1 style={{ color: finished.passed ? 'var(--accent)' : 'var(--danger)' }}>
             {finished.passed ? 'Cleared!' : 'Try again'}
@@ -211,13 +230,22 @@ export function GameContainer() {
             )}
             <button
               className={finished.passed ? 'primary' : undefined}
-              onClick={() => navigate('/journey')}
+              onClick={finished.passed ? continueFromResult : () => navigate('/journey')}
               autoFocus={finished.passed}
             >
               {finished.passed ? 'Continue (Enter)' : 'Back to map'}
             </button>
           </div>
         </div>
+      )}
+      {showEvolution && clan && (
+        <EvolutionInterstitial
+          clanName={clan.name}
+          clanColor={clan.color}
+          fromForm={fromForm}
+          toForm={toForm}
+          onContinue={() => navigate('/journey')}
+        />
       )}
     </div>
   );
