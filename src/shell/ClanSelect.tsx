@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
-import { assetUrl } from '../assets/manifest';
+import { assetUrl, resolveCardKey } from '../assets/manifest';
 import { useGameStore } from '../store/gameStore';
 import { startRun } from '../services/progress';
 
@@ -36,7 +36,7 @@ export function ClanSelect() {
       <div className="card-grid">
         {CLANS.map((clan) => {
           const form1 = cardsForClan(clan.name)[0];
-          const url = assetUrl('card.frame', {
+          const url = assetUrl(resolveCardKey(clan.name, 1), {
             clanName: clan.name,
             color: clan.color,
             formName: form1?.name ?? 'Form 1',

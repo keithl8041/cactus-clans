@@ -76,9 +76,19 @@ export const ASSETS: Record<string, AssetEntry> = {
   'balloon.prickling': { kind: 'image', src: '/art/balloon-prickling-clan.png' },
   'cactus.spike': { kind: 'image', src: '/art/cactus-spike.png' },
   'card.frame': { kind: 'svg', generate: (opts) => clanCardSvg(opts as ClanCardOptions) },
+  'card.prickling.1': { kind: 'image', src: '/art/card-prickling-clan-form1.png' },
+  'card.prickling.2': { kind: 'image', src: '/art/card-prickling-clan-form2.png' },
+  'card.prickling.3': { kind: 'image', src: '/art/card-prickling-clan-form3.png' },
+  'card.prickling.4': { kind: 'image', src: '/art/card-prickling-clan-form4.png' },
+  'card.prickling.5': { kind: 'image', src: '/art/card-prickling-clan-form5.png' },
+  'card.prickling.6': { kind: 'image', src: '/art/card-prickling-clan-form6.png' },
+  'card.prickling.7': { kind: 'image', src: '/art/card-prickling-clan-form7.png' },
+  'card.prickling.8': { kind: 'image', src: '/art/card-prickling-clan-form8.png' },
   dartboard: { kind: 'svg', generate: (opts) => dartboardSvg(opts as DartboardOptions) },
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
   'character.prickling.1': { kind: 'image', src: '/art/prickling-prickling-clan-form1.png' },
+  'character.prickling.2': { kind: 'image', src: '/art/spiket-prickling-clan-form2.png' },
+  'character.prickling.3': { kind: 'image', src: '/art/bloomguard-prickling-clan-form3.png' },
   'character.prickling.8': { kind: 'image', src: '/art/desert-titan-prickling-clan-form8.png' },
   'hit.splat': { kind: 'svg', generate: (opts) => hitSplatSvg(opts as HitSplatOptions) },
   'lizard.up': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'up' }) },
@@ -138,4 +148,10 @@ export function resolveCharacterKey(clanName: string, formNumber: number): strin
 export function resolveCamelKey(clanName: string): string {
   const key = `camel.${clanAssetSlug(clanName)}`;
   return key in ASSETS ? key : 'camel';
+}
+
+/** Returns the clan+form-specific card key if registered, else the generic card frame. */
+export function resolveCardKey(clanName: string, formNumber: number): string {
+  const key = `card.${clanAssetSlug(clanName)}.${formNumber}`;
+  return key in ASSETS ? key : 'card.frame';
 }

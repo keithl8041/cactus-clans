@@ -26,12 +26,16 @@ const CLAN_META: Record<string, { color: string; tagline: string }> = {
   'Wildfire Clan': { color: '#e86a2a', tagline: 'Burns brightest in danger.' },
 };
 
-export const CLANS: Clan[] = [...new Set(CARDS.map((c) => c.clan))].map((name) => ({
-  name,
-  color: CLAN_META[name]?.color ?? '#888',
-  tagline: CLAN_META[name]?.tagline ?? '',
-  formCount: CARDS.filter((c) => c.clan === name).length,
-}));
+const FEATURED_CLAN = 'Prickling Clan';
+
+export const CLANS: Clan[] = [...new Set(CARDS.map((c) => c.clan))]
+  .sort((a, b) => (a === FEATURED_CLAN ? -1 : b === FEATURED_CLAN ? 1 : 0))
+  .map((name) => ({
+    name,
+    color: CLAN_META[name]?.color ?? '#888',
+    tagline: CLAN_META[name]?.tagline ?? '',
+    formCount: CARDS.filter((c) => c.clan === name).length,
+  }));
 
 export function clanByName(name: string): Clan | undefined {
   return CLANS.find((c) => c.name === name);
