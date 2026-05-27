@@ -50,6 +50,8 @@ export class CamelRaceScene extends Phaser.Scene {
   private passed = false;
   private finished = false;
   private startedAt = 0;
+  private livesRemaining: number = CFG.livesStart;
+  private livesOut = false;
 
   private camel!: Phaser.GameObjects.Image;
   private parallaxFar!: Phaser.GameObjects.TileSprite;
@@ -65,8 +67,6 @@ export class CamelRaceScene extends Phaser.Scene {
   private activePointers = new Map<number, ActivePointer>();
 
   // Keyboard
-  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private keyW!: Phaser.Input.Keyboard.Key;
   private keySpace!: Phaser.Input.Keyboard.Key;
 
   // HUD
@@ -74,6 +74,7 @@ export class CamelRaceScene extends Phaser.Scene {
   private distText!: Phaser.GameObjects.Text;
   private timeText!: Phaser.GameObjects.Text;
   private flaskText!: Phaser.GameObjects.Text;
+  private livesText!: Phaser.GameObjects.Text;
   private staminaFlashAlpha = 0;
   private unlockBanner: Phaser.GameObjects.Text | null = null;
 
@@ -279,6 +280,13 @@ export class CamelRaceScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(15);
 
+    this.livesText = this.add.text(width - 16, 44, `Lives: ${this.livesRemaining}`, {
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '16px',
+      color: '#ff8c8c',
+      fontStyle: 'bold',
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(15);
+
     this.staminaBar = this.add.graphics().setDepth(15).setScrollFactor(0);
   }
 
@@ -290,16 +298,16 @@ export class CamelRaceScene extends Phaser.Scene {
     this.input.on('pointerupoutside', this.handlePointerUp, this);
 
     const kb = this.input.keyboard!;
-    this.cursors = kb.createCursorKeys();
-    this.keyW = kb.addKey(Phaser.Input.Keyboard.KeyCodes.W);
     this.keySpace = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
     kb.on('keydown-LEFT', () => this.requestLaneChange(-1));
     kb.on('keydown-A', () => this.requestLaneChange(-1));
+    kb.on('keydown-UP', () => this.requestLaneChange(-1));
+    kb.on('keydown-W', () => this.requestLaneChange(-1));
     kb.on('keydown-RIGHT', () => this.requestLaneChange(1));
     kb.on('keydown-D', () => this.requestLaneChange(1));
-    kb.on('keydown-UP', () => this.fireDashBurst());
-    kb.on('keydown-W', () => this.fireDashBurst());
+    kb.on('keydown-DOWN', () => this.requestLaneChange(1));
+    kb.on('keydown-S', () => this.requestLaneChange(1));
     kb.on('keydown-SPACE', () => this.fireDashBurst());
   }
 
@@ -350,8 +358,8 @@ export class CamelRaceScene extends Phaser.Scene {
     for (const entry of this.activePointers.values()) {
       if (this.time.now - entry.downAt >= CFG.tapMaxMs) return true;
     }
-    // Keyboard: hold space, W, or up for sustained.
-    if (this.keySpace.isDown || this.keyW.isDown || this.cursors.up?.isDown) return true;
+    // Keyboard: hold space for sustained.
+    if (this.keySpace.isDown) return true;
     return false;
   }
 
@@ -443,6 +451,17 @@ export class CamelRaceScene extends Phaser.Scene {
     this.cameras.main.shake(140, 0.008);
     sfx.pop();
 
+    this.livesRemaining = Math.max(0, this.livesRemaining - 1);
+    this.livesText.setText(`Lives: ${this.livesRemaining}`);
+    this.livesText.setColor('#ff3a3a');
+    this.tweens.add({
+      targets: this.livesText,
+      scale: { from: 1.5, to: 1 },
+      duration: 240,
+      ease: 'Back.easeOut',
+      onComplete: () => this.livesText?.setColor('#ff8c8c'),
+    });
+
     // Blink camel for iframe duration
     this.tweens.add({
       targets: this.camel,
@@ -459,6 +478,11 @@ export class CamelRaceScene extends Phaser.Scene {
       alpha: 0,
       duration: 200,
     });
+
+    if (this.livesRemaining <= 0) {
+      this.livesOut = true;
+      this.finishRace(false, false);
+    }
   }
 
   private onPickup(p: PickupEntity): void {
@@ -581,6 +605,10 @@ export class CamelRaceScene extends Phaser.Scene {
     } else if (this.passed) {
       text = `Made it!\n${miniGamePoints} pts · ${this.flaskCount} flasks`;
       color = '#f7c948';
+      stroke = '#5a2d1f';
+    } else if (this.livesOut) {
+      text = `Out of lives!\n${miniGamePoints} pts`;
+      color = '#d24a3a';
       stroke = '#5a2d1f';
     } else {
       text = `Out of time.\n${miniGamePoints} pts`;

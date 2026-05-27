@@ -33,6 +33,7 @@ export const CAMEL_RACE_CONFIG = {
   hitSpeedPenaltyMs: 800,
   hitSpeedMult: 0.55,
   hitIframesMs: 600,
+  livesStart: 3,                       // race ends in failure when these are gone
 
   // Obstacles
   obstacleBaseGapPx: 720,
