@@ -2,7 +2,7 @@
 
 export const BALLOON_CONFIG = {
   // Win condition
-  passThreshold: 12,
+  passThreshold: 10,
 
   // World
   baseGravity: 700,             // pixels/sec^2 — applies to player; balloon uses its own gravity
