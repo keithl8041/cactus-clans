@@ -42,11 +42,12 @@ export function ClanSelect() {
             formName: form1?.name ?? 'Form 1',
             formNumber: 1,
           });
+          const selectable = clan.name === 'Prickling Clan';
           return (
             <div
               key={clan.name}
               className={`card-tile${selected === clan.name ? ' selected' : ''}`}
-              onClick={() => setSelected(clan.name)}
+              onClick={selectable ? () => setSelected(clan.name) : undefined}
             >
               <img src={url} alt={clan.name} />
               <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
