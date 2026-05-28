@@ -225,8 +225,8 @@ export class CactusDartsScene extends Phaser.Scene {
     if (this.finished || this.spike || this.dragging || this.quiverRemaining <= 0) return;
     this.dragging = true;
     this.dragPointerId = p.id;
-    // Anchor the swipe at the touch point — the throw will fly in the direction
-    // and distance the player swipes from here.
+    // Anchor the draw at the touch point — pulling back from here fires the
+    // spike in the opposite direction, with power scaling by draw distance.
     this.dragStart.set(p.x, p.y);
     this.dragCurrent.set(p.x, p.y);
   }
@@ -267,10 +267,10 @@ export class CactusDartsScene extends Phaser.Scene {
   // ----- Aim / velocity math -----
 
   private dragToVelocity(): { vx: number; vy: number } {
-    // Swipe direction is the throw direction. Swipe right-and-up → spike flies
-    // right-and-up. Power scales with swipe length (clamped to maxDragPx).
-    let dx = this.dragCurrent.x - this.dragStart.x;
-    let dy = this.dragCurrent.y - this.dragStart.y;
+    // Slingshot: drag back to fire forward. Pull left-and-down → spike flies
+    // right-and-up. Power scales with draw length (clamped to maxDragPx).
+    let dx = this.dragStart.x - this.dragCurrent.x;
+    let dy = this.dragStart.y - this.dragCurrent.y;
     const mag = Math.hypot(dx, dy);
     if (mag === 0) return { vx: 0, vy: 0 };
     const clamped = Math.min(mag, CFG.maxDragPx);
