@@ -74,10 +74,23 @@ export async function getActiveRun(playerId: string): Promise<RunProgress | null
   return readRun(playerId);
 }
 
+/**
+ * Clears the active run from localStorage so the next clan pick creates a
+ * fresh run in D1. The previous (completed) run stays in `runs` — leaderboard
+ * picks the highest-scoring run per player at read time.
+ */
+export function clearActiveRun(playerId: string): void {
+  localStorage.removeItem(RUN_KEY(playerId));
+}
+
 export async function recordLevelResult(
   run: RunProgress,
   record: Omit<LevelClearRecord, 'recordedAt'>,
 ): Promise<RunProgress> {
+  // Once a run is submitted, replays are practice only — no score updates
+  // locally or in D1. This stops players from gaming the leaderboard by
+  // grinding bonus pickups on already-cleared levels after submission.
+  if (run.completedAt) return run;
   const recorded: LevelClearRecord = { ...record, recordedAt: new Date().toISOString() };
   // Replay rule: a pass is sticky (a later fail can't un-clear a level);
   // otherwise keep the higher score. Bonus pickups mean failed runs can outscore

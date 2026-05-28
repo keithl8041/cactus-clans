@@ -183,6 +183,7 @@ export function GameContainer() {
 
   if (!level) return null;
   const clan = run ? clanByName(run.clan) : undefined;
+  const isPractice = !!run?.completedAt;
 
   return (
     <div className="game-canvas-wrap">
@@ -209,8 +210,8 @@ export function GameContainer() {
       )}
       {finished && !showEvolution && (
         <div className="screen" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)' }}>
-          {finished.passed && level.number === MAX_LEVEL && <Confetti />}
-          {finished.passed && level.number === MAX_LEVEL ? (
+          {finished.passed && level.number === MAX_LEVEL && !isPractice && <Confetti />}
+          {finished.passed && level.number === MAX_LEVEL && !isPractice ? (
             <>
               <h1 className="victory-headline" style={{ fontSize: '2.6rem', textAlign: 'center' }}>
                 You beat Cactus Clans!
@@ -236,10 +237,16 @@ export function GameContainer() {
                 {' · '}
                 {(finished.elapsedMs / 1000).toFixed(1)}s · score {finished.score}
               </h2>
-              {!finished.passed && (
+              {isPractice ? (
                 <div style={{ color: 'var(--text-dim)', maxWidth: '24rem', textAlign: 'center' }}>
-                  Your score still counts — it's on the leaderboard.
+                  Practice mode — doesn't count toward the leaderboard.
                 </div>
+              ) : (
+                !finished.passed && (
+                  <div style={{ color: 'var(--text-dim)', maxWidth: '24rem', textAlign: 'center' }}>
+                    Your score still counts — it's on the leaderboard.
+                  </div>
+                )
               )}
             </>
           )}

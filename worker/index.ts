@@ -145,14 +145,24 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
   if (pathname === '/api/leaderboard' && method === 'GET') {
     const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
     const limit = Math.min(Math.max(requested, 1), 200);
-    // All runs — including in-progress — ordered by total_score. Failed/partial
-    // attempts still show up so kids see their effort tracked.
+    // One row per player — their highest-scoring run (in-progress runs still
+    // count so kids see effort tracked). Ties broken by most recent completion.
     const result = await env.DB
       .prepare(
-        `SELECT p.nickname, r.clan, r.total_score AS totalScore, r.completed_at AS completedAt
-         FROM runs r
-         INNER JOIN players p ON p.id = r.player_id
-         ORDER BY r.total_score DESC
+        `WITH ranked AS (
+           SELECT r.player_id, r.clan, r.total_score, r.completed_at,
+                  ROW_NUMBER() OVER (
+                    PARTITION BY r.player_id
+                    ORDER BY r.total_score DESC, r.completed_at DESC
+                  ) AS rn
+           FROM runs r
+         )
+         SELECT p.nickname, ranked.clan, ranked.total_score AS totalScore,
+                ranked.completed_at AS completedAt
+         FROM ranked
+         INNER JOIN players p ON p.id = ranked.player_id
+         WHERE ranked.rn = 1
+         ORDER BY totalScore DESC
          LIMIT ?`,
       )
       .bind(limit)

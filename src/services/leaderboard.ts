@@ -43,7 +43,13 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
     }));
   }
 
-  return readMock()
+  // Dedup by nickname (highest score wins) to mirror the worker's SQL.
+  const byName = new Map<string, MockRow>();
+  for (const row of readMock()) {
+    const prior = byName.get(row.nickname);
+    if (!prior || row.totalScore > prior.totalScore) byName.set(row.nickname, row);
+  }
+  return [...byName.values()]
     .sort((a, b) => b.totalScore - a.totalScore)
     .slice(0, limit);
 }
