@@ -14,8 +14,8 @@ export const DESERT_DASH_CONFIG = {
   // Player physics (Arcade physics — gravity for jumping)
   playerSize: 96,
   playerXFraction: 0.22,               // x-position during running phase (world scrolls past)
-  bossPlayerMinXFraction: 0.10,        // movement bounds during boss phase
-  bossPlayerMaxXFraction: 0.55,
+  bossPlayerMinXFraction: 0.04,        // movement bounds during boss phase
+  bossPlayerMaxXFraction: 0.96,
   bossPlayerMoveSpeed: 320,            // horizontal speed during boss phase
   gravity: 1800,
   jumpImpulse: -680,                   // first jump
