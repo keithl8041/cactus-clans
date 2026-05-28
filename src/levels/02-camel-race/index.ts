@@ -3,8 +3,8 @@ import { CamelRaceScene } from './CamelRaceScene';
 import { CAMEL_RACE_CONFIG } from './config';
 
 export const camelRaceLevel: LevelDefinition = {
-  id: '06-camel-race',
-  number: 6,
+  id: '02-camel-race',
+  number: 2,
   title: 'Camel Sprint',
   blurb: 'Race your camel across the dunes. Tap to switch lanes; hold to dash and grab water.',
   passThreshold: CAMEL_RACE_CONFIG.passThreshold,

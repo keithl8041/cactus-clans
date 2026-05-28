@@ -1,10 +1,10 @@
 import type { LevelDefinition } from './types';
 import { balloonLevel } from './01-balloon-keepy-uppy';
-import { cactusDartsLevel } from './02-cactus-darts';
+import { camelRaceLevel } from './02-camel-race';
 import { lizardWhackLevel } from './03-lizard-whack';
 import { cactusCareLevel } from './04-cactus-care';
 import { cactusSlicingLevel } from './05-cactus-slicing';
-import { camelRaceLevel } from './06-camel-race';
+import { cactusDartsLevel } from './06-cactus-darts';
 import { duneMazeLevel } from './07-sand-dune-maze';
 import { desertDashLevel } from './08-desert-dash';
 
@@ -14,11 +14,11 @@ import { desertDashLevel } from './08-desert-dash';
 // Append new level definitions here and add a matching entry to ./meta.ts.
 export const LEVELS: LevelDefinition[] = [
   balloonLevel,
-  cactusDartsLevel,
+  camelRaceLevel,
   lizardWhackLevel,
   cactusCareLevel,
   cactusSlicingLevel,
-  camelRaceLevel,
+  cactusDartsLevel,
   duneMazeLevel,
   desertDashLevel,
 ];

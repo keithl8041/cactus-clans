@@ -19,11 +19,11 @@ export const LEVEL_META: LevelMeta[] = [
     passThreshold: 10,
   },
   {
-    id: '02-cactus-darts',
+    id: '02-camel-race',
     number: 2,
-    title: 'Cactus Dart Toss',
-    blurb: 'Sling cactus spikes at the dartboard. Bullseyes count for the most.',
-    passThreshold: 12,
+    title: 'Camel Sprint',
+    blurb: 'Race your camel across the dunes. Tap to switch lanes; hold to dash and grab water.',
+    passThreshold: 153, // keep in sync with CAMEL_RACE_CONFIG.passThreshold
   },
   {
     id: '03-lizard-whack',
@@ -47,11 +47,11 @@ export const LEVEL_META: LevelMeta[] = [
     passThreshold: 45, // keep in sync with CACTUS_SLICING_CONFIG.passThreshold
   },
   {
-    id: '06-camel-race',
+    id: '06-cactus-darts',
     number: 6,
-    title: 'Camel Sprint',
-    blurb: 'Race your camel across the dunes. Tap to switch lanes; hold to dash and grab water.',
-    passThreshold: 153, // keep in sync with CAMEL_RACE_CONFIG.passThreshold
+    title: 'Cactus Dart Toss',
+    blurb: 'Sling cactus spikes at the dartboard. Bullseyes count for the most.',
+    passThreshold: 12,
   },
   {
     id: '07-sand-dune-maze',

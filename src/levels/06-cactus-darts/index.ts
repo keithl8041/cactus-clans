@@ -3,8 +3,8 @@ import { CactusDartsScene } from './CactusDartsScene';
 import { CACTUS_DARTS_CONFIG } from './config';
 
 export const cactusDartsLevel: LevelDefinition = {
-  id: '02-cactus-darts',
-  number: 2,
+  id: '06-cactus-darts',
+  number: 6,
   title: 'Cactus Dart Toss',
   blurb: 'Sling cactus spikes at the dartboard. Pull back to aim — bullseyes are worth the most!',
   passThreshold: CACTUS_DARTS_CONFIG.passThreshold,
