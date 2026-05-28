@@ -9,7 +9,9 @@ export const BALLOON_CONFIG = {
   balloonGravityY: 240,         // balloon's own gravity (slower than player)
   balloonSize: 96,
   cactusSize: 80,
-  floorPadding: 12,             // height of sandy floor strip
+  floorPadding: 60,             // height of sandy floor strip (matches Game1Floor.png height)
+  groundLineOffset: 30,         // floor cactus base sits this far below the top of the strip
+  playerSink: 8,                // player feet sit this many extra px below the cactus ground line
   maxFallSpeed: 600,            // balloon terminal velocity
 
   // Player
@@ -31,8 +33,8 @@ export const BALLOON_CONFIG = {
   hitCooldownMs: 250,
 
   // Difficulty: spikes
-  firstWallSpikeAt: 12,
-  spikeRampEvery: 4,
+  firstWallSpikeAt: 5,
+  spikeRampEvery: 3,
   wallPadding: 16,
 
   // Difficulty: wind

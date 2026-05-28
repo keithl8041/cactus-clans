@@ -68,19 +68,26 @@ export class BalloonScene extends Phaser.Scene {
       size: CFG.playerSize,
     });
     loadAsset(this, 'star', 'star', { size: CFG.starSize });
+    loadAsset(this, 'game1.background', 'game1.background');
+    loadAsset(this, 'game1.floor', 'game1.floor');
   }
 
   create(): void {
     const { width, height } = this.scale;
 
-    this.add.rectangle(0, 0, width, height, 0x16291c).setOrigin(0);
-    this.add.rectangle(0, height - CFG.floorPadding, width, CFG.floorPadding, 0x7a5a3a).setOrigin(0);
+    this.add.image(0, 0, 'game1.background').setOrigin(0).setDisplaySize(width, height);
+    this.add.image(0, height - CFG.floorPadding, 'game1.floor')
+      .setOrigin(0)
+      .setDisplaySize(width, CFG.floorPadding);
 
     this.physics.world.gravity.y = CFG.baseGravity;
 
-    // Invisible solid floor for the player to stand on (sits at the top of the sandy strip)
-    const floorTop = height - CFG.floorPadding;
-    this.floor = this.add.zone(width / 2, floorTop, width, 4);
+    // Invisible solid floor for the player to stand on. Sits inside the sandy
+    // strip (not at its top) so feet plant into the floor art rather than
+    // perching on its surface. `playerSink` drops the player a bit lower than
+    // the cactus base line for a more grounded look.
+    const groundY = height - CFG.floorPadding + CFG.groundLineOffset + CFG.playerSink;
+    this.floor = this.add.zone(width / 2, groundY, width, 4);
     this.physics.add.existing(this.floor, true);
 
     this.setupPlayer();
@@ -126,7 +133,7 @@ export class BalloonScene extends Phaser.Scene {
 
   private setupPlayer(): void {
     const { width, height } = this.scale;
-    const spawnY = height - CFG.floorPadding - CFG.playerSize / 2;
+    const spawnY = height - CFG.floorPadding + CFG.groundLineOffset + CFG.playerSink - CFG.playerSize / 2;
     this.player = this.physics.add.sprite(width / 2, spawnY, 'character');
     // Scale to the configured player size while preserving aspect ratio. The
     // procedural SVG is already sized to fit, so this is ~no-op for the
@@ -171,7 +178,7 @@ export class BalloonScene extends Phaser.Scene {
     this.hazardSpikeGroup = this.physics.add.staticGroup();
 
     // Floor spikes — balloon-only hazards. Skip the center so the player doesn't spawn on one.
-    const floorY = height - CFG.floorPadding;
+    const floorY = height - CFG.floorPadding + CFG.groundLineOffset;
     this.floorCactusXs = [width * 0.18, width * 0.82];
     this.spawnCactus(this.floorSpikeGroup, this.floorCactusXs[0], floorY, 'up');
     this.spawnCactus(this.floorSpikeGroup, this.floorCactusXs[1], floorY, 'up');
