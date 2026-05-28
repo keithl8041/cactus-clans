@@ -88,11 +88,23 @@ export const DESERT_DASH_CONFIG = {
   bossDamageIframesMs: 900,            // boss flashes invulnerable after a stomp
   bossDefeatedDelayMs: 1500,           // pause showing defeated state before scroll resumes
 
-  // Spike spit attack (alternates with leap attacks)
+  // Spike spit attack (high projectile — player must NOT jump into it).
   bossSpitMs: 1200,                    // travel time across the arena
   bossSpitSpeed: 520,                  // px/sec horizontal projectile speed (leftward)
   bossSpitColliderRadiusPx: 38,
   bossSpitSize: 56,
+
+  // Cactus lob attack (low projectile that arcs then rolls along the ground —
+  // player must JUMP over it). Cycles after leap and spit.
+  bossLobSize: 60,
+  bossLobLaunchVx: -360,               // initial leftward velocity at toss
+  bossLobLaunchVy: -560,               // initial upward velocity at toss
+  bossLobGravity: 1800,                // px/sec² applied to the lob in-flight
+  bossLobRollSpeed: -340,              // leftward roll speed once landed
+  bossLobColliderRadiusPx: 34,
+  bossLobDoubleChance: 0.55,           // chance the boss tosses a second cactus
+  bossLobSecondDelayMs: 380,           // delay before the second cactus
+  bossLobCycleMs: 1800,                // substate duration before the next attack begins
 
   // Boss UI
   bossHealthBarWidthPx: 220,

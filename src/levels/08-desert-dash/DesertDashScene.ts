@@ -27,8 +27,17 @@ interface SpitEntity {
   spent: boolean;
 }
 
+interface LobEntity {
+  sprite: Phaser.GameObjects.Image;
+  vx: number;
+  vy: number;
+  landed: boolean;
+  spent: boolean;
+  groundY: number;
+}
+
 type Phase = 'running' | 'bossIntro' | 'bossCycle' | 'bossDefeated' | 'outro' | 'ended';
-type BossSubstate = 'idle' | 'telegraph' | 'leap' | 'landed' | 'returning' | 'spit';
+type BossSubstate = 'idle' | 'telegraph' | 'leap' | 'landed' | 'returning' | 'spit' | 'lob';
 
 interface ActivePointer {
   side: 'left' | 'right';
@@ -87,6 +96,7 @@ export class DesertDashScene extends Phaser.Scene {
   private bossLeapStartT = 0;
   private bossIframesUntil = 0;
   private spits: SpitEntity[] = [];
+  private lobs: LobEntity[] = [];
 
   // ----- Finish -----
   private finishBanner: Phaser.GameObjects.Image | null = null;
@@ -663,6 +673,7 @@ export class DesertDashScene extends Phaser.Scene {
     this.applyBossPhaseMovement();
     this.advanceBossState();
     this.advanceSpits(dt);
+    this.advanceLobs(dt);
     this.checkBossContacts();
     this.redrawBossHealthBar();
     this.distText.setText(`Distance: ${Math.floor(this.distanceCovered / 100)}`);
@@ -698,8 +709,10 @@ export class DesertDashScene extends Phaser.Scene {
 
   private startNextBossAttack(): void {
     if (!this.boss || this.phase !== 'bossCycle') return;
-    // Alternate leap and spit for variety; first attack is a leap.
-    const kind = this.bossAttackCount % 2 === 0 ? 'leap' : 'spit';
+    // Rotate leap → spit → ground-lob so the player has to switch between
+    // jumping in, ducking under (i.e. not jumping into), and jumping over.
+    const cycle: ('leap' | 'spit' | 'lob')[] = ['leap', 'spit', 'lob'];
+    const kind = cycle[this.bossAttackCount % cycle.length];
     this.bossAttackCount += 1;
     this.bossSubstate = 'telegraph';
     this.bossSubstateUntil = this.time.now + CFG.bossTelegraphMs;
@@ -718,7 +731,8 @@ export class DesertDashScene extends Phaser.Scene {
         if (!this.boss) return;
         this.boss.setScale(baseScale);
         if (kind === 'leap') this.beginBossLeap();
-        else this.beginBossSpit();
+        else if (kind === 'spit') this.beginBossSpit();
+        else this.beginBossGroundLob();
       },
     });
   }
@@ -755,6 +769,70 @@ export class DesertDashScene extends Phaser.Scene {
       if (this.phase !== 'bossCycle') return;
       this.startNextBossAttack();
     });
+  }
+
+  private beginBossGroundLob(): void {
+    if (!this.boss) return;
+    this.bossSubstate = 'lob';
+    const isDouble = Math.random() < CFG.bossLobDoubleChance;
+    const duration = (isDouble ? CFG.bossLobSecondDelayMs : 0) + CFG.bossLobCycleMs;
+    this.bossSubstateUntil = this.time.now + duration;
+
+    this.spawnLob();
+    if (isDouble) {
+      this.time.delayedCall(CFG.bossLobSecondDelayMs, () => {
+        if (this.phase === 'bossCycle' && this.bossSubstate === 'lob') this.spawnLob();
+      });
+    }
+
+    this.time.delayedCall(duration, () => {
+      if (this.phase !== 'bossCycle') return;
+      this.startNextBossAttack();
+    });
+  }
+
+  private spawnLob(): void {
+    if (!this.boss) return;
+    const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.3, this.boss.y - CFG.bossSize * 0.35, 'cactus.spike').setDepth(8);
+    sprite.setScale(CFG.bossLobSize / sprite.height);
+    const vxJitter = Phaser.Math.Between(-60, 60);
+    const groundY = this.scale.height - CFG.floorPaddingPx - CFG.bossLobSize / 2;
+    this.lobs.push({
+      sprite,
+      vx: CFG.bossLobLaunchVx + vxJitter,
+      vy: CFG.bossLobLaunchVy,
+      landed: false,
+      spent: false,
+      groundY,
+    });
+    sfx.throw();
+  }
+
+  private advanceLobs(dt: number): void {
+    for (let i = this.lobs.length - 1; i >= 0; i--) {
+      const l = this.lobs[i];
+      if (l.spent || l.sprite.x < -120) {
+        l.sprite.destroy();
+        this.lobs.splice(i, 1);
+        continue;
+      }
+      if (!l.landed) {
+        l.vy += CFG.bossLobGravity * dt;
+        l.sprite.x += l.vx * dt;
+        l.sprite.y += l.vy * dt;
+        l.sprite.angle += 360 * dt;
+        if (l.sprite.y >= l.groundY) {
+          l.sprite.y = l.groundY;
+          l.landed = true;
+          l.vy = 0;
+          l.vx = CFG.bossLobRollSpeed;
+          sfx.pop();
+        }
+      } else {
+        l.sprite.x += l.vx * dt;
+        l.sprite.angle += 540 * dt;
+      }
+    }
   }
 
   private advanceBossState(): void {
@@ -859,6 +937,18 @@ export class DesertDashScene extends Phaser.Scene {
           this.cameras.main.shake(120, 0.008);
         }
       }
+
+      // Lob collision — ground-level cactus that the player must jump over.
+      for (const l of this.lobs) {
+        if (l.spent) continue;
+        const d = Phaser.Math.Distance.Between(l.sprite.x, l.sprite.y, this.player.x, this.player.y);
+        if (d < CFG.bossLobColliderRadiusPx) {
+          l.spent = true;
+          this.takeDamage();
+          sfx.pop();
+          this.cameras.main.shake(120, 0.008);
+        }
+      }
     }
   }
 
@@ -940,9 +1030,11 @@ export class DesertDashScene extends Phaser.Scene {
       });
       this.boss = null;
     }
-    // Clear any in-flight spits
+    // Clear any in-flight spits and lobs
     for (const s of this.spits) s.sprite.destroy();
     this.spits = [];
+    for (const l of this.lobs) l.sprite.destroy();
+    this.lobs = [];
 
     // Banner
     const { width, height } = this.scale;
@@ -988,6 +1080,12 @@ export class DesertDashScene extends Phaser.Scene {
       duration: 350,
       ease: 'Sine.easeInOut',
     });
+
+    // Frozen obstacles from the running phase have been parked off-screen for
+    // the duration of the boss fight. Wipe them so the outro starts clean and
+    // they don't collide as the player slides back to the running x.
+    for (const o of this.obstacles) o.sprite.destroy();
+    this.obstacles = [];
   }
 
   private updateOutro(dt: number): void {
@@ -1000,6 +1098,27 @@ export class DesertDashScene extends Phaser.Scene {
     this.parallaxFar.tilePositionX += advance * CFG.parallaxFarMult;
     this.parallaxMid.tilePositionX += advance * CFG.parallaxMidMult;
     this.parallaxNear.tilePositionX += advance * CFG.parallaxNearMult;
+
+    // Keep spawning + scrolling stars so the player sees foreground objects
+    // sweeping past during the run to the finish. Without this the parallax
+    // alone reads as static against the flat ground rectangle.
+    while (this.nextStarSpawnX < this.distanceCovered + width + 200) {
+      this.spawnStarAt(this.nextStarSpawnX);
+      const jitter = 1 + Phaser.Math.FloatBetween(-CFG.starSpawnJitter, CFG.starSpawnJitter);
+      this.nextStarSpawnX += CFG.starSpawnEveryPx * jitter;
+    }
+    for (let i = this.stars.length - 1; i >= 0; i--) {
+      const s = this.stars[i];
+      s.sprite.x = s.worldX - this.distanceCovered + camelX;
+      if (s.sprite.x < -120 || s.collected) {
+        s.sprite.destroy();
+        this.stars.splice(i, 1);
+        continue;
+      }
+      if (Phaser.Math.Distance.Between(s.sprite.x, s.sprite.y, this.player.x, this.player.y) <= CFG.starColliderRadiusPx) {
+        this.onStarCollect(s);
+      }
+    }
 
     if (!this.finishBanner) {
       // Place finish banner one screen ahead of the player at start of outro
