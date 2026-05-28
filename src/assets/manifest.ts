@@ -84,6 +84,8 @@ export const ASSETS: Record<string, AssetEntry> = {
   'card.prickling.6': { kind: 'image', src: '/art/card-prickling-clan-form6.png' },
   'card.prickling.7': { kind: 'image', src: '/art/card-prickling-clan-form7.png' },
   'card.prickling.8': { kind: 'image', src: '/art/card-prickling-clan-form8.png' },
+  'card.duskerns.1': { kind: 'image', src: '/art/card-duskern-clan-form1.png' },
+  'card.tumbleweed.1': { kind: 'image', src: '/art/card-tumbleweed-clan-form1.png' },
   dartboard: { kind: 'svg', generate: (opts) => dartboardSvg(opts as DartboardOptions) },
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
   'character.prickling.1': { kind: 'image', src: '/art/prickling-prickling-clan-form1.png' },
