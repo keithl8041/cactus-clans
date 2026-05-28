@@ -84,33 +84,36 @@ function toNumberOrString(v) {
 const sharedStrings = parseSharedStrings(readMember('xl/sharedStrings.xml'));
 const rows = parseSheetRows(readMember('xl/worksheets/sheet1.xml'), sharedStrings);
 
-// Header row is row 1 (index 0): Clan, Name, Description, Strengths, Weaknesses, Attack, Defence, Speed, Health, Overall Score
-// Data rows: Clan column (A) is filled for the first row of each clan, then blank for subsequent forms.
+// Header row is row 1 (index 0): Clan, Form, Name, Description, Strengths, Weaknesses, Attack, Defence, Speed, Health, Overall Score
+// Clan column (A) is filled for the first row of each clan, then blank for subsequent forms.
+// Form column (B) is the explicit 1..8 form number; falls back to a running counter when blank.
 let currentClan = '';
 let formCounter = 0;
 const cards = [];
 for (let i = 1; i < rows.length; i++) {
   const r = rows[i];
-  const name = (r[1] ?? '').toString().trim();
+  const name = (r[2] ?? '').toString().trim();
   if (!name) continue;
   const clanCell = (r[0] ?? '').toString().trim();
-  if (clanCell) {
+  if (clanCell && clanCell !== currentClan) {
     currentClan = clanCell;
     formCounter = 0;
   }
   formCounter += 1;
+  const formCell = (r[1] ?? '').toString().trim();
+  const form = formCell ? Math.round(Number(formCell)) : formCounter;
   cards.push({
     clan: currentClan,
-    form: formCounter,
+    form,
     name,
-    description: (r[2] ?? '').toString().trim(),
-    strengths: (r[3] ?? '').toString().split(';').map((s) => s.trim()).filter(Boolean),
-    weaknesses: (r[4] ?? '').toString().split(';').map((s) => s.trim()).filter(Boolean),
-    attack: toNumberOrString(r[5]),
-    defence: toNumberOrString(r[6]),
-    speed: toNumberOrString(r[7]),
-    health: toNumberOrString(r[8]),
-    overallScore: toNumberOrString(r[9]),
+    description: (r[3] ?? '').toString().trim(),
+    strengths: (r[4] ?? '').toString().split(';').map((s) => s.trim()).filter(Boolean),
+    weaknesses: (r[5] ?? '').toString().split(';').map((s) => s.trim()).filter(Boolean),
+    attack: toNumberOrString(r[6]),
+    defence: toNumberOrString(r[7]),
+    speed: toNumberOrString(r[8]),
+    health: toNumberOrString(r[9]),
+    overallScore: toNumberOrString(r[10]),
   });
 }
 

@@ -1,5 +1,173 @@
 [
   {
+    "clan": "Prickling Clan",
+    "form": 1,
+    "name": "Prickling",
+    "description": "Youngest of the clan.",
+    "strengths": [
+      "Quick learner",
+      "Agile",
+      "Brave heart"
+    ],
+    "weaknesses": [
+      "Low health",
+      "Inexperienced",
+      "Easily distracted"
+    ],
+    "attack": 20,
+    "defence": 20,
+    "speed": 60,
+    "health": 40,
+    "overallScore": 99
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 2,
+    "name": "Spiket",
+    "description": "Trusted fighter of the clan.",
+    "strengths": [
+      "Sharp attack",
+      "Fast and agile",
+      "Loyal"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Overconfident",
+      "Solo fighter"
+    ],
+    "attack": 60,
+    "defence": 30,
+    "speed": 70,
+    "health": 30,
+    "overallScore": 100
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 3,
+    "name": "Bloomguard",
+    "description": "Blooms with strength.",
+    "strengths": [
+      "High defense",
+      "Durable",
+      "Protective"
+    ],
+    "weaknesses": [
+      "Lower speed",
+      "Heavy",
+      "Slow to adapt"
+    ],
+    "attack": 55,
+    "defence": 80,
+    "speed": 40,
+    "health": 70,
+    "overallScore": 99
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 4,
+    "name": "Sunspire",
+    "description": "Bringer of light and life.",
+    "strengths": [
+      "Healing abilities",
+      "Supportive",
+      "Bright aura"
+    ],
+    "weaknesses": [
+      "Low physical defense",
+      "Depends on allies",
+      "Low health"
+    ],
+    "attack": 40,
+    "defence": 40,
+    "speed": 60,
+    "health": 50,
+    "overallScore": 120
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 5,
+    "name": "Sandstalker",
+    "description": "Moves like the desert wind.",
+    "strengths": [
+      "Stealthy",
+      "High speed",
+      "Critical strikes"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Low health",
+      "Risky fighter"
+    ],
+    "attack": 70,
+    "defence": 25,
+    "speed": 90,
+    "health": 30,
+    "overallScore": 110
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 6,
+    "name": "Prickshot",
+    "description": "From afar, no one is safe.",
+    "strengths": [
+      "Ranged expert",
+      "Precise aim",
+      "High agility"
+    ],
+    "weaknesses": [
+      "Low defense",
+      "Fragile",
+      "Needs distance"
+    ],
+    "attack": 65,
+    "defence": 30,
+    "speed": 65,
+    "health": 35,
+    "overallScore": 105
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 7,
+    "name": "Thorncrown",
+    "description": "Leader among warriors.",
+    "strengths": [
+      "Strong leader",
+      "High attack",
+      "Strategic"
+    ],
+    "weaknesses": [
+      "Prideful",
+      "Takes risks",
+      "Vulnerable to magic"
+    ],
+    "attack": 80,
+    "defence": 70,
+    "speed": 50,
+    "health": 60,
+    "overallScore": 100
+  },
+  {
+    "clan": "Prickling Clan",
+    "form": 8,
+    "name": "Desert Titan",
+    "description": "Legend of the desert.",
+    "strengths": [
+      "Massive power",
+      "High defense",
+      "Area control"
+    ],
+    "weaknesses": [
+      "Very slow",
+      "High mana cost",
+      "Targeted by all"
+    ],
+    "attack": 95,
+    "defence": 95,
+    "speed": 20,
+    "health": 100,
+    "overallScore": 200
+  },
+  {
     "clan": "Camo Clan",
     "form": 1,
     "name": "Chamelion",
@@ -22,7 +190,7 @@
   },
   {
     "clan": "Camo Clan",
-    "form": 1,
+    "form": 2,
     "name": "Leaflink",
     "description": "Blends with the leaves and moves like the wind. Trust is earned, not given.",
     "strengths": [
@@ -43,7 +211,7 @@
   },
   {
     "clan": "Camo Clan",
-    "form": 1,
+    "form": 3,
     "name": "Mossshift",
     "description": "One with the moss and shadows of the wild. Patient and persistent.",
     "strengths": [
@@ -64,7 +232,7 @@
   },
   {
     "clan": "Camo Clan",
-    "form": 1,
+    "form": 4,
     "name": "Barkhide",
     "description": "Wears the trees as armor and stands as silent guardian. Thinks before it moves.",
     "strengths": [
@@ -85,7 +253,7 @@
   },
   {
     "clan": "Camo Clan",
-    "form": 1,
+    "form": 5,
     "name": "Stoneveil",
     "description": "Becomes part of the stone. Unshakable and unseen. Wisdom in stillness.",
     "strengths": [
@@ -106,7 +274,7 @@
   },
   {
     "clan": "Camo Clan",
-    "form": 1,
+    "form": 6,
     "name": "Shadowstrike",
     "description": "Strikes from the shadows. Every move is planned, every step is silent.",
     "strengths": [
@@ -127,7 +295,7 @@
   },
   {
     "clan": "Camo Clan",
-    "form": 1,
+    "form": 7,
     "name": "Fernwatcher",
     "description": "Sees all, speaks little. Guides the clan with insight and deep connection to nature.",
     "strengths": [
@@ -148,7 +316,7 @@
   },
   {
     "clan": "Camo Clan",
-    "form": 1,
+    "form": 8,
     "name": "Chameleon King",
     "description": "The unseen ruler. Keeper of balance and peace. Friends to all, enemy to none.",
     "strengths": [
@@ -190,7 +358,7 @@
   },
   {
     "clan": "Duskerns",
-    "form": 1,
+    "form": 2,
     "name": "Shadowspike",
     "description": "Honed by stealth. A deadly strike from the shadows.",
     "strengths": [
@@ -211,7 +379,7 @@
   },
   {
     "clan": "Duskerns",
-    "form": 1,
+    "form": 3,
     "name": "Nightbloom",
     "description": "Blooms in darkness. A relentless hunter of the weak.",
     "strengths": [
@@ -232,7 +400,7 @@
   },
   {
     "clan": "Duskerns",
-    "form": 1,
+    "form": 4,
     "name": "Voidlord",
     "description": "Feared commander. Leads with cunning and cruelty.",
     "strengths": [
@@ -250,11 +418,11 @@
     "defence": 70,
     "speed": 50,
     "health": 60,
-    "overallScore": "1000-2499"
+    "overallScore": 220
   },
   {
     "clan": "Duskerns",
-    "form": 1,
+    "form": 5,
     "name": "Dusk Emperor",
     "description": "Emperor of the night. Bringer of ruin, conqueror of all.",
     "strengths": [
@@ -272,11 +440,11 @@
     "defence": 95,
     "speed": 20,
     "health": 100,
-    "overallScore": "2500+"
+    "overallScore": 310
   },
   {
     "clan": "Duskerns",
-    "form": 1,
+    "form": 6,
     "name": "Twilightseed",
     "description": "Drifter of the void. Spreads darkness where it lands.",
     "strengths": [
@@ -294,11 +462,11 @@
     "defence": 60,
     "speed": 20,
     "health": 80,
-    "overallScore": "750-1499"
+    "overallScore": 240
   },
   {
     "clan": "Duskerns",
-    "form": 1,
+    "form": 7,
     "name": "Obliviarch",
     "description": "Weaver of silence. Bends minds and breaks wills.",
     "strengths": [
@@ -316,11 +484,11 @@
     "defence": 40,
     "speed": 30,
     "health": 60,
-    "overallScore": "1500-2999"
+    "overallScore": 320
   },
   {
     "clan": "Duskerns",
-    "form": 1,
+    "form": 8,
     "name": "Eclipse Wraith",
     "description": "Born of eclipse. A shadow that consumes all.",
     "strengths": [
@@ -338,7 +506,7 @@
     "defence": 25,
     "speed": 95,
     "health": 40,
-    "overallScore": "3000+"
+    "overallScore": 400
   },
   {
     "clan": "Earth Clan",
@@ -363,7 +531,7 @@
   },
   {
     "clan": "Earth Clan",
-    "form": 1,
+    "form": 2,
     "name": "Rockroot",
     "description": "Deep roots, strong body.",
     "strengths": [
@@ -384,7 +552,7 @@
   },
   {
     "clan": "Earth Clan",
-    "form": 1,
+    "form": 3,
     "name": "Terrashaper",
     "description": "Shapes the land and raises walls.",
     "strengths": [
@@ -405,7 +573,7 @@
   },
   {
     "clan": "Earth Clan",
-    "form": 1,
+    "form": 4,
     "name": "Stonewarden",
     "description": "Guardian of strongholds.",
     "strengths": [
@@ -426,7 +594,7 @@
   },
   {
     "clan": "Earth Clan",
-    "form": 1,
+    "form": 5,
     "name": "Gaius Sovereign",
     "description": "Commands mountains and earthquakes.",
     "strengths": [
@@ -447,7 +615,7 @@
   },
   {
     "clan": "Earth Clan",
-    "form": 1,
+    "form": 6,
     "name": "Mountainborn",
     "description": "Born in the mountains.",
     "strengths": [
@@ -468,7 +636,7 @@
   },
   {
     "clan": "Earth Clan",
-    "form": 1,
+    "form": 7,
     "name": "Earthfury",
     "description": "Wrath of the wild earth.",
     "strengths": [
@@ -489,7 +657,7 @@
   },
   {
     "clan": "Earth Clan",
-    "form": 1,
+    "form": 8,
     "name": "Terramancer",
     "description": "Voice of the deep.",
     "strengths": [
@@ -531,7 +699,7 @@
   },
   {
     "clan": "Hot Dog Clan",
-    "form": 1,
+    "form": 2,
     "name": "Ketchup Kid",
     "description": "Shoots ketchup with glee.",
     "strengths": [
@@ -552,7 +720,7 @@
   },
   {
     "clan": "Hot Dog Clan",
-    "form": 1,
+    "form": 3,
     "name": "Wiener Warrior",
     "description": "Brave fighter with ketchup on the brain.",
     "strengths": [
@@ -573,7 +741,7 @@
   },
   {
     "clan": "Hot Dog Clan",
-    "form": 1,
+    "form": 4,
     "name": "Saucy Soldier",
     "description": "Protects the clan with pride.",
     "strengths": [
@@ -594,7 +762,7 @@
   },
   {
     "clan": "Hot Dog Clan",
-    "form": 1,
+    "form": 5,
     "name": "Chili Chef",
     "description": "Master of the kitchen battlefield.",
     "strengths": [
@@ -615,7 +783,7 @@
   },
   {
     "clan": "Hot Dog Clan",
-    "form": 1,
+    "form": 6,
     "name": "Mustard Mauler",
     "description": "Hits hard and squirts hot.",
     "strengths": [
@@ -636,7 +804,7 @@
   },
   {
     "clan": "Hot Dog Clan",
-    "form": 1,
+    "form": 7,
     "name": "Flame Dawg",
     "description": "Runs in, sets things on fire.",
     "strengths": [
@@ -657,7 +825,7 @@
   },
   {
     "clan": "Hot Dog Clan",
-    "form": 1,
+    "form": 8,
     "name": "The Big Bun Boss",
     "description": "The mighty ruler of buns.",
     "strengths": [
@@ -674,7 +842,7 @@
     "defence": 75,
     "speed": 50,
     "health": 150,
-    "overallScore": "250+"
+    "overallScore": 250
   },
   {
     "clan": "Metal Clan",
@@ -699,7 +867,7 @@
   },
   {
     "clan": "Metal Clan",
-    "form": 1,
+    "form": 2,
     "name": "Steelspike",
     "description": "Disciplined and sharp.",
     "strengths": [
@@ -720,7 +888,7 @@
   },
   {
     "clan": "Metal Clan",
-    "form": 1,
+    "form": 3,
     "name": "Chromesentry",
     "description": "Sentinel of the clan.",
     "strengths": [
@@ -741,7 +909,7 @@
   },
   {
     "clan": "Metal Clan",
-    "form": 1,
+    "form": 4,
     "name": "Goldenbloom",
     "description": "Leads with honor and grace.",
     "strengths": [
@@ -762,7 +930,7 @@
   },
   {
     "clan": "Metal Clan",
-    "form": 1,
+    "form": 5,
     "name": "Platinum Sage",
     "description": "Wise mind and calm heart.",
     "strengths": [
@@ -783,7 +951,7 @@
   },
   {
     "clan": "Metal Clan",
-    "form": 1,
+    "form": 6,
     "name": "Iridium Champion",
     "description": "Unstoppable force.",
     "strengths": [
@@ -804,7 +972,7 @@
   },
   {
     "clan": "Metal Clan",
-    "form": 1,
+    "form": 7,
     "name": "Auroraforge",
     "description": "Forged in brilliance.",
     "strengths": [
@@ -825,7 +993,7 @@
   },
   {
     "clan": "Metal Clan",
-    "form": 1,
+    "form": 8,
     "name": "Ancient Pricklord",
     "description": "Oldest of the clan.",
     "strengths": [
@@ -867,7 +1035,7 @@
   },
   {
     "clan": "Oasis Clan",
-    "form": 1,
+    "form": 2,
     "name": "Palmfrond",
     "description": "Grows with the oasis.",
     "strengths": [
@@ -888,7 +1056,7 @@
   },
   {
     "clan": "Oasis Clan",
-    "form": 1,
+    "form": 3,
     "name": "Dunesage",
     "description": "Commands water and sand.",
     "strengths": [
@@ -909,7 +1077,7 @@
   },
   {
     "clan": "Oasis Clan",
-    "form": 1,
+    "form": 4,
     "name": "Mirageguard",
     "description": "Guardian of the oasis.",
     "strengths": [
@@ -930,7 +1098,7 @@
   },
   {
     "clan": "Oasis Clan",
-    "form": 1,
+    "form": 5,
     "name": "Oasis Sovereign",
     "description": "Keeper of all waters.",
     "strengths": [
@@ -951,7 +1119,7 @@
   },
   {
     "clan": "Oasis Clan",
-    "form": 1,
+    "form": 6,
     "name": "Tidestrider",
     "description": "Rides the tides with grace.",
     "strengths": [
@@ -972,7 +1140,7 @@
   },
   {
     "clan": "Oasis Clan",
-    "form": 1,
+    "form": 7,
     "name": "Aquasage",
     "description": "Master of waters and wisdom.",
     "strengths": [
@@ -993,7 +1161,7 @@
   },
   {
     "clan": "Oasis Clan",
-    "form": 1,
+    "form": 8,
     "name": "Dunesoverlord",
     "description": "Lord of sand and sea.",
     "strengths": [
@@ -1011,174 +1179,6 @@
     "speed": 25,
     "health": 100,
     "overallScore": "3000+"
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Prickling",
-    "description": "Youngest of the clan.",
-    "strengths": [
-      "Quick learner",
-      "Agile",
-      "Brave heart"
-    ],
-    "weaknesses": [
-      "Low health",
-      "Inexperienced",
-      "Easily distracted"
-    ],
-    "attack": 20,
-    "defence": 20,
-    "speed": 60,
-    "health": 40,
-    "overallScore": 99
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Spiket",
-    "description": "Trusted fighter of the clan.",
-    "strengths": [
-      "Sharp attack",
-      "Fast and agile",
-      "Loyal"
-    ],
-    "weaknesses": [
-      "Low defense",
-      "Overconfident",
-      "Solo fighter"
-    ],
-    "attack": 60,
-    "defence": 30,
-    "speed": 70,
-    "health": 30,
-    "overallScore": 100
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Bloomguard",
-    "description": "Blooms with strength.",
-    "strengths": [
-      "High defense",
-      "Durable",
-      "Protective"
-    ],
-    "weaknesses": [
-      "Lower speed",
-      "Heavy",
-      "Slow to adapt"
-    ],
-    "attack": 55,
-    "defence": 80,
-    "speed": 40,
-    "health": 70,
-    "overallScore": 99
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Thorncrown",
-    "description": "Leader among warriors.",
-    "strengths": [
-      "Strong leader",
-      "High attack",
-      "Strategic"
-    ],
-    "weaknesses": [
-      "Prideful",
-      "Takes risks",
-      "Vulnerable to magic"
-    ],
-    "attack": 80,
-    "defence": 70,
-    "speed": 50,
-    "health": 60,
-    "overallScore": 100
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Desert Titan",
-    "description": "Legend of the desert.",
-    "strengths": [
-      "Massive power",
-      "High defense",
-      "Area control"
-    ],
-    "weaknesses": [
-      "Very slow",
-      "High mana cost",
-      "Targeted by all"
-    ],
-    "attack": 95,
-    "defence": 95,
-    "speed": 20,
-    "health": 100,
-    "overallScore": "2500+"
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Sunspire",
-    "description": "Bringer of light and life.",
-    "strengths": [
-      "Healing abilities",
-      "Supportive",
-      "Bright aura"
-    ],
-    "weaknesses": [
-      "Low physical defense",
-      "Depends on allies",
-      "Low health"
-    ],
-    "attack": 40,
-    "defence": 40,
-    "speed": 60,
-    "health": 50,
-    "overallScore": 120
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Sandstalker",
-    "description": "Moves like the desert wind.",
-    "strengths": [
-      "Stealthy",
-      "High speed",
-      "Critical strikes"
-    ],
-    "weaknesses": [
-      "Low defense",
-      "Low health",
-      "Risky fighter"
-    ],
-    "attack": 70,
-    "defence": 25,
-    "speed": 90,
-    "health": 30,
-    "overallScore": 110
-  },
-  {
-    "clan": "Prickling Clan",
-    "form": 1,
-    "name": "Prickshot",
-    "description": "From afar, no one is safe.",
-    "strengths": [
-      "Ranged expert",
-      "Precise aim",
-      "High agility"
-    ],
-    "weaknesses": [
-      "Low defense",
-      "Fragile",
-      "Needs distance"
-    ],
-    "attack": 65,
-    "defence": 30,
-    "speed": 65,
-    "health": 35,
-    "overallScore": 105
   },
   {
     "clan": "Tropica Clan",
@@ -1203,7 +1203,7 @@
   },
   {
     "clan": "Tropica Clan",
-    "form": 1,
+    "form": 2,
     "name": "Pinebud",
     "description": "Energetic and bold.",
     "strengths": [
@@ -1224,7 +1224,7 @@
   },
   {
     "clan": "Tropica Clan",
-    "form": 1,
+    "form": 3,
     "name": "Mangolo",
     "description": "Quick on its feet.",
     "strengths": [
@@ -1245,7 +1245,7 @@
   },
   {
     "clan": "Tropica Clan",
-    "form": 1,
+    "form": 4,
     "name": "Papayo",
     "description": "Gentle healer who brings peace.",
     "strengths": [
@@ -1266,7 +1266,7 @@
   },
   {
     "clan": "Tropica Clan",
-    "form": 1,
+    "form": 5,
     "name": "Banoni",
     "description": "Steadfast and loyal.",
     "strengths": [
@@ -1287,7 +1287,7 @@
   },
   {
     "clan": "Tropica Clan",
-    "form": 1,
+    "form": 6,
     "name": "Kiwini",
     "description": "Wise and composed.",
     "strengths": [
@@ -1308,7 +1308,7 @@
   },
   {
     "clan": "Tropica Clan",
-    "form": 1,
+    "form": 7,
     "name": "Dragopalm",
     "description": "Radiant and inspiring.",
     "strengths": [
@@ -1329,7 +1329,7 @@
   },
   {
     "clan": "Tropica Clan",
-    "form": 1,
+    "form": 8,
     "name": "Watermelord",
     "description": "Guardian of peace and prosperity.",
     "strengths": [
@@ -1346,7 +1346,7 @@
     "defence": 80,
     "speed": 70,
     "health": 150,
-    "overallScore": "250+"
+    "overallScore": 250
   },
   {
     "clan": "Tumbleweed Clan",
@@ -1371,7 +1371,7 @@
   },
   {
     "clan": "Tumbleweed Clan",
-    "form": 1,
+    "form": 2,
     "name": "Whirler",
     "description": "Uses speed to outmaneuver foes.",
     "strengths": [
@@ -1392,7 +1392,7 @@
   },
   {
     "clan": "Tumbleweed Clan",
-    "form": 1,
+    "form": 3,
     "name": "Galebinder",
     "description": "Commands wind and terrain.",
     "strengths": [
@@ -1413,7 +1413,7 @@
   },
   {
     "clan": "Tumbleweed Clan",
-    "form": 1,
+    "form": 4,
     "name": "Duststorm",
     "description": "Walking storm of destruction.",
     "strengths": [
@@ -1434,7 +1434,7 @@
   },
   {
     "clan": "Tumbleweed Clan",
-    "form": 1,
+    "form": 5,
     "name": "Sandlord",
     "description": "Ruler of desert winds.",
     "strengths": [
@@ -1455,7 +1455,7 @@
   },
   {
     "clan": "Tumbleweed Clan",
-    "form": 1,
+    "form": 6,
     "name": "Dunehunter",
     "description": "Silent stalker across the dunes.",
     "strengths": [
@@ -1476,7 +1476,7 @@
   },
   {
     "clan": "Tumbleweed Clan",
-    "form": 1,
+    "form": 7,
     "name": "Sandsweeper",
     "description": "Crushes foes beneath its relentless roll.",
     "strengths": [
@@ -1497,7 +1497,7 @@
   },
   {
     "clan": "Tumbleweed Clan",
-    "form": 1,
+    "form": 8,
     "name": "Windseer",
     "description": "Sees the winds before they come.",
     "strengths": [
@@ -1539,7 +1539,7 @@
   },
   {
     "clan": "Wildfire Clan",
-    "form": 1,
+    "form": 2,
     "name": "Flareling",
     "description": "Burns brighter and faster.",
     "strengths": [
@@ -1560,7 +1560,7 @@
   },
   {
     "clan": "Wildfire Clan",
-    "form": 1,
+    "form": 3,
     "name": "Infernoblade",
     "description": "Seasoned fighter forged in heat.",
     "strengths": [
@@ -1581,7 +1581,7 @@
   },
   {
     "clan": "Wildfire Clan",
-    "form": 1,
+    "form": 4,
     "name": "Conflagrator",
     "description": "Commands firestorms and chaos.",
     "strengths": [
@@ -1598,11 +1598,11 @@
     "defence": 70,
     "speed": 50,
     "health": 60,
-    "overallScore": "1000-2499"
+    "overallScore": 210
   },
   {
     "clan": "Wildfire Clan",
-    "form": 1,
+    "form": 5,
     "name": "Wildfire Lord",
     "description": "Living inferno consuming all.",
     "strengths": [
@@ -1619,11 +1619,11 @@
     "defence": 95,
     "speed": 20,
     "health": 100,
-    "overallScore": "2500+"
+    "overallScore": 305
   },
   {
     "clan": "Wildfire Clan",
-    "form": 1,
+    "form": 6,
     "name": "Ashstalker",
     "description": "Moves like smoke.",
     "strengths": [
@@ -1644,7 +1644,7 @@
   },
   {
     "clan": "Wildfire Clan",
-    "form": 1,
+    "form": 7,
     "name": "Emberwraith",
     "description": "Wraith of living flame.",
     "strengths": [
@@ -1661,11 +1661,11 @@
     "defence": 25,
     "speed": 85,
     "health": 40,
-    "overallScore": "1500-2999"
+    "overallScore": 500
   },
   {
     "clan": "Wildfire Clan",
-    "form": 1,
+    "form": 8,
     "name": "Pyroclast",
     "description": "Born from magma.",
     "strengths": [
@@ -1682,6 +1682,6 @@
     "defence": 95,
     "speed": 30,
     "health": 120,
-    "overallScore": "3000+"
+    "overallScore": 399
   }
 ]
