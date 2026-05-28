@@ -36,6 +36,29 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
   const { pathname } = url;
   const method = request.method;
 
+  if (pathname === '/api/players/check' && method === 'GET') {
+    const nickname = (url.searchParams.get('nickname') ?? '').trim();
+    if (!nickname) return json({ error: 'nickname required' }, 400);
+    if (nickname.length > 24) return json({ error: 'nickname too long' }, 400);
+
+    const existing = await env.DB
+      .prepare('SELECT 1 AS hit FROM players WHERE nickname = ?')
+      .bind(nickname)
+      .first<{ hit: number }>();
+    if (!existing) return json({ exists: false, suggestions: [] });
+
+    const candidates = generateNicknameCandidates(nickname, 12);
+    if (candidates.length === 0) return json({ exists: true, suggestions: [] });
+    const placeholders = candidates.map(() => '?').join(',');
+    const takenRows = await env.DB
+      .prepare(`SELECT nickname FROM players WHERE nickname IN (${placeholders})`)
+      .bind(...candidates)
+      .all<{ nickname: string }>();
+    const taken = new Set((takenRows.results ?? []).map((r) => r.nickname));
+    const suggestions = candidates.filter((c) => !taken.has(c)).slice(0, 3);
+    return json({ exists: true, suggestions });
+  }
+
   if (pathname === '/api/players' && method === 'POST') {
     const { nickname, pin } = await readJson<{ nickname?: string; pin?: string }>(request);
     const cleaned = (nickname ?? '').trim();
@@ -206,4 +229,16 @@ function b64decode(s: string): Uint8Array {
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
+}
+
+function generateNicknameCandidates(nickname: string, count: number): string[] {
+  const base = nickname.length > 22 ? nickname.slice(0, 22) : nickname;
+  const out = new Set<string>();
+  let attempts = 0;
+  while (out.size < count && attempts < 40) {
+    attempts++;
+    const n = Math.floor(Math.random() * 100);
+    out.add(`${base}${n}`);
+  }
+  return [...out];
 }

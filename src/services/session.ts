@@ -92,6 +92,45 @@ export function removeKnownPlayer(id: string): void {
   if (active?.id === id) signOut();
 }
 
+export interface NicknameCheck {
+  exists: boolean;
+  suggestions: string[];
+}
+
+/**
+ * Checks whether a nickname is already registered. When taken, returns a few
+ * alternate suggestions (base name + random digits) that are known to be free.
+ * In dev fallback mode the check runs against the per-device roster.
+ */
+export async function checkNickname(nickname: string): Promise<NicknameCheck> {
+  const cleaned = nickname.trim();
+  if (!cleaned) throw new Error('Nickname cannot be empty');
+  if (cleaned.length > 24) throw new Error('Nickname is too long (max 24)');
+
+  if (usingRealBackend) {
+    const params = new URLSearchParams({ nickname: cleaned });
+    return apiFetch<NicknameCheck>(`/players/check?${params.toString()}`);
+  }
+  const roster = readRoster();
+  const taken = new Set(roster.map((p) => p.nickname));
+  if (!taken.has(cleaned)) return { exists: false, suggestions: [] };
+  const candidates = generateNicknameCandidates(cleaned, 8);
+  const suggestions = candidates.filter((c) => !taken.has(c)).slice(0, 3);
+  return { exists: true, suggestions };
+}
+
+function generateNicknameCandidates(nickname: string, count: number): string[] {
+  const base = nickname.length > 22 ? nickname.slice(0, 22) : nickname;
+  const out = new Set<string>();
+  let attempts = 0;
+  while (out.size < count && attempts < 40) {
+    attempts++;
+    const n = Math.floor(Math.random() * 100);
+    out.add(`${base}${n}`);
+  }
+  return [...out];
+}
+
 export async function signInWithNickname(nickname: string, pin: string): Promise<PlayerSession> {
   const cleaned = nickname.trim();
   if (!cleaned) throw new Error('Nickname cannot be empty');
