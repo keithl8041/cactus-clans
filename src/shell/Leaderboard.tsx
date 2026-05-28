@@ -42,6 +42,9 @@ export function Leaderboard() {
               <span className="rank">#{i + 1}</span>
               <span>
                 <strong>{e.nickname}</strong>
+                {e.completedAt && (
+                  <span title="Run completed" aria-label="Run completed" style={{ marginLeft: 6 }}>🏅</span>
+                )}
                 <span style={{ color: 'var(--text-dim)', marginLeft: 8, fontSize: '0.85rem' }}>{e.clan}</span>
                 {!e.completedAt && (
                   <span style={{ color: 'var(--accent-warm)', marginLeft: 8, fontSize: '0.75rem' }}>· in progress</span>
