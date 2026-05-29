@@ -18,3 +18,7 @@ dist-ssr
 
 # Build artifacts
 *.tsbuildinfo
+
+# Dev server / local runtime caches — never check in
+.vite
+.wrangler
