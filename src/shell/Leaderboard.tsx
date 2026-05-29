@@ -47,7 +47,9 @@ export function Leaderboard() {
                 )}
                 <span style={{ color: 'var(--text-dim)', marginLeft: 8, fontSize: '0.85rem' }}>{e.clan}</span>
                 {!e.completedAt && (
-                  <span style={{ color: 'var(--accent-warm)', marginLeft: 8, fontSize: '0.75rem' }}>· in progress</span>
+                  <span style={{ color: 'var(--accent-warm)', marginLeft: 8, fontSize: '0.75rem' }}>
+                    {e.currentLevel ? `· on level ${e.currentLevel}` : '· in progress'}
+                  </span>
                 )}
               </span>
               <span style={{ fontWeight: 700, color: 'var(--accent)' }}>{e.totalScore}</span>

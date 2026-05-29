@@ -79,6 +79,7 @@ export function GameContainer() {
           clan: next.clan,
           totalScore: next.totalScore,
           completedAt: next.completedAt,
+          currentLevel: next.completedAt ? undefined : level.number,
         });
       }
       if (!cancelled) {

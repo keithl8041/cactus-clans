@@ -5,6 +5,7 @@ export interface LeaderboardEntry {
   clan: string;
   totalScore: number;
   completedAt?: string;
+  currentLevel?: number;
 }
 
 const MOCK_BOARD_KEY = 'cc.leaderboard.mock.v1';
@@ -33,6 +34,7 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
       clan: string;
       totalScore: number;
       completedAt: string | null;
+      currentLevel: number | null;
     }
     const rows = await apiFetch<ApiRow[]>(`/leaderboard?limit=${limit}`);
     return rows.map((r) => ({
@@ -40,6 +42,7 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
       clan: r.clan,
       totalScore: r.totalScore,
       completedAt: r.completedAt ?? undefined,
+      currentLevel: r.currentLevel ?? undefined,
     }));
   }
 
