@@ -18,24 +18,24 @@ import { camelSvg, type CamelOptions } from './placeholders/camel';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
 import { dartboardSvg, type DartboardOptions } from './placeholders/dartboard';
-import { desertParallaxSvg, type DesertParallaxOptions } from './placeholders/desertParallax';
+import type { DesertParallaxOptions } from './placeholders/desertParallax';
 import { duneFloorSvg, type DuneFloorOptions } from './placeholders/duneFloor';
 import { duneWallSvg, type DuneWallOptions } from './placeholders/duneWall';
 import { exitSvg, type ExitOptions } from './placeholders/exit';
-import { finishBannerSvg, type FinishBannerOptions } from './placeholders/finishBanner';
+import type { FinishBannerOptions } from './placeholders/finishBanner';
 import { hitSplatSvg, type HitSplatOptions } from './placeholders/hitSplat';
 import { lizardSvg, type LizardOptions } from './placeholders/lizard';
 import { petCactusSvg, type PetCactusOptions } from './placeholders/petCactus';
 import { potSvg, type PotOptions } from './placeholders/pot';
 import { quicksandSvg, type QuicksandOptions } from './placeholders/quicksand';
 import { rainOverlaySvg, type RainOverlayOptions } from './placeholders/rainOverlay';
-import { rockSvg, type RockOptions } from './placeholders/rock';
+import type { RockOptions } from './placeholders/rock';
 import { sliceableCactusSvg, type SliceableCactusOptions } from './placeholders/sliceableCactus';
 import { starSvg, type StarOptions } from './placeholders/star';
 import { sunOverlaySvg, type SunOverlayOptions } from './placeholders/sunOverlay';
 import { tarantulaSvg, type TarantulaOptions } from './placeholders/tarantula';
 import { trapSvg, type TrapOptions } from './placeholders/trap';
-import { waterFlaskSvg, type WaterFlaskOptions } from './placeholders/waterFlask';
+import type { WaterFlaskOptions } from './placeholders/waterFlask';
 import { wateringCanSvg, type WateringCanOptions } from './placeholders/wateringCan';
 
 export type AssetOptions =
@@ -75,6 +75,8 @@ export const ASSETS: Record<string, AssetEntry> = {
   balloon: { kind: 'svg', generate: (opts) => balloonSvg(opts as BalloonOptions) },
   'balloon.prickling': { kind: 'image', src: '/art/balloon-prickling-clan.png' },
   'cactus.spike': { kind: 'image', src: '/art/cactus-spike.png' },
+  'cactus.spike.game2': { kind: 'image', src: '/art/cactus-spike-game2.svg' },
+  'camel.prickling': { kind: 'image', src: '/art/camel-prickling-clan.png' },
   'card.frame': { kind: 'svg', generate: (opts) => clanCardSvg(opts as ClanCardOptions) },
   'card.prickling.1': { kind: 'image', src: '/art/card-prickling-clan-form1.png' },
   'card.prickling.2': { kind: 'image', src: '/art/card-prickling-clan-form2.png' },
@@ -95,6 +97,7 @@ export const ASSETS: Record<string, AssetEntry> = {
   'card.wildfire.1': { kind: 'image', src: '/art/card-wildfire-clan-form1.png' },
   'game1.background': { kind: 'image', src: '/art/game1background.png' },
   'game1.floor': { kind: 'image', src: '/art/Game1Floor.png' },
+  'game2.floor': { kind: 'image', src: '/art/game2-floor.png' },
   dartboard: { kind: 'svg', generate: (opts) => dartboardSvg(opts as DartboardOptions) },
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
   'character.prickling.1': { kind: 'image', src: '/art/prickling-prickling-clan-form1.png' },
@@ -119,12 +122,12 @@ export const ASSETS: Record<string, AssetEntry> = {
   sunOverlay: { kind: 'svg', generate: (opts) => sunOverlaySvg(opts as SunOverlayOptions) },
   tarantula: { kind: 'svg', generate: (opts) => tarantulaSvg(opts as TarantulaOptions) },
   camel: { kind: 'svg', generate: (opts) => camelSvg(opts as CamelOptions) },
-  rock: { kind: 'svg', generate: (opts) => rockSvg(opts as RockOptions) },
-  waterFlask: { kind: 'svg', generate: (opts) => waterFlaskSvg(opts as WaterFlaskOptions) },
-  'desert.parallax.far': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'far' }) },
-  'desert.parallax.mid': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'mid' }) },
-  'desert.parallax.near': { kind: 'svg', generate: (opts) => desertParallaxSvg({ ...(opts as DesertParallaxOptions), layer: 'near' }) },
-  finishBanner: { kind: 'svg', generate: (opts) => finishBannerSvg(opts as FinishBannerOptions) },
+  rock: { kind: 'image', src: '/art/rock.svg' },
+  waterFlask: { kind: 'image', src: '/art/water-flask.svg' },
+  'desert.parallax.far': { kind: 'image', src: '/art/desert-parallax-far.png' },
+  'desert.parallax.mid': { kind: 'image', src: '/art/desert-parallax-mid.png' },
+  'desert.parallax.near': { kind: 'image', src: '/art/desert-parallax-near.png' },
+  finishBanner: { kind: 'image', src: '/art/finish-banner.png' },
   'dune.floor': { kind: 'svg', generate: (opts) => duneFloorSvg(opts as DuneFloorOptions) },
   'dune.wall': { kind: 'svg', generate: (opts) => duneWallSvg(opts as DuneWallOptions) },
   'dune.quicksand': { kind: 'svg', generate: (opts) => quicksandSvg(opts as QuicksandOptions) },

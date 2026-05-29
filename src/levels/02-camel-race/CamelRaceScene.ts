@@ -57,6 +57,7 @@ export class CamelRaceScene extends Phaser.Scene {
   private parallaxFar!: Phaser.GameObjects.TileSprite;
   private parallaxMid!: Phaser.GameObjects.TileSprite;
   private parallaxNear!: Phaser.GameObjects.TileSprite;
+  private floor!: Phaser.GameObjects.TileSprite;
   private finishBanner: Phaser.GameObjects.Image | null = null;
 
   private obstacles: ObstacleEntity[] = [];
@@ -89,11 +90,12 @@ export class CamelRaceScene extends Phaser.Scene {
       size: CFG.camelSize,
     });
     loadAsset(this, 'rock', 'rock', { size: CFG.obstacleSize });
-    loadAsset(this, 'cactus.spike', 'cactus.spike');
+    loadAsset(this, 'cactus.spike.game2', 'cactus.spike.game2');
     loadAsset(this, 'waterFlask', 'waterFlask', { size: CFG.pickupSize });
     loadAsset(this, 'desert.parallax.far', 'desert.parallax.far');
     loadAsset(this, 'desert.parallax.mid', 'desert.parallax.mid');
     loadAsset(this, 'desert.parallax.near', 'desert.parallax.near');
+    loadAsset(this, 'game2.floor', 'game2.floor');
     loadAsset(this, 'finishBanner', 'finishBanner', { size: CFG.finishBannerSize });
   }
 
@@ -150,6 +152,9 @@ export class CamelRaceScene extends Phaser.Scene {
     this.parallaxFar.tilePositionX += advance * CFG.parallaxFarMult;
     this.parallaxMid.tilePositionX += advance * CFG.parallaxMidMult;
     this.parallaxNear.tilePositionX += advance * CFG.parallaxNearMult;
+    // Floor is the camel's ground plane — scroll at 1:1 with the world so it feels
+    // locked to the obstacles/pickups (which also move at full world speed).
+    this.floor.tilePositionX += advance;
 
     // Translate entities
     const camelX = width * CFG.camelXFraction;
@@ -236,16 +241,19 @@ export class CamelRaceScene extends Phaser.Scene {
 
   private setupParallax(): void {
     const { width, height } = this.scale;
-    // The parallax SVGs are 1024x240. We stretch them vertically/horizontally
-    // to cover the sky area; TileSprite repeats horizontally as we scroll.
-    const skyH = height * 0.65;
-    this.parallaxFar = this.add.tileSprite(width / 2, skyH * 0.40, width, skyH * 0.5, 'desert.parallax.far')
+    // Parallax PNGs are 1280×720 — designed to stack at full canvas size.
+    // Far is an opaque sky+horizon; mid/near are transparent above their silhouettes
+    // so each upper layer reveals what's behind. TileSprite repeats horizontally as we scroll.
+    this.parallaxFar = this.add.tileSprite(width / 2, height / 2, width, height, 'desert.parallax.far')
       .setDepth(1);
-    this.parallaxMid = this.add.tileSprite(width / 2, skyH * 0.65, width, skyH * 0.6, 'desert.parallax.mid')
+    this.parallaxMid = this.add.tileSprite(width / 2, height / 2, width, height, 'desert.parallax.mid')
       .setDepth(2);
-    // Ground strip (solid color) sits below the parallax layers.
-    this.add.rectangle(0, skyH, width, height - skyH, CFG.groundColor).setOrigin(0).setDepth(3);
-    this.parallaxNear = this.add.tileSprite(width / 2, skyH + (height - skyH) * 0.20, width, (height - skyH) * 0.6, 'desert.parallax.near')
+    this.parallaxNear = this.add.tileSprite(width / 2, height / 2, width, height, 'desert.parallax.near')
+      .setDepth(3);
+    // Floor strip: native 60px tall, pinned to the canvas bottom so it scans as "the ground"
+    // rather than tiling up across the lanes.
+    const floorH = 60;
+    this.floor = this.add.tileSprite(width / 2, height - floorH / 2, width, floorH, 'game2.floor')
       .setDepth(4);
   }
 
@@ -407,7 +415,7 @@ export class CamelRaceScene extends Phaser.Scene {
     for (let i = 0; i < lanesToBlock && i < lanes.length; i++) {
       const lane = lanes[i];
       const kind: ObstacleKind = Math.random() < CFG.obstacleRockChance ? 'rock' : 'cactus';
-      const texture = kind === 'rock' ? 'rock' : 'cactus.spike';
+      const texture = kind === 'rock' ? 'rock' : 'cactus.spike.game2';
       const { height } = this.scale;
       const y = CFG.laneYFractions[lane] * height;
       const sprite = this.add.image(0, y, texture).setDepth(7);
