@@ -135,7 +135,7 @@ export function VersusLobby() {
         <span className="pill">
           {state?.practise ? 'practise' : state?.phase ?? (connected ? 'connecting…' : '…')}
         </span>
-        <button onClick={() => navigate('/')} style={{ marginLeft: 'auto' }}>Leave</button>
+        <button onClick={() => navigate('/')} style={{ marginLeft: 'auto', pointerEvents: 'auto' }}>Leave</button>
       </div>
       <div ref={hostRef} style={{ width: '100%', height: '100%' }} />
       <RotateOverlay active={needsRotate} />
