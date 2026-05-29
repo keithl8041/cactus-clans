@@ -456,7 +456,10 @@ export class CamelRaceScene extends Phaser.Scene {
 
   private spawnFinishBanner(): void {
     const { height } = this.scale;
-    this.finishBanner = this.add.image(0, height * 0.42, 'finishBanner').setDepth(6);
+    // Drop into the lane area so the camel runs *through* the banner like a real
+    // finish ribbon. Banner stays at a lower depth (6) than the camel (10+), so
+    // the camel always reads as breaking through it.
+    this.finishBanner = this.add.image(0, height * 0.75, 'finishBanner').setDepth(6);
     this.finishBanner.setScale(CFG.finishBannerSize / this.finishBanner.height);
   }
 
