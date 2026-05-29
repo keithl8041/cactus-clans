@@ -41,12 +41,14 @@ const C = {
   groundLineOffset: 30,
   playerSink: 8,
 
-  // Wall columns: a full vertical row of cacti on each side, present from
-  // round start. Whoever punts the balloon into one loses (last-bopper rule).
+  // Wall hazard: a single cactus pokes out of one side wall at a random
+  // height, alternating sides between appearances with a brief empty gap.
+  // Punt the balloon into it and the run ends.
   wallPadding: 16,
-  wallSpikeCount: 6,        // spikes per wall, evenly spaced top→bottom
-  wallSpikeTopFrac: 0.20,   // first spike centre, fraction of WORLD_H
-  wallSpikeBottomFrac: 0.85,// last spike centre, fraction of WORLD_H
+  wallSpikeMinFrac: 0.20,    // random Y range (fraction of WORLD_H)
+  wallSpikeMaxFrac: 0.85,
+  wallSpikePresentMs: 3500,  // how long each spike lingers
+  wallSpikeAbsentMs: 2000,   // gap before the next one appears on the other side
 
   roundOverHoldMs: 3000,
 } as const;
@@ -111,6 +113,10 @@ interface LobbyState {
   // Cooperative scoring. teamBest is the lobby-wide high score this session
   // (lives until the DO restarts). Both fields wipe on initialState().
   teamBest: { score: number; nicknames: string[] };
+  // Wall-spike cycle: one spike at a time, alternating sides.
+  wallSpikePresent: boolean;
+  wallSpikeSide: 'left' | 'right'; // current side if present, next side if absent
+  wallSpikeChangeAt: number;       // server time ms — when to flip present↔absent
 }
 
 interface SocketEntry {
@@ -146,6 +152,9 @@ export class MatchLobby implements DurableObject {
       roundOverAt: 0,
       endReason: null,
       teamBest: { score: 0, nicknames: [] },
+      wallSpikePresent: false,
+      wallSpikeSide: Math.random() < 0.5 ? 'left' : 'right',
+      wallSpikeChangeAt: 0,
     };
   }
 
@@ -335,7 +344,7 @@ export class MatchLobby implements DurableObject {
     this.state.totalHits = 0;
     this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
     this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
-    this.spawnWallColumns();
+    this.resetWallSpike();
     this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
     // Center the solo player and reset their state so respawns feel clean.
     const seatId = this.state.seats[0] ?? this.state.seats[1];
@@ -358,7 +367,7 @@ export class MatchLobby implements DurableObject {
     this.state.totalHits = 0;
     this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
     this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
-    this.spawnWallColumns();
+    this.resetWallSpike();
     this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
   }
 
@@ -372,8 +381,7 @@ export class MatchLobby implements DurableObject {
     // Floor cacti — same positions as single-player.
     this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
     this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
-    // Full wall columns — present from round start, fatal on contact.
-    this.spawnWallColumns();
+    this.resetWallSpike();
 
     const seat0Id = this.state.seats[0]!;
     const seat1Id = this.state.seats[1]!;
@@ -471,10 +479,12 @@ export class MatchLobby implements DurableObject {
     this.state.tick += 1;
 
     if (this.state.phase === 'playing') {
+      this.updateWallSpike(now);
       this.simulatePhysics(dt, now);
     } else if (this.state.phase === 'waiting' && this.isPracticeActive()) {
       // Solo practise — same physics, but a drop respawns the balloon
       // instead of ending a round.
+      this.updateWallSpike(now);
       this.simulatePhysics(dt, now);
     } else if (this.state.phase === 'roundOver' && now >= this.state.roundOverAt) {
       this.rotateSeatsAfterRound();
@@ -684,15 +694,34 @@ export class MatchLobby implements DurableObject {
     }
   }
 
-  private spawnWallColumns(): void {
-    const n = C.wallSpikeCount;
-    const yTop = WORLD_H * C.wallSpikeTopFrac;
-    const yBot = WORLD_H * C.wallSpikeBottomFrac;
-    for (let i = 0; i < n; i++) {
-      const t = i / (n - 1);
-      const y = yTop + (yBot - yTop) * t;
-      this.addCactus(C.wallPadding, y, 'right');
-      this.addCactus(WORLD_W - C.wallPadding, y, 'left');
+  // Begin the wall-spike cycle in the "absent" state so the round starts
+  // clean and the first spike pokes out after a short gap.
+  private resetWallSpike(): void {
+    this.state.wallSpikePresent = false;
+    this.state.wallSpikeSide = Math.random() < 0.5 ? 'left' : 'right';
+    this.state.wallSpikeChangeAt = Date.now() + C.wallSpikeAbsentMs;
+  }
+
+  // Tick driver: flip present↔absent when the timer elapses. Each appearance
+  // alternates sides and picks a fresh random height.
+  private updateWallSpike(now: number): void {
+    if (now < this.state.wallSpikeChangeAt) return;
+    if (this.state.wallSpikePresent) {
+      // Last entry in spikes[] is the wall spike (always added after floor cacti).
+      this.state.spikes.pop();
+      this.state.wallSpikePresent = false;
+      this.state.wallSpikeSide = this.state.wallSpikeSide === 'left' ? 'right' : 'left';
+      this.state.wallSpikeChangeAt = now + C.wallSpikeAbsentMs;
+    } else {
+      const yFrac = C.wallSpikeMinFrac + Math.random() * (C.wallSpikeMaxFrac - C.wallSpikeMinFrac);
+      const y = WORLD_H * yFrac;
+      if (this.state.wallSpikeSide === 'left') {
+        this.addCactus(C.wallPadding, y, 'right');
+      } else {
+        this.addCactus(WORLD_W - C.wallPadding, y, 'left');
+      }
+      this.state.wallSpikePresent = true;
+      this.state.wallSpikeChangeAt = now + C.wallSpikePresentMs;
     }
   }
 
