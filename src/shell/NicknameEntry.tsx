@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { checkNickname, signInWithNickname } from '../services/session';
 import { syncActiveRunFromServer } from '../services/progress';
 import { useGameStore } from '../store/gameStore';
+import { consumeReturnTo } from './postAuthReturn';
 
 type Step =
   | { kind: 'enterName' }
@@ -61,7 +62,8 @@ export function NicknameEntry() {
       // player's latest in-progress run instead of starting fresh.
       const run = await syncActiveRunFromServer(session.id);
       setRun(run ?? null);
-      navigate(run ? '/journey' : '/clans');
+      const returnTo = consumeReturnTo();
+      navigate(returnTo ?? (run ? '/journey' : '/clans'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {

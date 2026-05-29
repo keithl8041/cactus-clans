@@ -11,6 +11,7 @@ import {
 } from '../services/session';
 import { syncActiveRunFromServer } from '../services/progress';
 import { IosInstallHint } from './IosInstallHint';
+import { consumeReturnTo } from './postAuthReturn';
 
 export function SplashScreen() {
   const navigate = useNavigate();
@@ -35,7 +36,10 @@ export function SplashScreen() {
         setPlayer(session);
         const run = await syncActiveRunFromServer(session.id);
         setRun(run ?? null);
-        if (!pickPlayer) navigate(run ? '/journey' : '/clans', { replace: true });
+        if (!pickPlayer) {
+          const returnTo = consumeReturnTo();
+          navigate(returnTo ?? (run ? '/journey' : '/clans'), { replace: true });
+        }
       }
     })();
   }, [setPlayer, setRun, navigate, pickPlayer]);
@@ -46,7 +50,8 @@ export function SplashScreen() {
     setPlayer(session);
     const run = await syncActiveRunFromServer(p.id);
     setRun(run ?? null);
-    navigate(run ? '/journey' : '/clans');
+    const returnTo = consumeReturnTo();
+    navigate(returnTo ?? (run ? '/journey' : '/clans'));
   }
 
   function forgetPlayer(p: KnownPlayer) {

@@ -8,6 +8,7 @@ import { VersusClient, type VersusRosterEntry, type VersusState } from '../servi
 import { VersusBalloonScene } from '../multiplayer/VersusBalloonScene';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
+import { setReturnTo } from './postAuthReturn';
 
 /**
  * Easter-egg multiplayer lobby. Two players bop a shared balloon; the rest
@@ -36,7 +37,11 @@ export function VersusLobby() {
 
   useEffect(() => {
     if (!player) {
-      navigate(`/?return=${encodeURIComponent(`/versus/${cleanedCode}`)}`);
+      // Stash the lobby URL so the splash/nickname/clan-select flow can
+      // resume the user here once they've signed in, instead of dropping
+      // them on /journey.
+      setReturnTo(`/versus/${cleanedCode}`);
+      navigate('/');
       return;
     }
     if (!cleanedCode || !/^[A-Z0-9-]{1,32}$/.test(cleanedCode)) {

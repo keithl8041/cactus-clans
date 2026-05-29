@@ -5,6 +5,7 @@ import { cardsForClan } from '../data/cards';
 import { assetUrl, resolveCardKey } from '../assets/manifest';
 import { useGameStore } from '../store/gameStore';
 import { startRun } from '../services/progress';
+import { consumeReturnTo } from './postAuthReturn';
 
 export function ClanSelect() {
   const [selected, setSelected] = useState<string | null>(null);
@@ -14,7 +15,15 @@ export function ClanSelect() {
   const setRun = useGameStore((s) => s.setRun);
 
   useEffect(() => {
-    if (!player) navigate('/nickname');
+    if (!player) {
+      navigate('/nickname');
+      return;
+    }
+    // If we landed here only because the user has no active run but they
+    // were actually trying to reach somewhere else (e.g. /versus/<code>),
+    // honor that intent — versus mode doesn't need a clan-tied run.
+    const returnTo = consumeReturnTo();
+    if (returnTo) navigate(returnTo, { replace: true });
   }, [player, navigate]);
 
   async function confirm() {
