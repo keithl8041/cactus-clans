@@ -1,10 +1,11 @@
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { SplashScreen } from './shell/SplashScreen';
 import { NicknameEntry } from './shell/NicknameEntry';
 import { ClanSelect } from './shell/ClanSelect';
 import { LevelMap } from './shell/LevelMap';
 import { Leaderboard } from './shell/Leaderboard';
+import { Footer } from './shell/Footer';
 
 // Phaser is heavy — only load it when the player actually opens a level.
 const GameContainer = lazy(() =>
@@ -17,30 +18,36 @@ const VersusLobby = lazy(() =>
 );
 
 export function App() {
+  const location = useLocation();
+  // Hide the footer in-game so it doesn't overlap Phaser scenes.
+  const inGame = location.pathname.startsWith('/play/');
   return (
-    <Routes>
-      <Route path="/" element={<SplashScreen />} />
-      <Route path="/nickname" element={<NicknameEntry />} />
-      <Route path="/clans" element={<ClanSelect />} />
-      <Route path="/journey" element={<LevelMap />} />
-      <Route
-        path="/play/:levelNumber"
-        element={
-          <Suspense fallback={<div className="screen"><h2>Loading game…</h2></div>}>
-            <GameContainer />
-          </Suspense>
-        }
-      />
-      <Route path="/leaderboard" element={<Leaderboard />} />
-      <Route
-        path="/versus/:code"
-        element={
-          <Suspense fallback={<div className="screen"><h2>Joining lobby…</h2></div>}>
-            <VersusLobby />
-          </Suspense>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<SplashScreen />} />
+        <Route path="/nickname" element={<NicknameEntry />} />
+        <Route path="/clans" element={<ClanSelect />} />
+        <Route path="/journey" element={<LevelMap />} />
+        <Route
+          path="/play/:levelNumber"
+          element={
+            <Suspense fallback={<div className="screen"><h2>Loading game…</h2></div>}>
+              <GameContainer />
+            </Suspense>
+          }
+        />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route
+          path="/versus/:code"
+          element={
+            <Suspense fallback={<div className="screen"><h2>Joining lobby…</h2></div>}>
+              <VersusLobby />
+            </Suspense>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      {!inGame && <Footer />}
+    </>
   );
 }

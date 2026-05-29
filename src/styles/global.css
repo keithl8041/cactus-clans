@@ -81,8 +81,34 @@ input[type='text']:focus {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
+  padding-bottom: 3.5rem;
   gap: 1.5rem;
   text-align: center;
+}
+
+.app-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-align: center;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(15, 29, 18, 0.85), rgba(15, 29, 18, 0));
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .screen h1 {
