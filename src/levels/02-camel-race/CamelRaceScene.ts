@@ -251,9 +251,9 @@ export class CamelRaceScene extends Phaser.Scene {
       .setDepth(2);
     this.parallaxNear = this.add.tileSprite(width / 2, height / 2, width, height, 'desert.parallax.near')
       .setDepth(3);
-    // Floor strip: native 60px tall, pinned to the canvas bottom so it scans as "the ground"
-    // rather than tiling up across the lanes.
-    const floorH = 60;
+    // Floor strip: native 150px tall, pinned to the canvas bottom. Strip top sits at
+    // canvas y=570; lanes are arranged at +15/+60/+105 from there (see config).
+    const floorH = 150;
     this.floor = this.add.tileSprite(width / 2, height - floorH / 2, width, floorH, 'game2.floor')
       .setDepth(4);
   }

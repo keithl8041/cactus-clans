@@ -7,12 +7,12 @@ export const CAMEL_RACE_CONFIG = {
   courseTimeLimitMs: 90_000,           // race auto-ends at this time
   passDistanceFraction: 0.85,          // fraction of course needed to pass on timeout
 
-  // Lanes — stacked across the 60px floor strip (canvas y 660–720). All entities
+  // Lanes — stacked across the 150px floor strip (canvas y 570–720). All entities
   // are bottom-anchored to the lane's ground line. Depth cue comes from y-position
-  // alone now; the camel stays the same size across lanes. Front-lane occlusion is
+  // alone; the camel stays the same size across lanes. Front-lane occlusion is
   // handled by render depth, not scale.
   laneCount: 3,
-  laneYFractions: [0.9375, 1.0, 1.0625],    // back → front: feet at floor-top+15, +60, +105 (y = 675, 720, 765)
+  laneYFractions: [0.8125, 0.875, 0.9375],  // back → front: feet at floor-top+15, +60, +105 (y = 585, 630, 675)
   laneScales: [1.00, 1.00, 1.00],           // no per-lane diminishing — kept for future tuning
   laneChangeMs: 180,                        // tween time for lane swap
 
