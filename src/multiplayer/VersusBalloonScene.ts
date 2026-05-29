@@ -28,7 +28,14 @@ interface VersusSceneCtx {
 
 interface ActivePointer {
   side: 'left' | 'right';
+  // y where this pointer first touched down. Once the drag exceeds
+  // SWIPE_UP_JUMP_PX upward, we queue a jump and latch `jumped` so the
+  // same stroke doesn't re-fire as the finger keeps moving.
+  startY: number;
+  jumped: boolean;
 }
+
+const SWIPE_UP_JUMP_PX = 60;
 
 interface PlayerVisuals {
   sprite: Phaser.GameObjects.Sprite;
@@ -58,7 +65,7 @@ export class VersusBalloonScene extends Phaser.Scene {
 
   private hitText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
-  private bestOfText!: Phaser.GameObjects.Text;
+  private teamBestText!: Phaser.GameObjects.Text;
   private roundEndBanner: Phaser.GameObjects.Text | null = null;
 
   // Input.
@@ -168,7 +175,11 @@ export class VersusBalloonScene extends Phaser.Scene {
       this.queueJump();
       return;
     }
-    this.activePointers.set(p.id, { side: p.x < WORLD_W / 2 ? 'left' : 'right' });
+    this.activePointers.set(p.id, {
+      side: p.x < WORLD_W / 2 ? 'left' : 'right',
+      startY: p.y,
+      jumped: false,
+    });
   }
 
   private handlePointerMove(p: Phaser.Input.Pointer): void {
@@ -176,6 +187,14 @@ export class VersusBalloonScene extends Phaser.Scene {
     const entry = this.activePointers.get(p.id);
     if (!entry) return;
     entry.side = p.x < WORLD_W / 2 ? 'left' : 'right';
+    // One stroke, one role. Once a pointer fires a swipe-up jump, drop it
+    // from the steering map so the jump gesture doesn't continue to drag
+    // the character sideways. Lift + re-tap to steer again.
+    if (!entry.jumped && entry.startY - p.y >= SWIPE_UP_JUMP_PX) {
+      entry.jumped = true;
+      this.activePointers.delete(p.id);
+      this.queueJump();
+    }
   }
 
   private handlePointerUp(p: Phaser.Input.Pointer): void {
@@ -252,17 +271,19 @@ export class VersusBalloonScene extends Phaser.Scene {
 
     // Total-hit "ding" for the local player — already handled per-player above.
 
-    // HUD.
-    const seat0 = s.seats[0];
-    const seat1 = s.seats[1];
-    const seat0Name = s.roster.find((r) => r.id === seat0)?.nickname ?? '—';
-    const seat1Name = s.roster.find((r) => r.id === seat1)?.nickname ?? '—';
-    const seat0Hits = s.players.find((p) => p.id === seat0)?.h ?? 0;
-    const seat1Hits = s.players.find((p) => p.id === seat1)?.h ?? 0;
-    this.hitText.setText(`${seat0Name}: ${seat0Hits}    ${seat1Name}: ${seat1Hits}`);
-    this.bestOfText.setText(`Best of: ${s.bestOf.p0} – ${s.bestOf.p1}`);
+    // Shared cooperative HUD: one combined score and time, plus the team-best
+    // tracker. No per-seat tallies — we're keeping the balloon up together.
+    const seconds = (s.elapsedMs / 1000).toFixed(1);
+    this.hitText.setText(`Together: ${s.totalHits} ${s.totalHits === 1 ? 'bop' : 'bops'} · ${seconds}s`);
+    if (s.teamBest.score > 0) {
+      const names = s.teamBest.nicknames.length > 0 ? ` — ${s.teamBest.nicknames.join(' & ')}` : '';
+      this.teamBestText.setText(`Best together: ${s.teamBest.score}${names}`);
+      this.teamBestText.setVisible(true);
+    } else {
+      this.teamBestText.setVisible(false);
+    }
     if (s.phase === 'waiting') {
-      this.phaseText.setText(s.practise ? 'Practise — waiting for a challenger' : 'Waiting for players…');
+      this.phaseText.setText(s.practise ? 'Practise — keep it up!' : 'Waiting for a friend…');
     } else {
       this.phaseText.setText('');
     }
@@ -351,13 +372,13 @@ export class VersusBalloonScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5, 0).setDepth(10);
 
-    this.bestOfText = this.add.text(WORLD_W / 2, 46, 'Best of: 0 – 0', {
+    this.teamBestText = this.add.text(WORLD_W / 2, 46, '', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '14px',
       color: '#fff5b7',
       stroke: '#1f2a14',
       strokeThickness: 2,
-    }).setOrigin(0.5, 0).setDepth(10);
+    }).setOrigin(0.5, 0).setDepth(10).setVisible(false);
 
     this.phaseText = this.add.text(WORLD_W / 2, WORLD_H * 0.4, '', {
       fontFamily: 'system-ui, sans-serif',
@@ -372,15 +393,25 @@ export class VersusBalloonScene extends Phaser.Scene {
 
   // ---- Round end overlay ----
 
-  private onRoundEnd(e: { winnerId: string | null; reason: string; scores: Record<string, number> }): void {
+  private onRoundEnd(e: {
+    reason: string;
+    teamScore: number;
+    teamHits: number;
+    elapsedMs: number;
+    newTeamBest: boolean;
+    teamBest: { score: number; nicknames: string[] };
+  }): void {
     sfx.pop();
-    const winnerNickname = e.winnerId ? this.players.get(e.winnerId)?.label.text ?? '—' : null;
-    const text = winnerNickname ? `${winnerNickname} wins!\n${e.reason}` : `Tie!\n${e.reason}`;
+    const seconds = (e.elapsedMs / 1000).toFixed(1);
+    const bopWord = e.teamHits === 1 ? 'bop' : 'bops';
+    const lines = [`♥ Together: ${e.teamHits} ${bopWord} · ${seconds}s`, e.reason + '.'];
+    if (e.newTeamBest) lines.push('New team best!');
+    const text = lines.join('\n');
     if (this.roundEndBanner) this.roundEndBanner.destroy();
     this.roundEndBanner = this.add.text(WORLD_W / 2, WORLD_H / 2, text, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '40px',
-      color: '#f7c948',
+      fontSize: '36px',
+      color: e.newTeamBest ? '#fff5b7' : '#f7c948',
       fontStyle: 'bold',
       stroke: '#1f5a2d',
       strokeThickness: 6,

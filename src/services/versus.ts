@@ -53,9 +53,14 @@ export interface VersusState {
   players: VersusPlayer[];
   roster: VersusRosterEntry[];
   spikes: VersusSpike[];
+  /** Total bops this round (shared, not per-player). */
   totalHits: number;
-  bestOf: { p0: number; p1: number };
-  winnerId: string | null;
+  /** Shared live score: totalHits * 10 + floor(elapsedMs/1000). */
+  teamScore: number;
+  /** Milliseconds elapsed in the current run (0 outside of `phase === 'playing'`). */
+  elapsedMs: number;
+  /** Best joint score this lobby session has hit so far (lives until DO restarts). */
+  teamBest: { score: number; nicknames: string[] };
   endReason: string | null;
   roundOverIn: number;
   worldW: number;
@@ -69,9 +74,12 @@ export interface VersusWelcome {
 
 export interface VersusRoundEnd {
   t: 'roundEnd';
-  winnerId: string | null;
   reason: string;
-  scores: Record<string, number>;
+  teamScore: number;
+  teamHits: number;
+  elapsedMs: number;
+  newTeamBest: boolean;
+  teamBest: { score: number; nicknames: string[] };
 }
 
 type ServerMsg = VersusState | VersusWelcome | VersusRoundEnd;

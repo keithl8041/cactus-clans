@@ -284,9 +284,12 @@ export class BalloonScene extends Phaser.Scene {
     // line without lifting their finger.
     entry.side = p.x < this.scale.width / 2 ? 'left' : 'right';
     // Swipe-up to jump: once this pointer has dragged up far enough, fire a
-    // jump. Latched per-pointer so a long upward stroke doesn't bounce-jump.
+    // jump and drop the pointer from the steering map. One stroke does one
+    // thing — the player lifts and re-places to steer again, so a jump
+    // gesture never also drags the character sideways.
     if (!entry.jumped && entry.startY - p.y >= CFG.swipeUpJumpPx) {
       entry.jumped = true;
+      this.activePointers.delete(p.id);
       this.tryJump();
     }
   }

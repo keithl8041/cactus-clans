@@ -167,9 +167,9 @@ function VersusSidebar({ state, youId }: { state: VersusState | null; youId: str
         pointerEvents: 'none',
       }}
     >
-      <div style={{ fontWeight: 700, color: '#f7c948', marginBottom: 4 }}>Seats</div>
-      <SeatLine label="P1" entry={seat0} youId={youId} />
-      <SeatLine label="P2" entry={seat1} youId={youId} />
+      <div style={{ fontWeight: 700, color: '#f7c948', marginBottom: 4 }}>Bopping together</div>
+      <SeatLine entry={seat0} youId={youId} />
+      <SeatLine entry={seat1} youId={youId} />
       {queue.length > 0 && (
         <>
           <div style={{ fontWeight: 700, color: '#f7c948', marginTop: 8, marginBottom: 4 }}>Queue</div>
@@ -192,12 +192,12 @@ function VersusSidebar({ state, youId }: { state: VersusState | null; youId: str
   );
 }
 
-function SeatLine({ label, entry, youId }: { label: string; entry: VersusRosterEntry | undefined; youId: string | null }) {
+function SeatLine({ entry, youId }: { entry: VersusRosterEntry | undefined; youId: string | null }) {
   return (
     <div>
-      <span style={{ color: '#a3d977' }}>{label}: </span>
+      <span style={{ color: '#a3d977' }}>♥ </span>
       <span>
-        {entry ? `${entry.nickname}${entry.id === youId ? ' (you)' : ''}` : <em style={{ color: '#888' }}>empty</em>}
+        {entry ? `${entry.nickname}${entry.id === youId ? ' (you)' : ''}` : <em style={{ color: '#888' }}>waiting for a friend…</em>}
       </span>
     </div>
   );

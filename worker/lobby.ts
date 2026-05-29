@@ -41,9 +41,12 @@ const C = {
   groundLineOffset: 30,
   playerSink: 8,
 
-  firstWallSpikeAt: 5,
-  spikeRampEvery: 3,
+  // Wall columns: a full vertical row of cacti on each side, present from
+  // round start. Whoever punts the balloon into one loses (last-bopper rule).
   wallPadding: 16,
+  wallSpikeCount: 6,        // spikes per wall, evenly spaced top→bottom
+  wallSpikeTopFrac: 0.20,   // first spike centre, fraction of WORLD_H
+  wallSpikeBottomFrac: 0.85,// last spike centre, fraction of WORLD_H
 
   roundOverHoldMs: 3000,
 } as const;
@@ -102,10 +105,12 @@ interface LobbyState {
   spectatorOnly: Set<string>; // clients who haven't said 'hello' yet
   spikes: Spike[];
   totalHits: number;
-  roundOverAt: number; // server epoch ms when roundOver should auto-advance
-  winnerId: string | null;
+  roundStartedAt: number; // server epoch ms — used to compute elapsedMs for the shared score
+  roundOverAt: number;    // server epoch ms when roundOver should auto-advance
   endReason: string | null;
-  bestOf: { p0: number; p1: number }; // bigger picture wins across rounds (per current pairing)
+  // Cooperative scoring. teamBest is the lobby-wide high score this session
+  // (lives until the DO restarts). Both fields wipe on initialState().
+  teamBest: { score: number; nicknames: string[] };
 }
 
 interface SocketEntry {
@@ -137,10 +142,10 @@ export class MatchLobby implements DurableObject {
       spectatorOnly: new Set(),
       spikes: [],
       totalHits: 0,
+      roundStartedAt: 0,
       roundOverAt: 0,
-      winnerId: null,
       endReason: null,
-      bestOf: { p0: 0, p1: 0 },
+      teamBest: { score: 0, nicknames: [] },
     };
   }
 
@@ -255,10 +260,9 @@ export class MatchLobby implements DurableObject {
     const seatIdx = this.state.seats.indexOf(id);
     if (seatIdx !== -1) {
       this.state.seats[seatIdx] = null;
-      // Mid-match drop → opponent wins by forfeit.
+      // Mid-match drop → end the shared run with a friendly reason.
       if (this.state.phase === 'playing') {
-        const opponentId = this.state.seats[seatIdx === 0 ? 1 : 0];
-        this.endRound(opponentId, 'opponent disconnected');
+        this.endRunTogether('a friend disconnected');
       }
     }
     const qIdx = this.state.queue.indexOf(id);
@@ -284,8 +288,7 @@ export class MatchLobby implements DurableObject {
     if (seatIdx === -1) return;
     this.state.seats[seatIdx] = null;
     if (this.state.phase === 'playing') {
-      const opponentId = this.state.seats[seatIdx === 0 ? 1 : 0];
-      this.endRound(opponentId, 'opponent forfeited');
+      this.endRunTogether('a friend left the seat');
     }
     if (!this.state.queue.includes(id)) this.state.queue.push(id);
     if (this.state.phase !== 'playing') {
@@ -332,6 +335,7 @@ export class MatchLobby implements DurableObject {
     this.state.totalHits = 0;
     this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
     this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
+    this.spawnWallColumns();
     this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
     // Center the solo player and reset their state so respawns feel clean.
     const seatId = this.state.seats[0] ?? this.state.seats[1];
@@ -348,12 +352,13 @@ export class MatchLobby implements DurableObject {
   }
 
   private respawnBalloonForPractice(): void {
-    // Soft reset — fresh balloon, fresh spike ramp, but don't yank the player
+    // Soft reset — fresh balloon and spike layout, but don't yank the player
     // around mid-stride.
     this.state.spikes = [];
     this.state.totalHits = 0;
     this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
     this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
+    this.spawnWallColumns();
     this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
   }
 
@@ -361,12 +366,14 @@ export class MatchLobby implements DurableObject {
     // Reset balloon, players, spikes, scores.
     this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
     this.state.totalHits = 0;
-    this.state.winnerId = null;
     this.state.endReason = null;
+    this.state.roundStartedAt = Date.now();
     this.state.spikes = [];
     // Floor cacti — same positions as single-player.
     this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
     this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
+    // Full wall columns — present from round start, fatal on contact.
+    this.spawnWallColumns();
 
     const seat0Id = this.state.seats[0]!;
     const seat1Id = this.state.seats[1]!;
@@ -389,37 +396,58 @@ export class MatchLobby implements DurableObject {
     this.state.phase = 'playing';
   }
 
-  private endRound(winnerId: string | null, reason: string): void {
+  private endRunTogether(reason: string): void {
     if (this.state.phase !== 'playing') return;
     this.state.phase = 'roundOver';
-    this.state.winnerId = winnerId;
     this.state.endReason = reason;
     this.state.roundOverAt = Date.now() + C.roundOverHoldMs;
-    const seat0 = this.state.seats[0];
-    const seat1 = this.state.seats[1];
-    if (winnerId && winnerId === seat0) this.state.bestOf.p0 += 1;
-    else if (winnerId && winnerId === seat1) this.state.bestOf.p1 += 1;
-    const scores = {
-      [seat0 ?? '']: this.state.players.get(seat0 ?? '')?.hits ?? 0,
-      [seat1 ?? '']: this.state.players.get(seat1 ?? '')?.hits ?? 0,
-    };
-    this.broadcastEvent({ t: 'roundEnd', winnerId, reason, scores });
+
+    const elapsedMs = Math.max(0, Date.now() - this.state.roundStartedAt);
+    const teamHits = this.state.totalHits;
+    const teamScore = teamHits * 10 + Math.floor(elapsedMs / 1000);
+    const newTeamBest = teamScore > this.state.teamBest.score;
+    if (newTeamBest) {
+      const nicks: string[] = [];
+      for (const seatId of this.state.seats) {
+        if (!seatId) continue;
+        const p = this.state.players.get(seatId);
+        if (p) nicks.push(p.nickname);
+      }
+      this.state.teamBest = { score: teamScore, nicknames: nicks };
+    }
+
+    this.broadcastEvent({
+      t: 'roundEnd',
+      reason,
+      teamScore,
+      teamHits,
+      elapsedMs,
+      newTeamBest,
+      teamBest: this.state.teamBest,
+    });
   }
 
+  /**
+   * Cooperative rotation: at round end, push both seats to the back of the
+   * queue and refill from the front. With an empty queue, the same pair plays
+   * again. With 1+ waiters, fresh players cycle in (everyone gets a turn).
+   */
   private rotateSeatsAfterRound(): void {
-    const winnerId = this.state.winnerId;
-    if (winnerId) {
-      // Loser → end of queue; queue head → vacated seat.
-      const loserSeat = this.state.seats[0] === winnerId ? 1 : 0;
-      const loserId = this.state.seats[loserSeat];
-      if (loserId) {
-        this.state.seats[loserSeat] = null;
-        if (this.sockets.has(loserId)) this.state.queue.push(loserId);
-        else this.state.players.delete(loserId);
-      }
-      this.promoteFromQueue();
+    const old0 = this.state.seats[0];
+    const old1 = this.state.seats[1];
+    this.state.seats[0] = null;
+    this.state.seats[1] = null;
+    if (old0 && this.sockets.has(old0) && !this.state.queue.includes(old0)) {
+      this.state.queue.push(old0);
+    } else if (old0 && !this.sockets.has(old0)) {
+      this.state.players.delete(old0);
     }
-    // Tie → both stay seated, no rotation.
+    if (old1 && this.sockets.has(old1) && !this.state.queue.includes(old1)) {
+      this.state.queue.push(old1);
+    } else if (old1 && !this.sockets.has(old1)) {
+      this.state.players.delete(old1);
+    }
+    this.promoteFromQueue();
     this.maybeStartRound();
   }
 
@@ -561,15 +589,16 @@ export class MatchLobby implements DurableObject {
     // Balloon vs floor — round ends (or balloon respawns in practise mode).
     if (b.y + BALLOON_HALF_H >= GROUND_Y) {
       if (isPractice) this.respawnBalloonForPractice();
-      else this.endRound(this.determineHitCountWinner(), 'balloon hit the ground');
+      else this.endRunTogether('balloon dropped');
       return;
     }
 
-    // Balloon vs spikes.
+    // Balloon vs spikes — same shared loss regardless of which spike or who
+    // last touched the balloon. We're all in this together.
     for (const s of this.state.spikes) {
       if (aabbOverlap(b.x, b.y, BALLOON_HALF_W, BALLOON_HALF_H, s.x, s.y, s.w, s.h)) {
         if (isPractice) this.respawnBalloonForPractice();
-        else this.endRound(this.determineHitCountWinner(), 'balloon popped on a cactus');
+        else this.endRunTogether(s.o === 'up' ? 'balloon popped on a cactus' : 'balloon brushed the wall');
         return;
       }
     }
@@ -597,21 +626,9 @@ export class MatchLobby implements DurableObject {
       p.hits += 1;
       p.lastHitAt = now;
       this.state.totalHits += 1;
-      this.spawnDifficultySpikes();
       // Only one hit per tick — break.
       return;
     }
-  }
-
-  private determineHitCountWinner(): string | null {
-    const seat0Id = this.state.seats[0];
-    const seat1Id = this.state.seats[1];
-    if (!seat0Id || !seat1Id) return seat0Id ?? seat1Id ?? null;
-    const a = this.state.players.get(seat0Id)?.hits ?? 0;
-    const b = this.state.players.get(seat1Id)?.hits ?? 0;
-    if (a > b) return seat0Id;
-    if (b > a) return seat1Id;
-    return null; // tie
   }
 
   // -------- Spikes --------
@@ -667,18 +684,15 @@ export class MatchLobby implements DurableObject {
     }
   }
 
-  private spawnDifficultySpikes(): void {
-    const hits = this.state.totalHits;
-    if (hits === C.firstWallSpikeAt) {
-      this.addCactus(C.wallPadding, WORLD_H * 0.72, 'right');
-      this.addCactus(WORLD_W - C.wallPadding, WORLD_H * 0.72, 'left');
-      return;
-    }
-    if (hits > C.firstWallSpikeAt && (hits - C.firstWallSpikeAt) % C.spikeRampEvery === 0) {
-      const sideLeft = hits % 2 === 0;
-      const x = sideLeft ? C.wallPadding : WORLD_W - C.wallPadding;
-      const y = randBetween(Math.floor(WORLD_H * 0.68), Math.floor(WORLD_H * 0.82));
-      this.addCactus(x, y, sideLeft ? 'right' : 'left');
+  private spawnWallColumns(): void {
+    const n = C.wallSpikeCount;
+    const yTop = WORLD_H * C.wallSpikeTopFrac;
+    const yBot = WORLD_H * C.wallSpikeBottomFrac;
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      const y = yTop + (yBot - yTop) * t;
+      this.addCactus(C.wallPadding, y, 'right');
+      this.addCactus(WORLD_W - C.wallPadding, y, 'left');
     }
   }
 
@@ -759,8 +773,15 @@ export class MatchLobby implements DurableObject {
       roster,
       spikes: this.state.spikes.map((s) => ({ x: s.rx, y: s.ry, o: s.o })),
       totalHits: this.state.totalHits,
-      bestOf: this.state.bestOf,
-      winnerId: this.state.winnerId,
+      teamScore: this.state.totalHits * 10 + (
+        this.state.phase === 'playing' && this.state.roundStartedAt
+          ? Math.floor((Date.now() - this.state.roundStartedAt) / 1000)
+          : 0
+      ),
+      elapsedMs: this.state.phase === 'playing' && this.state.roundStartedAt
+        ? Date.now() - this.state.roundStartedAt
+        : 0,
+      teamBest: this.state.teamBest,
       endReason: this.state.endReason,
       roundOverIn: this.state.phase === 'roundOver' ? Math.max(0, this.state.roundOverAt - Date.now()) : 0,
       worldW: WORLD_W,
@@ -774,10 +795,6 @@ function aabbOverlap(
   bx: number, by: number, bhw: number, bhh: number,
 ): boolean {
   return Math.abs(ax - bx) < ahw + bhw && Math.abs(ay - by) < ahh + bhh;
-}
-
-function randBetween(min: number, max: number): number {
-  return Math.floor(min + Math.random() * (max - min + 1));
 }
 
 function round1(n: number): number {
