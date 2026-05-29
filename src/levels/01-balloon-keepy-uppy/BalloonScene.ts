@@ -9,6 +9,12 @@ type SpikeOrientation = 'up' | 'down' | 'left' | 'right';
 
 interface ActivePointer {
   side: 'left' | 'right';
+  // y where this pointer first touched down. Used for swipe-up-to-jump:
+  // once a finger has dragged up by `swipeUpJumpPx`, we fire a jump and
+  // latch `jumped` so the same swipe doesn't repeat-jump as the finger
+  // keeps moving up. A fresh tap (pointerdown) re-arms the gesture.
+  startY: number;
+  jumped: boolean;
 }
 
 export class BalloonScene extends Phaser.Scene {
@@ -265,6 +271,8 @@ export class BalloonScene extends Phaser.Scene {
     }
     this.activePointers.set(p.id, {
       side: p.x < this.scale.width / 2 ? 'left' : 'right',
+      startY: p.y,
+      jumped: false,
     });
   }
 
@@ -275,6 +283,12 @@ export class BalloonScene extends Phaser.Scene {
     // Live re-evaluation of the side so the player can slide across the middle
     // line without lifting their finger.
     entry.side = p.x < this.scale.width / 2 ? 'left' : 'right';
+    // Swipe-up to jump: once this pointer has dragged up far enough, fire a
+    // jump. Latched per-pointer so a long upward stroke doesn't bounce-jump.
+    if (!entry.jumped && entry.startY - p.y >= CFG.swipeUpJumpPx) {
+      entry.jumped = true;
+      this.tryJump();
+    }
   }
 
   private handlePointerUp(p: Phaser.Input.Pointer): void {

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Phaser from 'phaser';
 import { useGameStore } from '../store/gameStore';
-import { CLANS } from '../data/clans';
 import { usingRealBackend } from '../services/api';
 import { VersusClient, type VersusRosterEntry, type VersusState } from '../services/versus';
 import { VersusBalloonScene } from '../multiplayer/VersusBalloonScene';
@@ -33,7 +32,11 @@ export function VersusLobby() {
   const [connected, setConnected] = useState(false);
 
   const cleanedCode = (code ?? '').trim().toUpperCase();
-  const clanName = run?.clan ?? CLANS[0]?.name ?? 'Prickling Clan';
+  // Versus uses Prickling Clan assets only for now — other clans don't have
+  // their balloon/character art shipped yet, so we'd fall back to procedural
+  // placeholders and look inconsistent. Force it here.
+  const clanName = 'Prickling Clan';
+  void run;
 
   useEffect(() => {
     if (!player) {
@@ -129,7 +132,9 @@ export function VersusLobby() {
     <div className="game-canvas-wrap">
       <div className="hud">
         <span className="pill">Lobby {cleanedCode}</span>
-        <span className="pill">{state?.phase ?? (connected ? 'connecting…' : '…')}</span>
+        <span className="pill">
+          {state?.practise ? 'practise' : state?.phase ?? (connected ? 'connecting…' : '…')}
+        </span>
         <button onClick={() => navigate('/')} style={{ marginLeft: 'auto' }}>Leave</button>
       </div>
       <div ref={hostRef} style={{ width: '100%', height: '100%' }} />

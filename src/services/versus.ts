@@ -45,6 +45,8 @@ export interface VersusState {
   t: 'state';
   tick: number;
   phase: 'waiting' | 'playing' | 'roundOver';
+  /** True while the lobby has exactly one seated player bopping a respawning balloon. */
+  practise: boolean;
   balloon: { x: number; y: number; vx: number; vy: number };
   seats: [string | null, string | null];
   queue: string[];

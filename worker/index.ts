@@ -27,17 +27,42 @@ interface LeaderboardRow {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    // Belt-and-braces HTTPS. Cloudflare's edge already upgrades workers.dev
+    // HTTP requests, but on custom domains the rule isn't guaranteed. A 301
+    // here + HSTS on every response makes mixed-content / WS-scheme bugs
+    // impossible from this side, regardless of the route.
+    if (url.protocol === 'http:') {
+      url.protocol = 'https:';
+      return new Response(null, {
+        status: 301,
+        headers: {
+          location: url.toString(),
+          'strict-transport-security': 'max-age=63072000; includeSubDomains',
+        },
+      });
+    }
     if (!url.pathname.startsWith('/api/')) {
-      return env.ASSETS.fetch(request);
+      const assetRes = await env.ASSETS.fetch(request);
+      return withHsts(assetRes);
     }
     try {
       const res = await route(url, request, env);
-      return res ?? json({ error: 'not found' }, 404);
+      return withHsts(res ?? json({ error: 'not found' }, 404));
     } catch (err) {
-      return json({ error: err instanceof Error ? err.message : String(err) }, 500);
+      return withHsts(json({ error: err instanceof Error ? err.message : String(err) }, 500));
     }
   },
 };
+
+function withHsts(res: Response): Response {
+  // WS 101 upgrades can't be cloned; pass them through untouched.
+  if (res.status === 101) return res;
+  const headers = new Headers(res.headers);
+  if (!headers.has('strict-transport-security')) {
+    headers.set('strict-transport-security', 'max-age=63072000; includeSubDomains');
+  }
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
 
 async function route(url: URL, request: Request, env: Env): Promise<Response | null> {
   const { pathname } = url;

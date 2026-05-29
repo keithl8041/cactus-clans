@@ -12,7 +12,7 @@ export const balloonLevel: LevelDefinition = {
     objective: `Head-bonk the balloon ${BALLOON_CONFIG.passThreshold} times without letting it touch the ground or any cactus spike.`,
     controls: [
       { label: 'Move', value: 'Hold the left or right half of the screen · ← → or A / D (keyboard)' },
-      { label: 'Jump', value: 'Quick tap anywhere (touch) · Space, W, or ↑ (keyboard)' },
+      { label: 'Jump', value: 'Tap the ↑ button or swipe up anywhere (touch) · Space, W, or ↑ (keyboard)' },
     ],
     tips: [
       'Two fingers work great — hold one side to steer and tap with the other to jump.',

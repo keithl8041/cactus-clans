@@ -2,7 +2,17 @@ import Phaser from 'phaser';
 import { loadAsset } from '../assets/loader';
 import { sfx } from '../assets/sfx';
 import { clanByName } from '../data/clans';
+import { resolveBalloonKey, resolveCharacterKey } from '../assets/manifest';
 import type { VersusClient, VersusState, VersusPlayer, VersusSpike } from '../services/versus';
+
+// Versus mode is locked to Prickling Clan art for now — the other clans
+// don't have shipped balloon/character PNGs yet. The server uses whatever
+// the client sends in `hello`, so this also matches what VersusLobby tells
+// the DO. Seat 1 gets a warm tint applied client-side to keep two
+// Pricklings visually distinct in play.
+const FORCED_CLAN = 'Prickling Clan';
+const FORCED_FORM = 1;
+const SEAT1_TINT = 0xff9a5c;
 
 const WORLD_W = 1280;
 const WORLD_H = 720;
@@ -29,9 +39,10 @@ interface PlayerVisuals {
   // Hit count we last saw — used to detect when to flash on a bop.
   lastSeenHits: number;
   facingLeft: boolean;
-  clan: string;
   baseScaleX: number;
   baseScaleY: number;
+  /** Seat index we last applied the tint for (-1 = queue/spectator/unknown). */
+  lastSeatIdx: number;
 }
 
 export class VersusBalloonScene extends Phaser.Scene {
@@ -66,12 +77,16 @@ export class VersusBalloonScene extends Phaser.Scene {
   }
 
   preload(): void {
-    // Background + floor reuse the single-player art.
-    loadAsset(this, 'balloon', 'balloon');
+    // Real Prickling art for everyone; background + floor reuse single-player.
+    const clan = clanByName(FORCED_CLAN);
+    loadAsset(this, 'balloon', resolveBalloonKey(FORCED_CLAN), {
+      color: clan?.color,
+      size: BALLOON_DISPLAY,
+    });
     loadAsset(this, 'cactus.spike', 'cactus.spike');
-    loadAsset(this, 'character', 'character', {
-      clanColor: '#a3d977',
-      formNumber: 1,
+    loadAsset(this, 'character', resolveCharacterKey(FORCED_CLAN, FORCED_FORM), {
+      clanColor: clan?.color,
+      formNumber: FORCED_FORM,
       size: PLAYER_DISPLAY,
     });
     loadAsset(this, 'game1.background', 'game1.background');
@@ -201,8 +216,12 @@ export class VersusBalloonScene extends Phaser.Scene {
       vis.targetY = sp.y;
       vis.facingLeft = sp.f;
       vis.sprite.setFlipX(!sp.f); // sprite faces left by default; flip when facing right
-      if (sp.c !== '' && vis.clan !== sp.c) {
-        this.applyClanTint(vis, sp.c);
+      // Distinguish identical Pricklings by seat: seat 0 natural, seat 1 warm tint.
+      const seatIdx = s.seats.indexOf(sp.id);
+      if (seatIdx !== vis.lastSeatIdx) {
+        vis.lastSeatIdx = seatIdx;
+        if (seatIdx === 1) vis.sprite.setTint(SEAT1_TINT);
+        else vis.sprite.clearTint();
       }
       // Bop feedback — flash the player who just gained a hit.
       if (sp.h > vis.lastSeenHits) {
@@ -243,9 +262,7 @@ export class VersusBalloonScene extends Phaser.Scene {
     this.hitText.setText(`${seat0Name}: ${seat0Hits}    ${seat1Name}: ${seat1Hits}`);
     this.bestOfText.setText(`Best of: ${s.bestOf.p0} – ${s.bestOf.p1}`);
     if (s.phase === 'waiting') {
-      this.phaseText.setText('Waiting for a second player…');
-    } else if (s.phase === 'playing') {
-      this.phaseText.setText('');
+      this.phaseText.setText(s.practise ? 'Practise — waiting for a challenger' : 'Waiting for players…');
     } else {
       this.phaseText.setText('');
     }
@@ -271,21 +288,12 @@ export class VersusBalloonScene extends Phaser.Scene {
       targetY: sp.y,
       lastSeenHits: sp.h,
       facingLeft: sp.f,
-      clan: '',
       baseScaleX: sprite.scaleX,
       baseScaleY: sprite.scaleY,
+      lastSeatIdx: -1,
     };
     this.players.set(sp.id, vis);
-    if (sp.c) this.applyClanTint(vis, sp.c);
     return vis;
-  }
-
-  private applyClanTint(vis: PlayerVisuals, clanName: string): void {
-    vis.clan = clanName;
-    const clan = clanByName(clanName);
-    if (!clan) return;
-    const colorInt = Phaser.Display.Color.HexStringToColor(clan.color).color;
-    vis.sprite.setTint(colorInt);
   }
 
   private flashPlayer(vis: PlayerVisuals): void {

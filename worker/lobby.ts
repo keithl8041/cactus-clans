@@ -307,11 +307,54 @@ export class MatchLobby implements DurableObject {
 
   private maybeStartRound(): void {
     if (this.state.phase === 'playing') return;
-    if (this.state.seats[0] == null || this.state.seats[1] == null) {
-      this.state.phase = 'waiting';
+    if (this.state.seats[0] != null && this.state.seats[1] != null) {
+      this.startRound();
       return;
     }
-    this.startRound();
+    this.state.phase = 'waiting';
+    // Practise mode: if exactly one seat is filled, set up the world so the
+    // lone player can bop a balloon around while they wait. Floor cacti come
+    // along for the ride; difficulty wall-spikes still ramp normally and reset
+    // whenever the balloon respawns.
+    const seatedCount = (this.state.seats[0] ? 1 : 0) + (this.state.seats[1] ? 1 : 0);
+    if (seatedCount === 1) {
+      this.setupPractice();
+    } else {
+      // Empty lobby of seats — clear practice world.
+      this.state.spikes = [];
+      this.state.totalHits = 0;
+      this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
+    }
+  }
+
+  private setupPractice(): void {
+    this.state.spikes = [];
+    this.state.totalHits = 0;
+    this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
+    this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
+    this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
+    // Center the solo player and reset their state so respawns feel clean.
+    const seatId = this.state.seats[0] ?? this.state.seats[1];
+    if (!seatId) return;
+    const p = this.state.players.get(seatId);
+    if (!p) return;
+    p.x = WORLD_W / 2;
+    p.y = GROUND_Y - PLAYER_HALF_H;
+    p.vx = 0;
+    p.vy = 0;
+    p.onGround = true;
+    p.hits = 0;
+    p.lastHitAt = 0;
+  }
+
+  private respawnBalloonForPractice(): void {
+    // Soft reset — fresh balloon, fresh spike ramp, but don't yank the player
+    // around mid-stride.
+    this.state.spikes = [];
+    this.state.totalHits = 0;
+    this.addCactus(WORLD_W * 0.18, FLOOR_LINE_Y, 'up');
+    this.addCactus(WORLD_W * 0.82, FLOOR_LINE_Y, 'up');
+    this.state.balloon = { x: WORLD_W / 2, y: WORLD_H * 0.3, vx: 0, vy: 0 };
   }
 
   private startRound(): void {
@@ -401,11 +444,20 @@ export class MatchLobby implements DurableObject {
 
     if (this.state.phase === 'playing') {
       this.simulatePhysics(dt, now);
+    } else if (this.state.phase === 'waiting' && this.isPracticeActive()) {
+      // Solo practise — same physics, but a drop respawns the balloon
+      // instead of ending a round.
+      this.simulatePhysics(dt, now);
     } else if (this.state.phase === 'roundOver' && now >= this.state.roundOverAt) {
       this.rotateSeatsAfterRound();
     }
 
     this.broadcastSnapshot();
+  }
+
+  private isPracticeActive(): boolean {
+    const seatedCount = (this.state.seats[0] ? 1 : 0) + (this.state.seats[1] ? 1 : 0);
+    return seatedCount === 1;
   }
 
   // -------- Physics --------
@@ -504,17 +556,20 @@ export class MatchLobby implements DurableObject {
 
   private resolveCollisions(now: number): void {
     const b = this.state.balloon;
+    const isPractice = this.state.phase === 'waiting';
 
-    // Balloon vs floor — round ends, higher hits wins.
+    // Balloon vs floor — round ends (or balloon respawns in practise mode).
     if (b.y + BALLOON_HALF_H >= GROUND_Y) {
-      this.endRound(this.determineHitCountWinner(), 'balloon hit the ground');
+      if (isPractice) this.respawnBalloonForPractice();
+      else this.endRound(this.determineHitCountWinner(), 'balloon hit the ground');
       return;
     }
 
     // Balloon vs spikes.
     for (const s of this.state.spikes) {
       if (aabbOverlap(b.x, b.y, BALLOON_HALF_W, BALLOON_HALF_H, s.x, s.y, s.w, s.h)) {
-        this.endRound(this.determineHitCountWinner(), 'balloon popped on a cactus');
+        if (isPractice) this.respawnBalloonForPractice();
+        else this.endRound(this.determineHitCountWinner(), 'balloon popped on a cactus');
         return;
       }
     }
@@ -691,6 +746,7 @@ export class MatchLobby implements DurableObject {
       t: 'state',
       tick: this.state.tick,
       phase: this.state.phase,
+      practise: this.state.phase === 'waiting' && this.isPracticeActive(),
       balloon: {
         x: round1(this.state.balloon.x),
         y: round1(this.state.balloon.y),
