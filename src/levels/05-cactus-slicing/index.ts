@@ -9,15 +9,17 @@ export const cactusSlicingLevel: LevelDefinition = {
   blurb: 'Slash flying cacti — but watch out for tarantulas!',
   passThreshold: CACTUS_SLICING_CONFIG.passThreshold,
   instructions: {
-    objective: `Swipe to slice flying cacti and reach ${CACTUS_SLICING_CONFIG.passThreshold} points before the ${CACTUS_SLICING_CONFIG.sessionDurationMs / 1000}-second timer runs out. You're allowed ${CACTUS_SLICING_CONFIG.strikeLimit} tarantula strikes — don't slice a fourth one!`,
+    objective: `Swipe to slice flying cacti and reach ${CACTUS_SLICING_CONFIG.passThreshold} points before the ${CACTUS_SLICING_CONFIG.sessionDurationMs / 1000}-second timer runs out. ${CACTUS_SLICING_CONFIG.strikeLimit} tarantula strikes ends the round — and so does letting ${CACTUS_SLICING_CONFIG.missTolerance} cacti fall past you.`,
     controls: [
-      { label: 'Slice', value: 'Drag your finger (or mouse) through a cactus to slash it. Connect multiple in one swipe for combo points.' },
+      { label: 'Slice', value: 'Drag your finger (or mouse) through a cactus to slash it. Keep the swipe going to chain combos.' },
       { label: 'Avoid', value: 'Do NOT swipe through tarantulas — each one is a strike.' },
     ],
     tips: [
-      'Long, fast swipes hit multiple cacti for combo bonuses (each extra slice in the same swipe is worth more).',
+      `Combos only count inside ONE continuous swipe — lift your finger and the combo resets. A clean 5-cactus stroke is worth way more than five separate taps.`,
+      `Slice through the centre for a CLEAN cut bonus (+${CACTUS_SLICING_CONFIG.cleanCutBonus}).`,
+      `Don't let cacti fall — ${CACTUS_SLICING_CONFIG.missTolerance} drops and it's over.`,
       'Tarantulas mix in with cacti — pick your swipe direction carefully.',
-      'The smaller green cacti show up later in the round and need more precise cuts.',
+      'Smaller green cacti show up later and need more precise cuts.',
     ],
   },
   buildScene: (ctx) => new CactusSlicingScene(ctx),

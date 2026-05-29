@@ -133,19 +133,21 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
   const activeRunMatch = pathname.match(/^\/api\/players\/([^/]+)\/active-run$/);
   if (activeRunMatch && method === 'GET') {
     const playerId = activeRunMatch[1];
-    // Latest in-progress run for this player. Completed runs are intentionally
-    // ignored — the client treats a completed run as "between runs" and routes
-    // to clan select, matching what happens after `clearActiveRun` locally.
+    // Resume rule: prefer the latest in-progress run; if none, fall back to the
+    // most recent run (completed or abandoned) so signing in on a fresh device
+    // (or after a completed run) drops the player back on the level map with
+    // their journey state instead of the new-starter clan-select flow.
     const run = await env.DB
       .prepare(
-        `SELECT id, player_id AS playerId, clan, started_at AS startedAt, total_score AS totalScore
+        `SELECT id, player_id AS playerId, clan, started_at AS startedAt,
+                total_score AS totalScore, completed_at AS completedAt
          FROM runs
-         WHERE player_id = ? AND completed_at IS NULL
-         ORDER BY started_at DESC
+         WHERE player_id = ?
+         ORDER BY (completed_at IS NULL) DESC, started_at DESC
          LIMIT 1`,
       )
       .bind(playerId)
-      .first<{ id: string; playerId: string; clan: string; startedAt: string; totalScore: number }>();
+      .first<{ id: string; playerId: string; clan: string; startedAt: string; totalScore: number; completedAt: string | null }>();
     if (!run) return json({ run: null });
 
     // Multiple level_results rows can exist per level (retries). Dedupe with the
@@ -191,6 +193,7 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
         playerId: run.playerId,
         clan: run.clan,
         startedAt: run.startedAt,
+        completedAt: run.completedAt ?? undefined,
         totalScore,
         levels,
       },

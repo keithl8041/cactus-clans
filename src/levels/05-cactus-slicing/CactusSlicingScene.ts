@@ -15,6 +15,7 @@ interface ProjectileData {
   entryY: number;
   lastOverlapX: number;
   lastOverlapY: number;
+  minDistToCenter: number;
   spinPerSec: number;
 }
 
@@ -29,6 +30,7 @@ export class CactusSlicingScene extends Phaser.Scene {
 
   private score = 0;
   private strikes = 0;
+  private misses = 0;
   private passed = false;
   private finished = false;
   private startedAt = 0;
@@ -56,6 +58,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
   private timeText!: Phaser.GameObjects.Text;
   private strikeIcons: Phaser.GameObjects.Image[] = [];
+  private missPips: Phaser.GameObjects.Image[] = [];
   private unlockBanner: Phaser.GameObjects.Text | null = null;
 
   constructor(ctx: LevelContext) {
@@ -71,6 +74,16 @@ export class CactusSlicingScene extends Phaser.Scene {
     loadAsset(this, 'tarantula', 'tarantula', { size: CFG.tarantulaDisplaySize });
   }
 
+  private ensureSparkTexture(): void {
+    if (this.textures.exists('slice-spark')) return;
+    const r = CFG.sparkRadiusClean;
+    const g = this.add.graphics();
+    g.fillStyle(0xfff5b7, 1);
+    g.fillCircle(r, r, r);
+    g.generateTexture('slice-spark', r * 2, r * 2);
+    g.destroy();
+  }
+
   create(): void {
     const { width, height } = this.scale;
     this.add.rectangle(0, 0, width, height, CFG.backgroundColor).setOrigin(0);
@@ -79,6 +92,7 @@ export class CactusSlicingScene extends Phaser.Scene {
     // Disable world bounds — projectiles fly past the edges and despawn manually.
     this.physics.world.setBoundsCollision(false, false, false, false);
 
+    this.ensureSparkTexture();
     this.trailGfx = this.add.graphics().setDepth(20);
     this.setupHud();
     this.setupInput();
@@ -106,6 +120,7 @@ export class CactusSlicingScene extends Phaser.Scene {
       for (const p of this.projectiles) {
         const data = p.getData('data') as ProjectileData;
         data.trailEntry = false;
+        data.minDistToCenter = Infinity;
       }
     }
 
@@ -122,7 +137,9 @@ export class CactusSlicingScene extends Phaser.Scene {
       // Despawn if off-screen (below canvas, or far enough out left/right)
       if (p.y > height + 120 || p.x < -120 || p.x > width + 120) {
         this.projectiles.splice(i, 1);
+        const droppedBelow = p.y > height + 120;
         p.destroy();
+        if (droppedBelow && data.kind === 'cactus') this.onCactusDropped();
         continue;
       }
 
@@ -134,6 +151,9 @@ export class CactusSlicingScene extends Phaser.Scene {
             data.trailEntry = true;
             data.entryX = overlap.x;
             data.entryY = overlap.y;
+            data.minDistToCenter = overlap.minDist;
+          } else if (overlap.minDist < data.minDistToCenter) {
+            data.minDistToCenter = overlap.minDist;
           }
           data.lastOverlapX = overlap.x;
           data.lastOverlapY = overlap.y;
@@ -147,9 +167,10 @@ export class CactusSlicingScene extends Phaser.Scene {
           if (traversal >= data.radius * 0.7) {
             const slashDx = data.lastOverlapX - data.entryX;
             const slashDy = data.lastOverlapY - data.entryY;
+            const clean = data.minDistToCenter <= data.radius * CFG.cleanCutFraction;
             this.projectiles.splice(i, 1);
             if (data.kind === 'cactus') {
-              this.onSliceCactus(p, body.velocity.x, body.velocity.y, slashDx, slashDy);
+              this.onSliceCactus(p, body.velocity.x, body.velocity.y, slashDx, slashDy, clean);
             } else {
               this.onSliceTarantula(p);
             }
@@ -157,6 +178,7 @@ export class CactusSlicingScene extends Phaser.Scene {
         }
       }
     }
+
   }
 
   // ----- Setup -----
@@ -177,7 +199,7 @@ export class CactusSlicingScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(15);
 
-    // Strike icons (3 tarantulas across the top center)
+    // Strike icons (tarantulas across the top center)
     const iconY = CFG.hudPaddingPx + 14;
     for (let i = 0; i < CFG.strikeLimit; i++) {
       const x = width / 2 - ((CFG.strikeLimit - 1) / 2) * (CFG.strikeIconSize + 8) + i * (CFG.strikeIconSize + 8);
@@ -185,6 +207,18 @@ export class CactusSlicingScene extends Phaser.Scene {
       icon.setScale(CFG.strikeIconSize / icon.height);
       icon.setAlpha(0.35);
       this.strikeIcons.push(icon);
+    }
+
+    // Miss pips (dropped-cactus budget) — small grey cacti, top-center below strikes
+    const pipY = iconY + CFG.strikeIconSize / 2 + CFG.missPipSize / 2 + 6;
+    const pipSpacing = CFG.missPipSize + 4;
+    for (let i = 0; i < CFG.missTolerance; i++) {
+      const x = width / 2 - ((CFG.missTolerance - 1) / 2) * pipSpacing + i * pipSpacing;
+      const pip = this.add.image(x, pipY, 'cactus.whole.small').setDepth(15).setScrollFactor(0);
+      pip.setScale(CFG.missPipSize / pip.height);
+      pip.setAlpha(0.25);
+      pip.setTint(0x6e6e6e);
+      this.missPips.push(pip);
     }
   }
 
@@ -226,6 +260,8 @@ export class CactusSlicingScene extends Phaser.Scene {
   private handlePointerUp(p: Phaser.Input.Pointer): void {
     if (p.id !== this.activePointerId) return;
     this.activePointerId = null;
+    // Combos require one continuous stroke — lifting always ends the combo.
+    this.comboCount = 0;
     // Do NOT clear the trail — let samples age out so a flick-and-release still
     // resolves slices for ~140ms after pointer-up.
   }
@@ -315,6 +351,7 @@ export class CactusSlicingScene extends Phaser.Scene {
       entryY: 0,
       lastOverlapX: 0,
       lastOverlapY: 0,
+      minDistToCenter: Infinity,
       spinPerSec: Phaser.Math.FloatBetween(CFG.spinPerSecMin, CFG.spinPerSecMax) * (Math.random() < 0.5 ? -1 : 1),
     };
     sprite.setData('data', data);
@@ -350,7 +387,7 @@ export class CactusSlicingScene extends Phaser.Scene {
    * Returns whether any active trail segment overlaps the circle, and if so,
    * the closest-point on the deepest-overlapping segment to the circle center.
    */
-  private trailOverlapsCircle(cx: number, cy: number, r: number): { hit: boolean; x: number; y: number } {
+  private trailOverlapsCircle(cx: number, cy: number, r: number): { hit: boolean; x: number; y: number; minDist: number } {
     let bestDist = Infinity;
     let bestX = 0;
     let bestY = 0;
@@ -364,8 +401,8 @@ export class CactusSlicingScene extends Phaser.Scene {
         bestY = y;
       }
     }
-    if (bestDist <= r) return { hit: true, x: bestX, y: bestY };
-    return { hit: false, x: 0, y: 0 };
+    if (bestDist <= r) return { hit: true, x: bestX, y: bestY, minDist: bestDist };
+    return { hit: false, x: 0, y: 0, minDist: bestDist };
   }
 
   // ----- Slice handlers -----
@@ -376,6 +413,7 @@ export class CactusSlicingScene extends Phaser.Scene {
     vy: number,
     slashDx: number,
     slashDy: number,
+    clean: boolean,
   ): void {
     const x = sprite.x;
     const y = sprite.y;
@@ -412,25 +450,98 @@ export class CactusSlicingScene extends Phaser.Scene {
       onComplete: () => halfRight.destroy(),
     });
 
-    // Combo logic
-    if (this.time.now - this.lastSliceAt < CFG.sliceComboWindowMs) {
+    // Combo logic — only count when pointer is still down (continuous stroke)
+    const inStroke = this.activePointerId != null;
+    if (inStroke && this.time.now - this.lastSliceAt < CFG.sliceComboWindowMs) {
       this.comboCount += 1;
     } else {
       this.comboCount = 1;
     }
     this.lastSliceAt = this.time.now;
     const tier = Math.min(this.comboCount, CFG.comboMaxTier);
-    const points = CFG.slicePointsBase + (tier - 1) * CFG.comboTierBonusStep;
+    const basePoints = CFG.slicePointsBase + (tier - 1) * CFG.comboTierBonusStep;
+    const cleanBonus = clean ? CFG.cleanCutBonus : 0;
+    const points = basePoints + cleanBonus;
     this.score += points;
     this.updateScoreText();
 
-    const label = this.comboCount >= 2 ? `COMBO ×${this.comboCount} +${points}` : `+${points}`;
-    this.spawnFloatingText(x, y, label);
+    // Slash spark at the slice midpoint
+    this.spawnSlashSpark(x, y, clean);
 
-    if (this.comboCount >= 3) sfx.bullseye();
-    else sfx.thunk();
+    let label: string;
+    if (this.comboCount >= 2 && clean) label = `COMBO ×${this.comboCount} +${points} CLEAN`;
+    else if (this.comboCount >= 2) label = `COMBO ×${this.comboCount} +${points}`;
+    else if (clean) label = `+${points} CLEAN`;
+    else label = `+${points}`;
+    this.spawnFloatingText(x, y, label, clean);
+
+    if (this.comboCount >= CFG.comboSlowMoTier) {
+      this.triggerSlowMo();
+      sfx.bullseye();
+    } else {
+      sfx.thunk();
+    }
 
     if (!this.passed && this.score >= CFG.passThreshold) this.markUnlocked();
+  }
+
+  private spawnSlashSpark(x: number, y: number, clean: boolean): void {
+    const radius = clean ? CFG.sparkRadiusClean : CFG.sparkRadius;
+    const tint = clean ? 0xfff5b7 : 0xfde68a;
+    const spark = this.add.image(x, y, 'slice-spark').setDepth(19).setTint(tint);
+    const scale = (radius * 2) / spark.width;
+    spark.setScale(scale * 0.4);
+    spark.setAlpha(0.9);
+    this.tweens.add({
+      targets: spark,
+      scale: scale,
+      alpha: 0,
+      duration: CFG.sparkDurationMs,
+      ease: 'Cubic.easeOut',
+      onComplete: () => spark.destroy(),
+    });
+  }
+
+  private triggerSlowMo(): void {
+    this.time.timeScale = CFG.slowMoTimeScale;
+    this.physics.world.timeScale = 1 / CFG.slowMoTimeScale; // arcade physics inverts: >1 slows
+    // Real-wall-clock delay: the timer event is scheduled on the same scaled clock,
+    // so it lasts ~ duration / timeScale in real ms — that's the intended beat.
+    this.time.delayedCall(CFG.slowMoDurationMs, () => {
+      this.time.timeScale = 1;
+      this.physics.world.timeScale = 1;
+    });
+  }
+
+  private flashStrike(): void {
+    const { width, height } = this.scale;
+    const flash = this.add
+      .rectangle(0, 0, width, height, CFG.strikeFlashColor)
+      .setOrigin(0)
+      .setAlpha(0.35)
+      .setDepth(30)
+      .setScrollFactor(0);
+    this.tweens.add({
+      targets: flash,
+      alpha: 0,
+      duration: CFG.strikeFlashDurationMs,
+      ease: 'Cubic.easeOut',
+      onComplete: () => flash.destroy(),
+    });
+  }
+
+  private onCactusDropped(): void {
+    if (this.finished) return;
+    // Bonus mode (already cleared) — drops are cosmetic, never fail the round.
+    if (this.passed) return;
+    this.misses += 1;
+    const idx = this.misses - 1;
+    if (idx < this.missPips.length) {
+      const pip = this.missPips[idx];
+      pip.setAlpha(0.9);
+      pip.setTint(0xd24a3a);
+    }
+    if (this.misses >= CFG.missTolerance) this.finish(false);
   }
 
   private onSliceTarantula(sprite: Phaser.Physics.Arcade.Sprite): void {
@@ -446,7 +557,8 @@ export class CactusSlicingScene extends Phaser.Scene {
       icon.setTint(0xd24a3a);
     }
 
-    this.cameras.main.shake(120, 0.008);
+    this.cameras.main.shake(CFG.strikeShakeMs, CFG.strikeShakeIntensity);
+    this.flashStrike();
     sfx.pop();
 
     // Small "explosion" tween — quick scale up + fade
@@ -461,7 +573,7 @@ export class CactusSlicingScene extends Phaser.Scene {
       onComplete: () => burst.destroy(),
     });
 
-    if (this.strikes > CFG.strikeLimit) this.finish(false);
+    if (!this.passed && this.strikes >= CFG.strikeLimit) this.finish(false);
   }
 
   // ----- HUD -----
@@ -474,14 +586,14 @@ export class CactusSlicingScene extends Phaser.Scene {
     }
   }
 
-  private spawnFloatingText(x: number, y: number, text: string): void {
+  private spawnFloatingText(x: number, y: number, text: string, clean = false): void {
     const t = this.add.text(x, y, text, {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '22px',
-      color: '#fff5b7',
+      fontSize: clean ? '26px' : '22px',
+      color: clean ? '#ffffff' : '#fff5b7',
       fontStyle: 'bold',
-      stroke: '#7a4d0c',
-      strokeThickness: 3,
+      stroke: clean ? '#c98a18' : '#7a4d0c',
+      strokeThickness: clean ? 4 : 3,
     }).setOrigin(0.5).setDepth(18);
     this.tweens.add({
       targets: t,
@@ -550,6 +662,8 @@ export class CactusSlicingScene extends Phaser.Scene {
     this.passed = passed;
     this.spawnTimer?.remove();
     this.sessionTimer?.remove();
+    this.time.timeScale = 1;
+    this.physics.world.timeScale = 1;
 
     if (this.unlockBanner) {
       this.unlockBanner.destroy();
@@ -559,7 +673,8 @@ export class CactusSlicingScene extends Phaser.Scene {
     const elapsedMs = Math.min(CFG.sessionDurationMs, this.time.now - this.startedAt);
 
     const { width, height } = this.scale;
-    const failedByStrikes = this.strikes > CFG.strikeLimit;
+    const failedByStrikes = this.strikes >= CFG.strikeLimit;
+    const failedByDrops = this.misses >= CFG.missTolerance;
     let text: string;
     let color: string;
     let stroke: string;
@@ -569,6 +684,10 @@ export class CactusSlicingScene extends Phaser.Scene {
       stroke = '#1f5a2d';
     } else if (failedByStrikes) {
       text = `Too many tarantulas!\nScore: ${this.score}`;
+      color = '#d24a3a';
+      stroke = '#5a2d1f';
+    } else if (failedByDrops) {
+      text = `Too many got away!\nScore: ${this.score}`;
       color = '#d24a3a';
       stroke = '#5a2d1f';
     } else {

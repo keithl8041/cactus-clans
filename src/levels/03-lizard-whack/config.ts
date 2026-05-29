@@ -2,7 +2,7 @@
 
 export const LIZARD_WHACK_CONFIG = {
   // Win condition
-  passThreshold: 18,                // target points to clear; ~9 fresh whacks
+  passThreshold: 23,                // target points to clear; ~11–12 fresh whacks
   roundDurationMs: 30_000,          // total round length
   missTolerance: 8,                 // un-whacked-lizard misses before early-fail
 

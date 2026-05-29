@@ -30,13 +30,20 @@ export function SplashScreen() {
 
   useEffect(() => {
     void (async () => {
-      setRoster(getKnownPlayers());
+      const known = getKnownPlayers();
+      setRoster(known);
       const session = getCurrentSession();
       if (session) {
         setPlayer(session);
         const run = await syncActiveRunFromServer(session.id);
         setRun(run ?? null);
-        if (!pickPlayer) {
+        // Auto-resume only when there's a single known player on this device.
+        // With multiple players, always show the picker so each kid actually
+        // gets to choose (especially when joining a /versus/<code> lobby).
+        // returnTo is peeked here and consumed by choosePlayer, so it survives
+        // the picker step.
+        const singlePlayer = known.length <= 1;
+        if (!pickPlayer && singlePlayer) {
           const returnTo = consumeReturnTo();
           navigate(returnTo ?? (run ? '/journey' : '/clans'), { replace: true });
         }

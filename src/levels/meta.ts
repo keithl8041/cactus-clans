@@ -44,7 +44,7 @@ export const LEVEL_META: LevelMeta[] = [
     number: 5,
     title: 'Cactus Slicing',
     blurb: 'Slash flying cacti — but watch out for tarantulas!',
-    passThreshold: 45, // keep in sync with CACTUS_SLICING_CONFIG.passThreshold
+    passThreshold: 55, // keep in sync with CACTUS_SLICING_CONFIG.passThreshold
   },
   {
     id: '06-cactus-darts',
