@@ -48,16 +48,20 @@ export class LizardWhackScene extends Phaser.Scene {
   }
 
   preload(): void {
-    loadAsset(this, 'pot', 'pot', { size: CFG.potSize });
-    loadAsset(this, 'lizard.up', 'lizard.up', { size: CFG.lizardSize });
-    loadAsset(this, 'lizard.down', 'lizard.down', { size: CFG.lizardSize });
-    loadAsset(this, 'lizard.bandit', 'lizard.bandit', { size: CFG.lizardSize });
-    loadAsset(this, 'hit.splat', 'hit.splat', { size: CFG.lizardSize });
+    loadAsset(this, 'game3.background', 'game3.background');
+    loadAsset(this, 'pot', 'game3.pot');
+    loadAsset(this, 'lizard.up', 'game3.lizard.green');
+    loadAsset(this, 'lizard.down', 'game3.lizard.dark-green');
+    loadAsset(this, 'lizard.bandit', 'game3.lizard.gold');
+    loadAsset(this, 'hit.splat', 'game3.hit-splat');
   }
 
   create(): void {
     const { width, height } = this.scale;
     this.add.rectangle(0, 0, width, height, CFG.backgroundColor).setOrigin(0);
+    const bg = this.add.image(width / 2, height / 2, 'game3.background').setDepth(0);
+    const bgScale = Math.max(width / bg.width, height / bg.height);
+    bg.setScale(bgScale);
 
     this.setupGrid();
     this.setupInput();
@@ -207,7 +211,8 @@ export class LizardWhackScene extends Phaser.Scene {
   private popUp(pot: PotSlot, isBandit: boolean): void {
     pot.state = 'rising';
     pot.isBandit = isBandit;
-    pot.lizard.setTexture(isBandit ? 'lizard.bandit' : 'lizard.up');
+    const normalTexture = Math.random() < 0.5 ? 'lizard.up' : 'lizard.down';
+    pot.lizard.setTexture(isBandit ? 'lizard.bandit' : normalTexture);
     pot.lizard.setScale((CFG.lizardSize / pot.lizard.height) * 0.2);
     pot.lizard.setAlpha(1);
     pot.lizard.setPosition(pot.x, pot.y + 20);
