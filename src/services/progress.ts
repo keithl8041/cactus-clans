@@ -71,7 +71,75 @@ export async function startRun(playerId: string, clan: string): Promise<RunProgr
 export async function getActiveRun(playerId: string): Promise<RunProgress | null> {
   // localStorage is the source of truth for the active run even when the real
   // backend is wired up — keeps in-progress state snappy and survives refreshes.
+  // Cross-device sync happens at sign-in via `syncActiveRunFromServer`.
   return readRun(playerId);
+}
+
+/**
+ * Sign-in-time hydration: pull the latest in-progress run from the Worker and
+ * reconcile it with any state cached on this device. Without this, signing in
+ * on a fresh device left `getActiveRun` reading an empty localStorage and you
+ * lost cross-device progress.
+ *
+ * Reconciliation rules:
+ *   - Backend offline (or DEV fallback) → trust local cache.
+ *   - Server has no in-progress run → drop any stale local cache (the canonical
+ *     run was completed elsewhere; the local copy is from a finished session).
+ *   - Server + local disagree on runId → trust server (it spans devices).
+ *   - Same runId on both → merge level_results using the client's replay rule
+ *     so any unsynced local progress survives.
+ */
+export async function syncActiveRunFromServer(playerId: string): Promise<RunProgress | null> {
+  const local = readRun(playerId);
+  if (!usingRealBackend) return local;
+
+  let serverRun: RunProgress | null;
+  try {
+    const res = await apiFetch<{ run: RunProgress | null }>(
+      `/players/${encodeURIComponent(playerId)}/active-run`,
+    );
+    serverRun = res.run;
+  } catch (err) {
+    console.warn('active-run sync failed', err);
+    return local;
+  }
+
+  if (!serverRun) {
+    if (local) clearActiveRun(playerId);
+    return null;
+  }
+  if (!local || local.runId !== serverRun.runId) {
+    writeRun(serverRun);
+    return serverRun;
+  }
+  const merged = mergeRunLevels(local, serverRun);
+  writeRun(merged);
+  return merged;
+}
+
+function mergeRunLevels(a: RunProgress, b: RunProgress): RunProgress {
+  const byLevel = new Map<number, LevelClearRecord>();
+  for (const lvl of [...a.levels, ...b.levels]) {
+    const prior = byLevel.get(lvl.levelNumber);
+    byLevel.set(lvl.levelNumber, prior ? pickBetterLevel(prior, lvl) : lvl);
+  }
+  const levels = [...byLevel.values()].sort((x, y) => x.levelNumber - y.levelNumber);
+  const totalScore = levels.reduce((acc, l) => acc + l.score, 0);
+  return {
+    runId: a.runId,
+    playerId: a.playerId,
+    clan: a.clan,
+    startedAt: a.startedAt < b.startedAt ? a.startedAt : b.startedAt,
+    completedAt: a.completedAt ?? b.completedAt,
+    totalScore,
+    levels,
+  };
+}
+
+function pickBetterLevel(prior: LevelClearRecord, next: LevelClearRecord): LevelClearRecord {
+  if (prior.passed && !next.passed) return prior;
+  if (!prior.passed && next.passed) return next;
+  return next.score > prior.score ? next : prior;
 }
 
 /**
@@ -96,11 +164,7 @@ export async function recordLevelResult(
   // otherwise keep the higher score. Bonus pickups mean failed runs can outscore
   // earlier passes, but we still don't want them to downgrade clear status.
   const prior = run.levels.find((l) => l.levelNumber === recorded.levelNumber);
-  let keep: LevelClearRecord;
-  if (!prior) keep = recorded;
-  else if (prior.passed && !recorded.passed) keep = prior;
-  else if (!prior.passed && recorded.passed) keep = recorded;
-  else keep = recorded.score > prior.score ? recorded : prior;
+  const keep = prior ? pickBetterLevel(prior, recorded) : recorded;
   const levels = run.levels.filter((l) => l.levelNumber !== recorded.levelNumber).concat(keep);
   const totalScore = levels.reduce((acc, l) => acc + l.score, 0);
   const next: RunProgress = { ...run, levels, totalScore };

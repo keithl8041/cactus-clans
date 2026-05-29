@@ -1,0 +1,1 @@
+Camel "gallop B" — same camel as `public/art/camel-prickling-clan.png`, same canvas/scale/facing/palette, only the legs change: front pair extended, rear pair tucked (opposite of the existing pose). Saved as `public/art/camel-prickling-clan-gallop-b.png`.

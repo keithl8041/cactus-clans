@@ -66,6 +66,8 @@ export const CAMEL_RACE_CONFIG = {
   // Track / camel
   camelSize: 110,
   camelXFraction: 0.22,                // camel sits at this x always (world scrolls past it)
+  camelBobAmplitudePx: 3,              // peak vertical offset of the running-gait bob
+  camelBobHz: 3.2,                     // cycles per second of the bob
   parallaxFinishBannerAtPx: 17_500,    // banner becomes visible from this world-x
   finishBannerSize: 220,
 

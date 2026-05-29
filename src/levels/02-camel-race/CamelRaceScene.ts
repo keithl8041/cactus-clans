@@ -55,6 +55,10 @@ export class CamelRaceScene extends Phaser.Scene {
 
   private camel!: Phaser.GameObjects.Image;
   private camelBaseScale = 1;
+  // Lane Y the lane-change tween animates; the actual camel.y is this plus the
+  // running-gait bob (sine wave applied each frame in update()).
+  private camelLaneY = 0;
+  private camelBobPhase = 0;
   private parallaxFar!: Phaser.GameObjects.TileSprite;
   private parallaxMid!: Phaser.GameObjects.TileSprite;
   private parallaxNear!: Phaser.GameObjects.TileSprite;
@@ -148,6 +152,16 @@ export class CamelRaceScene extends Phaser.Scene {
     if (this.staminaDisabled && this.stamina >= CFG.staminaRecoveryThreshold) {
       this.staminaDisabled = false;
     }
+
+    // Running-gait bob — sine wave on y only. Phase advances faster as the
+    // world scrolls faster, so the gait visibly ramps with dash and slows when
+    // stamina-stalled. No rotation: the bottom-anchored origin made tilt
+    // visually shrink the camel.
+    const speedRatio = speed / CFG.baseSpeed;
+    const gaitScale = Phaser.Math.Clamp(speedRatio, 0.4, 1.6);
+    this.camelBobPhase += dt * Math.PI * 2 * CFG.camelBobHz * gaitScale;
+    const bobY = Math.sin(this.camelBobPhase) * CFG.camelBobAmplitudePx * Math.min(1, speedRatio);
+    this.camel.y = this.camelLaneY + bobY;
 
     // Parallax scroll
     this.parallaxFar.tilePositionX += advance * CFG.parallaxFarMult;
@@ -261,8 +275,8 @@ export class CamelRaceScene extends Phaser.Scene {
   private setupCamel(): void {
     const { width, height } = this.scale;
     const x = width * CFG.camelXFraction;
-    const y = CFG.laneYFractions[this.lane] * height;
-    this.camel = this.add.image(x, y, 'camel').setOrigin(0.5, 1).setDepth(this.camelDepthFor(this.lane));
+    this.camelLaneY = CFG.laneYFractions[this.lane] * height;
+    this.camel = this.add.image(x, this.camelLaneY, 'camel').setOrigin(0.5, 1).setDepth(this.camelDepthFor(this.lane));
     this.camelBaseScale = CFG.camelSize / this.camel.height;
     this.camel.setScale(this.camelBaseScale * CFG.laneScales[this.lane]);
   }
@@ -391,16 +405,23 @@ export class CamelRaceScene extends Phaser.Scene {
     // weaves in front of / behind obstacles in adjacent lanes during the move.
     this.camel.setDepth(this.camelDepthFor(target));
     const { height } = this.scale;
+    // Tween the lane-Y on the scene (not camel.y directly) so the per-frame
+    // sine-wave bob in update() can ride on top without fighting the tween.
     this.laneTween = this.tweens.add({
-      targets: this.camel,
-      y: CFG.laneYFractions[target] * height,
-      scale: this.camelBaseScale * CFG.laneScales[target],
+      targets: this,
+      camelLaneY: CFG.laneYFractions[target] * height,
       duration: CFG.laneChangeMs,
       ease: 'Sine.easeOut',
       onComplete: () => {
         this.lane = this.targetLane;
         this.laneTween = null;
       },
+    });
+    this.tweens.add({
+      targets: this.camel,
+      scale: this.camelBaseScale * CFG.laneScales[target],
+      duration: CFG.laneChangeMs,
+      ease: 'Sine.easeOut',
     });
   }
 

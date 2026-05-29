@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { checkNickname, signInWithNickname } from '../services/session';
-import { getActiveRun } from '../services/progress';
+import { syncActiveRunFromServer } from '../services/progress';
 import { useGameStore } from '../store/gameStore';
 
 type Step =
@@ -57,7 +57,9 @@ export function NicknameEntry() {
     try {
       const session = await signInWithNickname(step.nickname, pin);
       setPlayer(session);
-      const run = await getActiveRun(session.id);
+      // Hydrate from the server so logging in on a new device picks up the
+      // player's latest in-progress run instead of starting fresh.
+      const run = await syncActiveRunFromServer(session.id);
       setRun(run ?? null);
       navigate(run ? '/journey' : '/clans');
     } catch (err) {

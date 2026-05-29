@@ -9,7 +9,7 @@ import {
   type KnownPlayer,
   type PlayerSession,
 } from '../services/session';
-import { getActiveRun } from '../services/progress';
+import { syncActiveRunFromServer } from '../services/progress';
 import { IosInstallHint } from './IosInstallHint';
 
 export function SplashScreen() {
@@ -33,8 +33,8 @@ export function SplashScreen() {
       const session = getCurrentSession();
       if (session) {
         setPlayer(session);
-        const run = await getActiveRun(session.id);
-        if (run) setRun(run);
+        const run = await syncActiveRunFromServer(session.id);
+        setRun(run ?? null);
         if (!pickPlayer) navigate(run ? '/journey' : '/clans', { replace: true });
       }
     })();
@@ -44,7 +44,7 @@ export function SplashScreen() {
     const session: PlayerSession = { id: p.id, nickname: p.nickname };
     setActivePlayer(session);
     setPlayer(session);
-    const run = await getActiveRun(p.id);
+    const run = await syncActiveRunFromServer(p.id);
     setRun(run ?? null);
     navigate(run ? '/journey' : '/clans');
   }

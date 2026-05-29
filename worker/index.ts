@@ -85,6 +85,73 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
     return json({ id, nickname: cleaned });
   }
 
+  const activeRunMatch = pathname.match(/^\/api\/players\/([^/]+)\/active-run$/);
+  if (activeRunMatch && method === 'GET') {
+    const playerId = activeRunMatch[1];
+    // Latest in-progress run for this player. Completed runs are intentionally
+    // ignored — the client treats a completed run as "between runs" and routes
+    // to clan select, matching what happens after `clearActiveRun` locally.
+    const run = await env.DB
+      .prepare(
+        `SELECT id, player_id AS playerId, clan, started_at AS startedAt, total_score AS totalScore
+         FROM runs
+         WHERE player_id = ? AND completed_at IS NULL
+         ORDER BY started_at DESC
+         LIMIT 1`,
+      )
+      .bind(playerId)
+      .first<{ id: string; playerId: string; clan: string; startedAt: string; totalScore: number }>();
+    if (!run) return json({ run: null });
+
+    // Multiple level_results rows can exist per level (retries). Dedupe with the
+    // same "sticky pass + higher score" rule the client applies in recordLevelResult.
+    const levelRows = await env.DB
+      .prepare(
+        `WITH ranked AS (
+           SELECT level_number, passed, mini_game_points, elapsed_ms, score, recorded_at,
+                  ROW_NUMBER() OVER (
+                    PARTITION BY level_number
+                    ORDER BY passed DESC, score DESC, recorded_at DESC
+                  ) AS rn
+           FROM level_results
+           WHERE run_id = ?
+         )
+         SELECT level_number AS levelNumber, passed, mini_game_points AS miniGamePoints,
+                elapsed_ms AS elapsedMs, score, recorded_at AS recordedAt
+         FROM ranked
+         WHERE rn = 1
+         ORDER BY level_number ASC`,
+      )
+      .bind(run.id)
+      .all<{
+        levelNumber: number;
+        passed: number;
+        miniGamePoints: number;
+        elapsedMs: number;
+        score: number;
+        recordedAt: string;
+      }>();
+    const levels = (levelRows.results ?? []).map((r) => ({
+      levelNumber: r.levelNumber,
+      passed: r.passed === 1,
+      miniGamePoints: r.miniGamePoints,
+      elapsedMs: r.elapsedMs,
+      score: r.score,
+      recordedAt: r.recordedAt,
+    }));
+    const totalScore = levels.reduce((acc, l) => acc + l.score, 0);
+    return json({
+      run: {
+        runId: run.id,
+        playerId: run.playerId,
+        clan: run.clan,
+        startedAt: run.startedAt,
+        totalScore,
+        levels,
+      },
+    });
+  }
+
   if (pathname === '/api/runs' && method === 'POST') {
     const { playerId, clan } = await readJson<{ playerId?: string; clan?: string }>(request);
     if (!playerId || !clan) return json({ error: 'playerId + clan required' }, 400);
