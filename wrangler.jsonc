@@ -14,5 +14,19 @@
 			"database_name": "cactus-clans",
 			"database_id": "1455466b-575f-42f9-8e2d-5726d97dd01a"
 		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "MATCH_LOBBY",
+				"class_name": "MatchLobby"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": ["MatchLobby"]
+		}
 	]
 }

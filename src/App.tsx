@@ -10,6 +10,11 @@ import { Leaderboard } from './shell/Leaderboard';
 const GameContainer = lazy(() =>
   import('./shell/GameContainer').then((m) => ({ default: m.GameContainer })),
 );
+// Versus mode shares the same Phaser bundle path — lazy-load so the easter-egg
+// route doesn't bloat the main entry for everyone who never visits it.
+const VersusLobby = lazy(() =>
+  import('./shell/VersusLobby').then((m) => ({ default: m.VersusLobby })),
+);
 
 export function App() {
   return (
@@ -27,6 +32,14 @@ export function App() {
         }
       />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route
+        path="/versus/:code"
+        element={
+          <Suspense fallback={<div className="screen"><h2>Joining lobby…</h2></div>}>
+            <VersusLobby />
+          </Suspense>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

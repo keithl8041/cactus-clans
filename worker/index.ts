@@ -1,8 +1,14 @@
 /// <reference types="@cloudflare/workers-types" />
 
+// Re-exported directly so wrangler's class lookup finds it without esbuild
+// tree-shaking the symbol away (it does that when the only other reference
+// is in a type position).
+export { MatchLobby } from './lobby';
+
 interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
+  MATCH_LOBBY: DurableObjectNamespace;
 }
 
 interface PlayerRow {
@@ -15,6 +21,7 @@ interface LeaderboardRow {
   clan: string;
   totalScore: number;
   completedAt: string | null;
+  currentLevel: number | null;
 }
 
 export default {
@@ -35,6 +42,19 @@ export default {
 async function route(url: URL, request: Request, env: Env): Promise<Response | null> {
   const { pathname } = url;
   const method = request.method;
+
+  // Versus mode: per-lobby WebSocket → Durable Object. Lobby code from the URL
+  // keys the DO instance, so any two clients that visit /versus/<same code>
+  // converge on the same in-memory game.
+  const versusMatch = pathname.match(/^\/api\/versus\/([A-Za-z0-9-]{1,32})\/ws$/);
+  if (versusMatch) {
+    if (request.headers.get('Upgrade') !== 'websocket') {
+      return json({ error: 'expected websocket upgrade' }, 426);
+    }
+    const code = versusMatch[1].toUpperCase();
+    const stub = env.MATCH_LOBBY.get(env.MATCH_LOBBY.idFromName(code));
+    return stub.fetch(request);
+  }
 
   if (pathname === '/api/players/check' && method === 'GET') {
     const nickname = (url.searchParams.get('nickname') ?? '').trim();
@@ -217,16 +237,27 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
     const result = await env.DB
       .prepare(
         `WITH ranked AS (
-           SELECT r.player_id, r.clan, r.total_score, r.completed_at,
+           SELECT r.id AS run_id, r.player_id, r.clan, r.total_score, r.completed_at,
                   ROW_NUMBER() OVER (
                     PARTITION BY r.player_id
                     ORDER BY r.total_score DESC, r.completed_at DESC
                   ) AS rn
            FROM runs r
+         ),
+         run_max_level AS (
+           SELECT run_id, MAX(level_number) AS max_level
+           FROM level_results
+           GROUP BY run_id
          )
          SELECT p.nickname, ranked.clan, ranked.total_score AS totalScore,
-                ranked.completed_at AS completedAt
+                ranked.completed_at AS completedAt,
+                CASE
+                  WHEN ranked.completed_at IS NULL
+                    THEN COALESCE(run_max_level.max_level, 1)
+                  ELSE NULL
+                END AS currentLevel
          FROM ranked
+         LEFT JOIN run_max_level ON run_max_level.run_id = ranked.run_id
          INNER JOIN players p ON p.id = ranked.player_id
          WHERE ranked.rn = 1
          ORDER BY totalScore DESC
