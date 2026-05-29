@@ -7,10 +7,14 @@ export const CAMEL_RACE_CONFIG = {
   courseTimeLimitMs: 90_000,           // race auto-ends at this time
   passDistanceFraction: 0.85,          // fraction of course needed to pass on timeout
 
-  // Lanes
+  // Lanes — stacked across the 60px floor strip (canvas y 660–720). All entities
+  // are bottom-anchored to the lane's ground line. Depth cue comes from y-position
+  // alone now; the camel stays the same size across lanes. Front-lane occlusion is
+  // handled by render depth, not scale.
   laneCount: 3,
-  laneYFractions: [0.55, 0.70, 0.82],  // lane centers as fraction of canvas height
-  laneChangeMs: 180,                   // tween time for lateral lane swap
+  laneYFractions: [0.9375, 1.0, 1.0625],    // back → front: feet at floor-top+15, +60, +105 (y = 675, 720, 765)
+  laneScales: [1.00, 1.00, 1.00],           // no per-lane diminishing — kept for future tuning
+  laneChangeMs: 180,                        // tween time for lane swap
 
   // Speed
   baseSpeed: 380,                      // px/sec at start
@@ -42,14 +46,12 @@ export const CAMEL_RACE_CONFIG = {
   obstacleLanesAtOnceEnd: 2,
   obstacleRockChance: 0.55,            // chance of rock vs cactus
   obstacleSize: 80,
-  obstacleColliderScale: 0.55,         // body radius relative to displayed sprite
 
   // Pickups
   pickupSpawnEveryPx: 900,
   pickupSpawnJitter: 0.30,             // ±30% on spawn spacing
   pickupSize: 48,
   pickupBonusPoints: 5,                // added to bonusPoints per flask
-  pickupColliderScale: 0.6,
 
   // Input
   tapMoveThresholdPx: 14,              // pointer travel above which a press is a hold (not a tap)

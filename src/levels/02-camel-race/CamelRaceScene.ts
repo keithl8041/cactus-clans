@@ -54,6 +54,7 @@ export class CamelRaceScene extends Phaser.Scene {
   private livesOut = false;
 
   private camel!: Phaser.GameObjects.Image;
+  private camelBaseScale = 1;
   private parallaxFar!: Phaser.GameObjects.TileSprite;
   private parallaxMid!: Phaser.GameObjects.TileSprite;
   private parallaxNear!: Phaser.GameObjects.TileSprite;
@@ -192,15 +193,15 @@ export class CamelRaceScene extends Phaser.Scene {
     const inIframes = this.time.now < this.iframesUntil;
     for (const o of this.obstacles) {
       if (o.hit) continue;
+      if (o.lane !== this.lane) continue;
       if (o.sprite.x < checkXMin || o.sprite.x > checkXMax) continue;
-      if (Math.abs(o.sprite.y - this.camel.y) > CFG.obstacleSize * CFG.obstacleColliderScale) continue;
       if (inIframes) continue;
       this.onObstacleHit(o);
     }
     for (const p of this.pickups) {
       if (p.collected) continue;
+      if (p.lane !== this.lane) continue;
       if (p.sprite.x < checkXMin || p.sprite.x > checkXMax) continue;
-      if (Math.abs(p.sprite.y - this.camel.y) > CFG.pickupSize * CFG.pickupColliderScale) continue;
       this.onPickup(p);
     }
 
@@ -261,8 +262,9 @@ export class CamelRaceScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const x = width * CFG.camelXFraction;
     const y = CFG.laneYFractions[this.lane] * height;
-    this.camel = this.add.image(x, y, 'camel').setDepth(8);
-    this.camel.setScale(CFG.camelSize / this.camel.height);
+    this.camel = this.add.image(x, y, 'camel').setOrigin(0.5, 1).setDepth(this.camelDepthFor(this.lane));
+    this.camelBaseScale = CFG.camelSize / this.camel.height;
+    this.camel.setScale(this.camelBaseScale * CFG.laneScales[this.lane]);
   }
 
   private setupHud(): void {
@@ -385,10 +387,14 @@ export class CamelRaceScene extends Phaser.Scene {
     const target = Phaser.Math.Clamp(this.lane + dir, 0, CFG.laneCount - 1);
     if (target === this.lane) return;
     this.targetLane = target;
+    // Snap depth to the target lane at tween start so the camel correctly
+    // weaves in front of / behind obstacles in adjacent lanes during the move.
+    this.camel.setDepth(this.camelDepthFor(target));
     const { height } = this.scale;
     this.laneTween = this.tweens.add({
       targets: this.camel,
       y: CFG.laneYFractions[target] * height,
+      scale: this.camelBaseScale * CFG.laneScales[target],
       duration: CFG.laneChangeMs,
       ease: 'Sine.easeOut',
       onComplete: () => {
@@ -396,6 +402,12 @@ export class CamelRaceScene extends Phaser.Scene {
         this.laneTween = null;
       },
     });
+  }
+
+  // Camel sits 0.5 above obstacles/pickups in the SAME lane (focal point), but
+  // below entities in any further-forward lane (so they occlude the player).
+  private camelDepthFor(lane: number): number {
+    return 10 + lane + 0.5;
   }
 
   // ----- Spawning -----
@@ -418,8 +430,8 @@ export class CamelRaceScene extends Phaser.Scene {
       const texture = kind === 'rock' ? 'rock' : 'cactus.spike.game2';
       const { height } = this.scale;
       const y = CFG.laneYFractions[lane] * height;
-      const sprite = this.add.image(0, y, texture).setDepth(7);
-      sprite.setScale(CFG.obstacleSize / sprite.height);
+      const sprite = this.add.image(0, y, texture).setOrigin(0.5, 1).setDepth(10 + lane);
+      sprite.setScale((CFG.obstacleSize / sprite.height) * CFG.laneScales[lane]);
       this.obstacles.push({ sprite, worldX, lane, kind, hit: false });
     }
   }
@@ -437,8 +449,8 @@ export class CamelRaceScene extends Phaser.Scene {
 
     const { height } = this.scale;
     const y = CFG.laneYFractions[lane] * height;
-    const sprite = this.add.image(0, y, 'waterFlask').setDepth(7);
-    sprite.setScale(CFG.pickupSize / sprite.height);
+    const sprite = this.add.image(0, y, 'waterFlask').setOrigin(0.5, 1).setDepth(10 + lane);
+    sprite.setScale((CFG.pickupSize / sprite.height) * CFG.laneScales[lane]);
     this.pickups.push({ sprite, worldX, lane, collected: false });
   }
 
