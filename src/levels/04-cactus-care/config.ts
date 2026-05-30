@@ -41,9 +41,11 @@ export const CACTUS_CARE_CONFIG = {
   canFollowSmoothing: 0.35,         // can lerps toward pointer
 
   // Watering geometry
-  cactusHitRadius: 80,              // distance from spout to cactus center counted as watering
-  canSpoutOffsetX: 28,              // where the spout tip sits relative to the can sprite origin
-  canSpoutOffsetY: 4,
+  cactusHitRadius: 90,              // distance from spout to cactus center counted as watering
+  canSpoutOffsetX: 40,              // where the spout tip sits relative to the can sprite origin
+  canSpoutOffsetY: 0,
+  canWateringTiltRad: 0.55,         // clockwise tilt applied to the can while pouring
+  canTiltSmoothing: 0.18,           // visual lerp factor for the tilt
 
   // Difficulty ramp phases (fraction of surviveMs)
   difficultyMidStartPct: 0.33,

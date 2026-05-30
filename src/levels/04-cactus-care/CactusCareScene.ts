@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
+import { resolvePetCactusKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import type { LevelContext } from '../types';
 import { CACTUS_CARE_CONFIG as CFG } from './config';
@@ -9,8 +10,17 @@ type EventKind = 'sun' | 'rain';
 interface ActiveEvent {
   kind: EventKind;
   endsAt: number;
-  overlay: Phaser.GameObjects.Image;
 }
+
+// The thirst-gauge.png is a wooden frame with droplet at top and sun at bottom.
+// These ratios describe the empty interior column where the meter fill is drawn,
+// expressed as fractions of the full sprite (200x900 native).
+const GAUGE_INTERIOR = {
+  topPct: 0.138,
+  bottomPct: 0.795,
+  leftPct: 0.36,
+  rightPct: 0.64,
+} as const;
 
 export class CactusCareScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
@@ -43,9 +53,25 @@ export class CactusCareScene extends Phaser.Scene {
   private nextEventTimer?: Phaser.Time.TimerEvent;
   private lastWaterChirpAt = 0;
 
+  // Background (swapped on sun/rain events)
+  private background!: Phaser.GameObjects.Image;
+  private bgScale = 1;
+  private currentBgKey = 'game4.background';
+
+  // Mood texture keys for the pet cactus
+  private cactusHappyKey = 'cactus.pet';
+  private cactusSadKey = 'cactus.pet';
+  private currentCactusMood: 'happy' | 'sad' = 'happy';
+
+  // Gauge (decorative frame for the meter)
+  private gauge!: Phaser.GameObjects.Image;
+  private readonly barRect = new Phaser.Geom.Rectangle();
+  private readonly barCornerRadius = 12;
+
   // Graphics
   private meterGfx!: Phaser.GameObjects.Graphics;
   private streamGfx!: Phaser.GameObjects.Graphics;
+  private dropletGfx!: Phaser.GameObjects.Container;
 
   // HUD
   private happyText!: Phaser.GameObjects.Text;
@@ -65,26 +91,47 @@ export class CactusCareScene extends Phaser.Scene {
   }
 
   preload(): void {
-    loadAsset(this, 'cactus.pet', 'cactus.pet', {
-      size: CFG.cactusSize,
-      clanColor: this.ctx.clan.color,
-    });
-    loadAsset(this, 'wateringCan', 'wateringCan', { size: CFG.canSize });
-    loadAsset(this, 'sunOverlay', 'sunOverlay');
-    loadAsset(this, 'rainOverlay', 'rainOverlay');
+    this.cactusHappyKey = resolvePetCactusKey(this.ctx.clan.name, 'happy');
+    this.cactusSadKey = resolvePetCactusKey(this.ctx.clan.name, 'sad');
+    const cactusOpts = { size: CFG.cactusSize, clanColor: this.ctx.clan.color };
+    loadAsset(this, this.cactusHappyKey, this.cactusHappyKey, cactusOpts);
+    loadAsset(this, this.cactusSadKey, this.cactusSadKey, cactusOpts);
+
+    loadAsset(this, 'wateringCan', 'game4.watering-can');
+    loadAsset(this, 'waterDroplet', 'game4.water-droplet');
+    loadAsset(this, 'thirstGauge', 'game4.thirst-gauge');
+    loadAsset(this, 'game4.background', 'game4.background');
+    loadAsset(this, 'game4.background.sun', 'game4.background.sun');
+    loadAsset(this, 'game4.background.rain', 'game4.background.rain');
     loadAsset(this, 'cactus.spike', 'cactus.spike');
   }
 
   create(): void {
     const { width, height } = this.scale;
     this.add.rectangle(0, 0, width, height, CFG.backgroundColor).setOrigin(0);
+    this.background = this.add.image(width / 2, height / 2, 'game4.background').setDepth(0);
+    this.bgScale = Math.max(width / this.background.width, height / this.background.height);
+    this.background.setScale(this.bgScale);
 
     this.setupScene();
     this.setupHud();
     this.setupInput();
 
     this.streamGfx = this.add.graphics().setDepth(6);
-    this.meterGfx = this.add.graphics().setDepth(10);
+    this.dropletGfx = this.add.container(0, 0).setDepth(6);
+    this.meterGfx = this.add.graphics().setDepth(11);
+
+    // Clip the meter fill to a rounded rect so the wooden chrome edges read clean.
+    const maskGfx = this.make.graphics({}, false);
+    maskGfx.fillStyle(0xffffff, 1);
+    maskGfx.fillRoundedRect(
+      this.barRect.x,
+      this.barRect.y,
+      this.barRect.width,
+      this.barRect.height,
+      this.barCornerRadius,
+    );
+    this.meterGfx.setMask(maskGfx.createGeometryMask());
 
     this.startedAt = this.time.now;
     this.scheduleNextEvent(CFG.firstEventDelayMs);
@@ -111,10 +158,26 @@ export class CactusCareScene extends Phaser.Scene {
     }
 
     // Watering check (spout must be near cactus center, and a pointer must be active).
-    const spoutX = this.can.x + CFG.canSpoutOffsetX;
-    const spoutY = this.can.y + CFG.canSpoutOffsetY;
-    const dist = Phaser.Math.Distance.Between(spoutX, spoutY, this.cactus.x, this.cactus.y);
+    // Provisional check uses the untilted offset so the tilt itself never alters the hit area.
+    const provisionalSpoutX = this.can.x + CFG.canSpoutOffsetX;
+    const provisionalSpoutY = this.can.y + CFG.canSpoutOffsetY;
+    const dist = Phaser.Math.Distance.Between(
+      provisionalSpoutX,
+      provisionalSpoutY,
+      this.cactus.x,
+      this.cactus.y,
+    );
     const watering = inputActive && dist <= CFG.cactusHitRadius;
+
+    // Tilt the can while pouring; lerp back when not.
+    const targetTilt = watering ? CFG.canWateringTiltRad : 0;
+    this.can.rotation += (targetTilt - this.can.rotation) * CFG.canTiltSmoothing;
+
+    // Spout position used for the rendered stream tracks the current rotation.
+    const cos = Math.cos(this.can.rotation);
+    const sin = Math.sin(this.can.rotation);
+    const spoutX = this.can.x + cos * CFG.canSpoutOffsetX - sin * CFG.canSpoutOffsetY;
+    const spoutY = this.can.y + sin * CFG.canSpoutOffsetX + cos * CFG.canSpoutOffsetY;
 
     // Apply meter delta.
     const phase = this.currentPhase(elapsed);
@@ -133,6 +196,7 @@ export class CactusCareScene extends Phaser.Scene {
 
     // Scoring uses the raw meter, not the displayed value.
     const inHappy = this.meter >= bandLow && this.meter <= bandHigh;
+    this.setCactusMood(inHappy ? 'happy' : 'sad');
     if (inHappy) {
       this.happyTimeMs += delta;
       const inCenter =
@@ -199,26 +263,39 @@ export class CactusCareScene extends Phaser.Scene {
   private setupScene(): void {
     const { width, height } = this.scale;
 
-    // Decorative pot below the cactus.
-    const potX = width * 0.4;
-    const potY = height * 0.78;
-    const potW = CFG.cactusSize * 0.85;
-    const potH = CFG.cactusSize * 0.35;
-    this.add.rectangle(potX, potY, potW * 1.05, potH * 0.20, 0xc9744a)
-      .setStrokeStyle(2, 0x5a2d1f)
-      .setDepth(2);
-    this.add.rectangle(potX, potY + potH * 0.35, potW, potH * 0.7, 0x8a4624)
-      .setStrokeStyle(2, 0x5a2d1f)
-      .setDepth(2);
+    // Pet cactus — large, friendly. PNG art includes the pot.
+    const cactusX = width * 0.5;
+    const cactusY = height * 0.62;
+    this.cactus = this.add.image(cactusX, cactusY, this.cactusHappyKey).setDepth(3);
+    // PNG art is square; size by setting display height so layout matches CFG.cactusSize.
+    const cactusDisplay = CFG.cactusSize * 1.8;
+    this.cactus.setDisplaySize(cactusDisplay, cactusDisplay);
 
-    // Pet cactus — large, friendly.
-    this.cactus = this.add.image(potX, height * 0.50, 'cactus.pet').setDepth(3);
-    this.cactus.setScale(CFG.cactusSize / this.cactus.height);
+    // Decorative thirst gauge frame on the right; the meter renders inside it.
+    const gaugeRight = width - 38;
+    const gaugeCenterY = height / 2 + 10;
+    this.gauge = this.add.image(gaugeRight, gaugeCenterY, 'thirstGauge')
+      .setOrigin(1, 0.5)
+      .setDepth(10);
+    const gaugeDisplayHeight = CFG.meterBarHeight / (GAUGE_INTERIOR.bottomPct - GAUGE_INTERIOR.topPct);
+    const gaugeScale = gaugeDisplayHeight / this.gauge.height;
+    this.gauge.setScale(gaugeScale);
+
+    // Precompute the fill bar rect inside the wooden interior column.
+    const gW = this.gauge.displayWidth;
+    const gH = this.gauge.displayHeight;
+    const gLeft = this.gauge.x - gW; // origin (1, 0.5)
+    const gTop = this.gauge.y - gH / 2;
+    const barX = gLeft + gW * GAUGE_INTERIOR.leftPct + 2;
+    const barW = gW * (GAUGE_INTERIOR.rightPct - GAUGE_INTERIOR.leftPct);
+    const barY = gTop + gH * GAUGE_INTERIOR.topPct + 15;
+    const barH = gH * (GAUGE_INTERIOR.bottomPct - GAUGE_INTERIOR.topPct) - 15;
+    this.barRect.setTo(barX, barY, barW, barH);
 
     // Watering can rests up-and-left of the cactus.
-    this.canRestPos.set(potX - CFG.cactusSize * 0.6, height * 0.25);
+    this.canRestPos.set(cactusX - CFG.cactusSize * 0.9, height * 0.25);
     this.can = this.add.image(this.canRestPos.x, this.canRestPos.y, 'wateringCan').setDepth(5);
-    this.can.setScale(CFG.canSize / this.can.height);
+    this.can.setDisplaySize(CFG.canSize * 1.4, CFG.canSize * 1.4);
   }
 
   private setupHud(): void {
@@ -358,93 +435,78 @@ export class CactusCareScene extends Phaser.Scene {
     if (this.currentEvent) this.endEvent();
 
     const kind: EventKind = Math.random() < 0.5 ? 'sun' : 'rain';
-    const { width, height } = this.scale;
-    const overlay = this.add.image(width / 2, height / 2, kind === 'sun' ? 'sunOverlay' : 'rainOverlay')
-      .setDepth(7)
-      .setAlpha(0);
-    // Scale overlay to cover the full canvas (the SVG is square; cover via max axis).
-    const cover = Math.max(width / overlay.width, height / overlay.height) * 1.1;
-    overlay.setScale(cover);
-    this.tweens.add({ targets: overlay, alpha: kind === 'sun' ? 0.55 : 0.7, duration: 350 });
+    this.swapBackground(kind === 'sun' ? 'game4.background.sun' : 'game4.background.rain');
 
     const duration = kind === 'sun' ? CFG.sunBlastDurationMs : CFG.rainDurationMs;
-    this.currentEvent = { kind, endsAt: this.time.now + duration, overlay };
+    this.currentEvent = { kind, endsAt: this.time.now + duration };
     this.time.delayedCall(duration, () => this.endEvent());
   }
 
   private endEvent(): void {
     if (!this.currentEvent) return;
-    const { overlay } = this.currentEvent;
     this.currentEvent = null;
-    this.tweens.add({
-      targets: overlay,
-      alpha: 0,
-      duration: 350,
-      onComplete: () => overlay.destroy(),
-    });
+    this.swapBackground('game4.background');
     this.scheduleNextEvent();
+  }
+
+  private setCactusMood(mood: 'happy' | 'sad'): void {
+    if (this.currentCactusMood === mood) return;
+    this.currentCactusMood = mood;
+    this.cactus.setTexture(mood === 'happy' ? this.cactusHappyKey : this.cactusSadKey);
+  }
+
+  private swapBackground(key: string): void {
+    if (this.currentBgKey === key) return;
+    this.currentBgKey = key;
+    this.background.setTexture(key);
+    this.background.setScale(this.bgScale);
   }
 
   // ----- Rendering -----
 
   private redrawMeter(bandLow: number, bandHigh: number, bandCenter: number): void {
-    const { width, height } = this.scale;
-    const x = width - 60;
-    const y = height / 2 - CFG.meterBarHeight / 2;
-    const w = CFG.meterBarWidth;
-    const h = CFG.meterBarHeight;
+    const { x, y, width: w, height: h } = this.barRect;
 
-    const g = this.meterGfx;
-    g.clear();
+    const gfx = this.meterGfx;
+    gfx.clear();
 
-    // Frame
-    g.fillStyle(0x1a1a1a, 0.55);
-    g.fillRoundedRect(x - 4, y - 4, w + 8, h + 8, 8);
-    g.fillStyle(0x3a2818, 1);
-    g.fillRoundedRect(x, y, w, h, 4);
-
-    // Green band overlay (visualizes "happy zone")
+    // Green band overlay (visualizes "happy zone").
     const bandTopY = y + h * (1 - bandHigh / CFG.meterMax);
     const bandBotY = y + h * (1 - bandLow / CFG.meterMax);
-    g.fillStyle(0x2f6a2c, 0.85);
-    g.fillRect(x, bandTopY, w, bandBotY - bandTopY);
+    gfx.fillStyle(0x2f6a2c, 0.75);
+    gfx.fillRect(x, bandTopY, w, bandBotY - bandTopY);
 
-    // Center sub-band marker (faint highlight stripe)
+    // Center sub-band marker.
     const centerTopY = y + h * (1 - (bandCenter + CFG.centerBandHalfWidth) / CFG.meterMax);
     const centerBotY = y + h * (1 - (bandCenter - CFG.centerBandHalfWidth) / CFG.meterMax);
-    g.fillStyle(0x9efc9b, 0.55);
-    g.fillRect(x, centerTopY, w, centerBotY - centerTopY);
+    gfx.fillStyle(0x9efc9b, 0.55);
+    gfx.fillRect(x, centerTopY, w, centerBotY - centerTopY);
 
-    // Current fill (color shifts dramatic if outside band)
+    // Current fill — water rises from the bottom (sun) to the top (droplet).
     const fillTop = y + h * (1 - this.displayedMeter / CFG.meterMax);
     const meterColor =
       this.displayedMeter < bandLow ? 0xd24a3a
       : this.displayedMeter > bandHigh ? 0x4aa9d2
-      : 0xf7c948;
-    g.fillStyle(meterColor, 1);
-    g.fillRect(x + 2, fillTop, w - 4, y + h - fillTop);
-
-    // Tick marks at 25/50/75
-    g.lineStyle(1, 0xfff5b7, 0.35);
-    for (const pct of [0.25, 0.5, 0.75]) {
-      const ty = y + h * (1 - pct);
-      g.lineBetween(x, ty, x + w, ty);
-    }
+      : 0x6ec0ef;
+    gfx.fillStyle(meterColor, 1);
+    gfx.fillRect(x, fillTop, w, y + h - fillTop);
   }
 
   private redrawStream(watering: boolean, spoutX: number, spoutY: number): void {
-    const g = this.streamGfx;
-    g.clear();
+    this.streamGfx.clear();
+    this.dropletGfx.removeAll(true);
     if (!watering) return;
-    // A few falling droplets from spout to cactus top.
+    // A handful of droplet sprites falling from spout to cactus.
     const dy = this.cactus.y - spoutY;
-    const steps = 5;
-    g.fillStyle(0x7fbcef, 0.85);
+    const steps = 6;
     for (let i = 0; i < steps; i++) {
       const t = (i + Phaser.Math.FloatBetween(0, 1)) / steps;
-      const x = spoutX + (this.cactus.x - spoutX) * t + Phaser.Math.Between(-3, 3);
+      const x = spoutX + (this.cactus.x - spoutX) * t + Phaser.Math.Between(-4, 4);
       const y = spoutY + dy * t;
-      g.fillCircle(x, y, 3.5);
+      const droplet = this.add.image(x, y, 'waterDroplet');
+      droplet.setDisplaySize(14, 18);
+      droplet.setAlpha(0.9);
+      this.dropletGfx.add(droplet);
     }
   }
 
@@ -562,8 +624,8 @@ export class CactusCareScene extends Phaser.Scene {
     this.nextEventTimer?.remove();
     this.nextEventTimer = undefined;
     if (this.currentEvent) {
-      this.currentEvent.overlay.destroy();
       this.currentEvent = null;
+      this.swapBackground('game4.background');
     }
   }
 }

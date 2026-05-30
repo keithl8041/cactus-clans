@@ -67,11 +67,12 @@ export class CactusSlicingScene extends Phaser.Scene {
   }
 
   preload(): void {
-    loadAsset(this, 'cactus.whole', 'cactus.whole', { size: CFG.cactusDisplaySize });
-    loadAsset(this, 'cactus.whole.small', 'cactus.whole', { size: CFG.cactusSmallDisplaySize, small: true });
-    loadAsset(this, 'cactus.half.left', 'cactus.half.left', { size: CFG.cactusHalfSize });
-    loadAsset(this, 'cactus.half.right', 'cactus.half.right', { size: CFG.cactusHalfSize });
-    loadAsset(this, 'tarantula', 'tarantula', { size: CFG.tarantulaDisplaySize });
+    loadAsset(this, 'game5.background', 'game5.background');
+    loadAsset(this, 'cactus.whole', 'cactus.whole');
+    loadAsset(this, 'cactus.whole.small', 'cactus.whole');
+    loadAsset(this, 'cactus.half.left', 'cactus.half.left');
+    loadAsset(this, 'cactus.half.right', 'cactus.half.right');
+    loadAsset(this, 'tarantula', 'tarantula');
   }
 
   private ensureSparkTexture(): void {
@@ -86,7 +87,8 @@ export class CactusSlicingScene extends Phaser.Scene {
 
   create(): void {
     const { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, CFG.backgroundColor).setOrigin(0);
+    this.add.rectangle(0, 0, width, height, CFG.backgroundColor).setOrigin(0).setDepth(-1);
+    this.add.image(width / 2, height / 2, 'game5.background').setDisplaySize(width, height).setDepth(0);
 
     this.physics.world.gravity.y = CFG.gravityY;
     // Disable world bounds — projectiles fly past the edges and despawn manually.

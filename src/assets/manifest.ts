@@ -30,10 +30,10 @@ import { potSvg, type PotOptions } from './placeholders/pot';
 import { quicksandSvg, type QuicksandOptions } from './placeholders/quicksand';
 import { rainOverlaySvg, type RainOverlayOptions } from './placeholders/rainOverlay';
 import type { RockOptions } from './placeholders/rock';
-import { sliceableCactusSvg, type SliceableCactusOptions } from './placeholders/sliceableCactus';
+import type { SliceableCactusOptions } from './placeholders/sliceableCactus';
 import { starSvg, type StarOptions } from './placeholders/star';
 import { sunOverlaySvg, type SunOverlayOptions } from './placeholders/sunOverlay';
-import { tarantulaSvg, type TarantulaOptions } from './placeholders/tarantula';
+import type { TarantulaOptions } from './placeholders/tarantula';
 import { trapSvg, type TrapOptions } from './placeholders/trap';
 import type { WaterFlaskOptions } from './placeholders/waterFlask';
 import { wateringCanSvg, type WateringCanOptions } from './placeholders/wateringCan';
@@ -104,6 +104,15 @@ export const ASSETS: Record<string, AssetEntry> = {
   'game3.lizard.dark-green': { kind: 'image', src: '/art/game3-lizard-dark-green.png' },
   'game3.lizard.gold': { kind: 'image', src: '/art/game3-lizard-gold.png' },
   'game3.hit-splat': { kind: 'image', src: '/art/game3-hit-splat.png' },
+  'game4.background': { kind: 'image', src: '/art/game4-background.png' },
+  'game4.background.rain': { kind: 'image', src: '/art/game4-background-rain.png' },
+  'game4.background.sun': { kind: 'image', src: '/art/game4-background-sun.png' },
+  'game4.watering-can': { kind: 'image', src: '/art/game4-watering-can.png' },
+  'game4.water-droplet': { kind: 'image', src: '/art/game4-water-droplet.svg' },
+  'game4.thirst-gauge': { kind: 'image', src: '/art/game4-thirst-gauge.png' },
+  'game5.background': { kind: 'image', src: '/art/game5-background.png' },
+  'cactus.pet.prickling.happy': { kind: 'image', src: '/art/cactus-pet-prickling-clan.png' },
+  'cactus.pet.prickling.sad': { kind: 'image', src: '/art/cactus-pet-prickling-clan-drenched-wilted.png' },
   dartboard: { kind: 'svg', generate: (opts) => dartboardSvg(opts as DartboardOptions) },
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
   'character.prickling.1': { kind: 'image', src: '/art/prickling-prickling-clan-form1.png' },
@@ -119,14 +128,14 @@ export const ASSETS: Record<string, AssetEntry> = {
   'lizard.down': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'down' }) },
   'lizard.bandit': { kind: 'svg', generate: (opts) => lizardSvg({ ...(opts as LizardOptions), pose: 'up', bandit: true }) },
   'cactus.pet': { kind: 'svg', generate: (opts) => petCactusSvg(opts as PetCactusOptions) },
-  'cactus.whole': { kind: 'svg', generate: (opts) => sliceableCactusSvg({ ...(opts as SliceableCactusOptions), side: 'whole' }) },
-  'cactus.half.left': { kind: 'svg', generate: (opts) => sliceableCactusSvg({ ...(opts as SliceableCactusOptions), side: 'left' }) },
-  'cactus.half.right': { kind: 'svg', generate: (opts) => sliceableCactusSvg({ ...(opts as SliceableCactusOptions), side: 'right' }) },
+  'cactus.whole': { kind: 'image', src: '/art/game5-cactus-whole.png' },
+  'cactus.half.left': { kind: 'image', src: '/art/game5-cactus-half-left.png' },
+  'cactus.half.right': { kind: 'image', src: '/art/game5-cactus-half-right.png' },
   pot: { kind: 'svg', generate: (opts) => potSvg(opts as PotOptions) },
   rainOverlay: { kind: 'svg', generate: (opts) => rainOverlaySvg(opts as RainOverlayOptions) },
   star: { kind: 'svg', generate: (opts) => starSvg(opts as StarOptions) },
   sunOverlay: { kind: 'svg', generate: (opts) => sunOverlaySvg(opts as SunOverlayOptions) },
-  tarantula: { kind: 'svg', generate: (opts) => tarantulaSvg(opts as TarantulaOptions) },
+  tarantula: { kind: 'image', src: '/art/tarantula.png' },
   camel: { kind: 'svg', generate: (opts) => camelSvg(opts as CamelOptions) },
   rock: { kind: 'image', src: '/art/rock.svg' },
   waterFlask: { kind: 'image', src: '/art/water-flask.svg' },
@@ -178,4 +187,10 @@ export function resolveCamelKey(clanName: string): string {
 export function resolveCardKey(clanName: string, formNumber: number): string {
   const key = `card.${clanAssetSlug(clanName)}.${formNumber}`;
   return key in ASSETS ? key : 'card.frame';
+}
+
+/** Returns the clan-specific pet cactus key for a given mood, else falls back to the procedural placeholder. */
+export function resolvePetCactusKey(clanName: string, mood: 'happy' | 'sad'): string {
+  const key = `cactus.pet.${clanAssetSlug(clanName)}.${mood}`;
+  return key in ASSETS ? key : 'cactus.pet';
 }
