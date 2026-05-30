@@ -122,6 +122,16 @@ export function SplashScreen() {
           </div>
         </>
       )}
+      <div className="splash-cta">
+        Like the cards?{' '}
+        <a
+          href="https://payhip.com/b/SCwL1"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Get the printable card set →
+        </a>
+      </div>
     </div>
   );
 }

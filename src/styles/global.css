@@ -99,6 +99,29 @@ input[type='text']:focus {
   background: linear-gradient(to top, rgba(15, 29, 18, 0.85), rgba(15, 29, 18, 0));
 }
 
+.app-footer a {
+  pointer-events: auto;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.app-footer a:hover {
+  color: var(--accent-warm);
+}
+
+.splash-cta {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.splash-cta a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
