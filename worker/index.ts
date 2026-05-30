@@ -24,6 +24,14 @@ interface LeaderboardRow {
   currentLevel: number | null;
 }
 
+const COMING_SOON_HOSTS = new Set(['www.cactusclans.co.uk', 'cactusclans.co.uk']);
+// Midnight 13 June 2026, UK time (BST = UTC+1). After this instant the
+// coming-soon gate falls away and the SPA is served on www/apex normally.
+const COMING_SOON_LAUNCH_AT_MS = Date.parse('2026-06-13T00:00:00+01:00');
+// Paths the splash page itself needs to render; everything else on the gated
+// host is replaced with the coming-soon HTML.
+const COMING_SOON_ALLOWED_PATHS = new Set(['/logo.jpg', '/favicon.ico']);
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -40,6 +48,12 @@ export default {
           'strict-transport-security': 'max-age=63072000; includeSubDomains',
         },
       });
+    }
+    if (COMING_SOON_HOSTS.has(url.hostname) && Date.now() < COMING_SOON_LAUNCH_AT_MS) {
+      if (COMING_SOON_ALLOWED_PATHS.has(url.pathname)) {
+        return withHsts(await env.ASSETS.fetch(request));
+      }
+      return withHsts(comingSoonResponse());
     }
     if (!url.pathname.startsWith('/api/')) {
       const assetRes = await env.ASSETS.fetch(request);
@@ -313,6 +327,170 @@ function json(body: unknown, status = 200): Response {
     headers: { 'content-type': 'application/json' },
   });
 }
+
+function comingSoonResponse(): Response {
+  return new Response(COMING_SOON_HTML, {
+    status: 200,
+    headers: {
+      'content-type': 'text/html; charset=utf-8',
+      // Don't let CDNs/browsers pin the splash past the cutover.
+      'cache-control': 'public, max-age=60, must-revalidate',
+    },
+  });
+}
+
+const COMING_SOON_HTML = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cactus Clans — Coming Soon</title>
+<meta name="description" content="Cactus Clans launches 13 June 2026." />
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/favicon.ico" />
+<style>
+  :root {
+    --sand: #f4dca0;
+    --sand-deep: #e2b863;
+    --sky: #fbe6b3;
+    --ink: #3a2415;
+    --cactus: #2f7a4a;
+    --cactus-dark: #1f5132;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    font-family: ui-rounded, "Nunito", "Quicksand", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+    background: radial-gradient(ellipse at top, var(--sky) 0%, var(--sand) 55%, var(--sand-deep) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    text-align: center;
+  }
+  .card {
+    max-width: 560px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    width: min(70vw, 320px);
+    height: auto;
+    border-radius: 24px;
+    box-shadow: 0 14px 40px rgba(58, 36, 21, 0.25);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    letter-spacing: 0.5px;
+    color: var(--cactus-dark);
+  }
+  p.tagline {
+    margin: 0;
+    font-size: clamp(1rem, 3.2vw, 1.15rem);
+    line-height: 1.5;
+    color: var(--ink);
+    opacity: 0.85;
+  }
+  .countdown {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .unit {
+    background: rgba(255, 255, 255, 0.55);
+    border: 2px solid var(--cactus);
+    border-radius: 14px;
+    padding: 10px 14px;
+    min-width: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 14px rgba(58, 36, 21, 0.12);
+  }
+  .unit .num {
+    font-size: clamp(1.6rem, 5vw, 2.1rem);
+    font-weight: 800;
+    color: var(--cactus-dark);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .unit .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 6px;
+    color: var(--ink);
+    opacity: 0.7;
+  }
+  .launch {
+    font-size: 0.95rem;
+    opacity: 0.7;
+    margin-top: 4px;
+  }
+  footer {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    opacity: 0.6;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .logo { transition: transform 200ms ease; }
+    .logo:hover { transform: rotate(-1deg) scale(1.02); }
+  }
+</style>
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="/logo.jpg" alt="Cactus Clans" />
+    <h1>Coming Soon</h1>
+    <p class="tagline">The Cactus Clans are gathering. Sharpen your spikes — the desert opens 13 June 2026.</p>
+    <div class="countdown" id="countdown" aria-live="polite">
+      <div class="unit"><span class="num" id="d">--</span><span class="label">Days</span></div>
+      <div class="unit"><span class="num" id="h">--</span><span class="label">Hours</span></div>
+      <div class="unit"><span class="num" id="m">--</span><span class="label">Minutes</span></div>
+      <div class="unit"><span class="num" id="s">--</span><span class="label">Seconds</span></div>
+    </div>
+    <p class="launch">Launching 13 June 2026</p>
+    <footer>cactusclans.co.uk</footer>
+  </main>
+<script>
+  (function () {
+    var target = Date.parse('2026-06-13T00:00:00+01:00');
+    var d = document.getElementById('d');
+    var h = document.getElementById('h');
+    var m = document.getElementById('m');
+    var s = document.getElementById('s');
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function tick() {
+      var diff = target - Date.now();
+      if (diff <= 0) {
+        d.textContent = '00'; h.textContent = '00'; m.textContent = '00'; s.textContent = '00';
+        // Reload so the now-elapsed worker gate falls through to the real app.
+        setTimeout(function () { location.reload(); }, 1500);
+        return;
+      }
+      var secs = Math.floor(diff / 1000);
+      var days = Math.floor(secs / 86400); secs -= days * 86400;
+      var hrs = Math.floor(secs / 3600); secs -= hrs * 3600;
+      var mins = Math.floor(secs / 60); secs -= mins * 60;
+      d.textContent = pad(days);
+      h.textContent = pad(hrs);
+      m.textContent = pad(mins);
+      s.textContent = pad(secs);
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+</body>
+</html>`;
 
 const PIN_ITERATIONS = 100_000;
 const PIN_SALT_BYTES = 16;
