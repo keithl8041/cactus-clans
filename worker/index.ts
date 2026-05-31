@@ -24,6 +24,12 @@ interface LeaderboardRow {
   currentLevel: number | null;
 }
 
+interface TeamLeaderboardRow {
+  teamLabel: string;
+  score: number;
+  recordedAt: string | null;
+}
+
 const COMING_SOON_HOSTS = new Set(['www.cactusclans.co.uk', 'cactusclans.co.uk']);
 // Midnight 13 June 2026, UK time (BST = UTC+1). After this instant the
 // coming-soon gate falls away and the SPA is served on www/apex normally.
@@ -307,6 +313,33 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
       )
       .bind(limit)
       .all<LeaderboardRow>();
+    return json(result.results ?? []);
+  }
+
+  if (pathname === '/api/team-leaderboard' && method === 'GET') {
+    const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
+    const limit = Math.min(Math.max(requested, 1), 200);
+    // One row per team (a sorted nickname pair) — their best co-op round.
+    // Mirrors the solo board: ties broken by most recent. team_scores is only
+    // written for genuine two-player rounds, so practise runs never appear.
+    const result = await env.DB
+      .prepare(
+        `WITH ranked AS (
+           SELECT team_label, score, recorded_at,
+                  ROW_NUMBER() OVER (
+                    PARTITION BY team_key
+                    ORDER BY score DESC, recorded_at DESC
+                  ) AS rn
+           FROM team_scores
+         )
+         SELECT team_label AS teamLabel, score, recorded_at AS recordedAt
+         FROM ranked
+         WHERE rn = 1
+         ORDER BY score DESC
+         LIMIT ?`,
+      )
+      .bind(limit)
+      .all<TeamLeaderboardRow>();
     return json(result.results ?? []);
   }
 

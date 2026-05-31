@@ -132,9 +132,18 @@ export class MatchLobby implements DurableObject {
   private state: LobbyState = MatchLobby.initialState();
   private tickHandle: ReturnType<typeof setInterval> | null = null;
   private lastTickAt = 0;
+  private env: Env;
+  // Lobby code, parsed from the upgrade URL on first connect. Used only to tag
+  // persisted team scores so we can tell which lobby a high score came from.
+  private lobbyCode = '';
+  // The pair seated when the current round started. Captured at startRound so a
+  // mid-round disconnect still credits both names on the persisted team score.
+  private roundSeatNicks: [string, string] | null = null;
 
-  constructor(_ctx: DurableObjectState, _env: Env) {
-    // No persisted state — lobbies are ephemeral. ctx/env retained for future use.
+  constructor(_ctx: DurableObjectState, env: Env) {
+    // Live game state is ephemeral (no DO storage); env is kept so finished
+    // rounds can be persisted to D1 for the cross-session team leaderboard.
+    this.env = env;
   }
 
   static initialState(): LobbyState {
@@ -161,6 +170,12 @@ export class MatchLobby implements DurableObject {
   async fetch(request: Request): Promise<Response> {
     if (request.headers.get('Upgrade') !== 'websocket') {
       return new Response('expected websocket', { status: 400 });
+    }
+    // The worker routes /api/versus/<CODE>/ws to this DO by idFromName(CODE).
+    // The DO doesn't otherwise know its own name, so recover it from the URL.
+    if (!this.lobbyCode) {
+      const m = new URL(request.url).pathname.match(/\/api\/versus\/([A-Za-z0-9-]{1,32})\/ws$/);
+      if (m) this.lobbyCode = m[1].toUpperCase();
     }
     const pair = new WebSocketPair();
     const client = pair[0];
@@ -387,6 +402,7 @@ export class MatchLobby implements DurableObject {
     const seat1Id = this.state.seats[1]!;
     const seat0 = this.state.players.get(seat0Id)!;
     const seat1 = this.state.players.get(seat1Id)!;
+    this.roundSeatNicks = [seat0.nickname, seat1.nickname];
     seat0.x = WORLD_W * 0.25;
     seat1.x = WORLD_W * 0.75;
     for (const p of [seat0, seat1]) {
@@ -424,6 +440,14 @@ export class MatchLobby implements DurableObject {
       this.state.teamBest = { score: teamScore, nicknames: nicks };
     }
 
+    // Persist the finished round to the cross-session team leaderboard. The
+    // leaderboard query keeps each pair's best, so writing every >0 round is
+    // fine and avoids logging instant-drop noise.
+    if (teamScore > 0 && this.roundSeatNicks) {
+      this.persistTeamScore(teamScore, teamHits, elapsedMs, this.roundSeatNicks);
+    }
+    this.roundSeatNicks = null;
+
     this.broadcastEvent({
       t: 'roundEnd',
       reason,
@@ -433,6 +457,30 @@ export class MatchLobby implements DurableObject {
       newTeamBest,
       teamBest: this.state.teamBest,
     });
+  }
+
+  /**
+   * Best-effort write of a finished round to the `team_scores` D1 table. Fire-
+   * and-forget: a DB hiccup must never break the live game, so we swallow
+   * errors the way the client's progress writes do. A team is identified by its
+   * sorted, case-folded nickname pair so "Alice & Bob" == "Bob & Alice".
+   */
+  private persistTeamScore(score: number, hits: number, elapsedMs: number, nicks: [string, string]): void {
+    const sorted = nicks
+      .map((n) => n.trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+    if (sorted.length < 2) return; // need a genuine pair to count as a team
+    const teamKey = sorted.map((n) => n.toLowerCase()).join('::');
+    const teamLabel = sorted.join(' & ');
+    void this.env.DB.prepare(
+      'INSERT INTO team_scores (id, team_key, team_label, lobby_code, team_hits, elapsed_ms, score) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    )
+      .bind(crypto.randomUUID(), teamKey, teamLabel, this.lobbyCode, hits, elapsedMs, score)
+      .run()
+      .catch(() => {
+        // Swallow: the live game must not depend on D1 availability.
+      });
   }
 
   /**

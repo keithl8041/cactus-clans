@@ -57,6 +57,34 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
     .slice(0, limit);
 }
 
+export interface TeamLeaderboardEntry {
+  /** Display name of the team, e.g. "Alice & Bob" (sorted pair). */
+  teamLabel: string;
+  score: number;
+  recordedAt?: string;
+}
+
+/**
+ * Co-op (versus) team high scores — one row per nickname pair, their best
+ * round. Versus mode requires the Worker, so there is no localStorage path:
+ * in dev (`usingRealBackend === false`) there's no multiplayer and we return
+ * an empty board.
+ */
+export async function fetchTeamLeaderboard(limit = 50): Promise<TeamLeaderboardEntry[]> {
+  if (!usingRealBackend) return [];
+  interface ApiRow {
+    teamLabel: string;
+    score: number;
+    recordedAt: string | null;
+  }
+  const rows = await apiFetch<ApiRow[]>(`/team-leaderboard?limit=${limit}`);
+  return rows.map((r) => ({
+    teamLabel: r.teamLabel,
+    score: r.score,
+    recordedAt: r.recordedAt ?? undefined,
+  }));
+}
+
 /**
  * Mock-only: upsert the player's leaderboard row. Called on every level
  * attempt so partial/failed runs still appear. The real backend leaderboard

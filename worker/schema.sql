@@ -29,3 +29,21 @@ CREATE TABLE IF NOT EXISTS level_results (
   score INTEGER NOT NULL,
   recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Co-op (versus) mode: one row per finished two-player round. The MatchLobby
+-- Durable Object writes here best-effort at round end. There are no player_id
+-- FKs — versus identifies a team by its pair of nicknames (team_key), so the
+-- leaderboard can dedupe to each pair's best run the way the solo board dedupes
+-- per player.
+CREATE TABLE IF NOT EXISTS team_scores (
+  id TEXT PRIMARY KEY,
+  team_key TEXT NOT NULL,
+  team_label TEXT NOT NULL,
+  lobby_code TEXT NOT NULL,
+  team_hits INTEGER NOT NULL,
+  elapsed_ms INTEGER NOT NULL,
+  score INTEGER NOT NULL,
+  recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS team_scores_score_idx ON team_scores (score DESC);
