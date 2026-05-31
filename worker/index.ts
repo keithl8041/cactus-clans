@@ -55,7 +55,14 @@ export default {
         },
       });
     }
-    if (COMING_SOON_HOSTS.has(url.hostname) && Date.now() < COMING_SOON_LAUNCH_AT_MS) {
+    // The gate hides the SPA on www/apex pre-launch, but must not swallow the
+    // API: /api/* always falls through to route() so the (cached) game shell on
+    // any host still gets JSON back instead of the coming-soon HTML.
+    if (
+      COMING_SOON_HOSTS.has(url.hostname) &&
+      Date.now() < COMING_SOON_LAUNCH_AT_MS &&
+      !url.pathname.startsWith('/api/')
+    ) {
       if (COMING_SOON_ALLOWED_PATHS.has(url.pathname)) {
         return withHsts(await env.ASSETS.fetch(request));
       }

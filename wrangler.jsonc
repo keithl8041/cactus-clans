@@ -6,7 +6,12 @@
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS",
-		"not_found_handling": "single-page-application"
+		"not_found_handling": "single-page-application",
+		// Run the Worker before the asset server for every request. Without this,
+		// asset/SPA-fallback paths (incl. "/") are served directly and skip the
+		// Worker, so the coming-soon gate in worker/index.ts never sees document
+		// requests. The Worker proxies real assets via env.ASSETS.fetch().
+		"run_worker_first": true
 	},
 	"d1_databases": [
 		{
