@@ -2,10 +2,10 @@
 
 export const CAMEL_RACE_CONFIG = {
   // Win condition
-  passThreshold: 153,                  // ~85% of courseDistancePx / 100
-  courseDistancePx: 18_000,            // total race length in world px
+  passThreshold: 198,                  // = courseDistancePx / 100 — must reach the finish line
+  courseDistancePx: 19_800,            // total race length in world px (10% longer than the original 18k)
   courseTimeLimitMs: 90_000,           // race auto-ends at this time
-  passDistanceFraction: 0.85,          // fraction of course needed to pass on timeout
+  passDistanceFraction: 1.0,           // must reach the finish line to clear (no early pass)
 
   // Lanes — stacked across the 150px floor strip (canvas y 570–720). All entities
   // are bottom-anchored to the lane's ground line. Depth cue comes from y-position
@@ -68,7 +68,7 @@ export const CAMEL_RACE_CONFIG = {
   camelXFraction: 0.22,                // camel sits at this x always (world scrolls past it)
   camelBobAmplitudePx: 3,              // peak vertical offset of the running-gait bob
   camelBobHz: 3.2,                     // cycles per second of the bob
-  parallaxFinishBannerAtPx: 17_500,    // banner becomes visible from this world-x
+  parallaxFinishBannerAtPx: 19_300,    // banner becomes visible from this world-x (~500px before the finish)
   finishBannerSize: 220,
 
   // Background

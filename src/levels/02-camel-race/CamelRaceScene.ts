@@ -82,7 +82,6 @@ export class CamelRaceScene extends Phaser.Scene {
   private flaskText!: Phaser.GameObjects.Text;
   private livesText!: Phaser.GameObjects.Text;
   private staminaFlashAlpha = 0;
-  private unlockBanner: Phaser.GameObjects.Text | null = null;
 
   constructor(ctx: LevelContext) {
     super({ key: 'CamelRaceScene' });
@@ -245,11 +244,6 @@ export class CamelRaceScene extends Phaser.Scene {
       this.finishRace(true, false);
       return;
     }
-
-    // Latch unlock at 85% (so the "Level Unlocked" banner fires before the finish line).
-    if (!this.passed && this.distanceCovered >= CFG.courseDistancePx * CFG.passDistanceFraction) {
-      this.markUnlocked();
-    }
   }
 
   // ----- Setup -----
@@ -283,7 +277,7 @@ export class CamelRaceScene extends Phaser.Scene {
 
   private setupHud(): void {
     const { width } = this.scale;
-    this.distText = this.add.text(16, 16, 'Distance: 0 / 180', {
+    this.distText = this.add.text(16, 16, 'Distance: 0 / 198', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '20px',
       color: '#f7c948',
@@ -575,50 +569,6 @@ export class CamelRaceScene extends Phaser.Scene {
     g.fillRoundedRect(x + 2, y + 2, fillW, barH - 4, 2);
   }
 
-  /**
-   * 85% of course reached — next level unlocked. Player keeps racing for the
-   * finish line + bonus pickups. Mirrors L1/L2/L3/L4/L5.
-   */
-  private markUnlocked(): void {
-    this.passed = true;
-    sfx.unlock();
-    this.distText.setColor('#9efc9b');
-
-    const { width, height } = this.scale;
-    this.unlockBanner = this.add.text(width / 2, height / 2, 'Level Unlocked!\nKeep going for the finish line', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '30px',
-      color: '#fff5b7',
-      fontStyle: 'bold',
-      stroke: '#1f5a2d',
-      strokeThickness: 5,
-      align: 'center',
-    }).setOrigin(0.5).setDepth(25).setAlpha(0);
-
-    this.tweens.add({
-      targets: this.unlockBanner,
-      alpha: { from: 0, to: 1 },
-      scale: { from: 0.6, to: 1 },
-      duration: 280,
-      ease: 'Back.easeOut',
-    });
-    this.time.delayedCall(1500, () => {
-      const b = this.unlockBanner;
-      if (!b || !b.active) return;
-      this.tweens.add({
-        targets: b,
-        alpha: 0,
-        y: b.y - 30,
-        duration: 500,
-        ease: 'Sine.easeIn',
-        onComplete: () => {
-          b.destroy();
-          this.unlockBanner = null;
-        },
-      });
-    });
-  }
-
   // ----- End state -----
 
   private finishRace(timedOut: boolean, finishedLine: boolean): void {
@@ -629,11 +579,6 @@ export class CamelRaceScene extends Phaser.Scene {
     const reachedLine = finishedLine || this.distanceCovered >= CFG.courseDistancePx;
     const reachedFraction = this.distanceCovered >= CFG.courseDistancePx * CFG.passDistanceFraction;
     this.passed = reachedLine || reachedFraction;
-
-    if (this.unlockBanner) {
-      this.unlockBanner.destroy();
-      this.unlockBanner = null;
-    }
 
     const elapsedMs = Math.min(CFG.courseTimeLimitMs, this.time.now - this.startedAt);
     const miniGamePoints = Math.floor(this.distanceCovered / 100);
