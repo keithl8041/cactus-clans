@@ -22,3 +22,9 @@ dist-ssr
 # Dev server / local runtime caches — never check in
 .vite
 .wrangler
+
+# Visual Studio local folder
+.vs/
+
+# Raw art / asset drops — staging only, not for the repo
+_drop/
