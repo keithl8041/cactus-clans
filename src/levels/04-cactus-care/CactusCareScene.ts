@@ -41,8 +41,6 @@ export class CactusCareScene extends Phaser.Scene {
 
   private pointerActive = false;
   private activePointerId: number | null = null;
-  private readonly pointerPos = new Phaser.Math.Vector2();
-  private firstSampleAfterDown = false;
 
   // Wilt/drown countdowns
   private wiltCountdownStartAt: number | null = null;
@@ -79,11 +77,8 @@ export class CactusCareScene extends Phaser.Scene {
   private bonusText!: Phaser.GameObjects.Text;
   private unlockBanner: Phaser.GameObjects.Text | null = null;
 
-  // Keyboard (desktop)
-  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  // Keyboard (desktop) — Space pours. No aiming, so no cursor handling.
   private keySpace!: Phaser.Input.Keyboard.Key;
-  private virtualPointer = new Phaser.Math.Vector2();
-  private virtualActive = false;
 
   constructor(ctx: LevelContext) {
     super({ key: 'CactusCareScene' });
@@ -142,35 +137,12 @@ export class CactusCareScene extends Phaser.Scene {
     const dtSec = delta / 1000;
     const elapsed = time - this.startedAt;
 
-    // Resolve current input pointer position (touch or virtual keyboard cursor).
-    const inputActive = this.resolveInput(dtSec);
+    // The can is fixed above the cactus — there's no aiming. Whether we're
+    // pouring is simply whether a tap/hold (or Space) is currently active.
+    const watering = this.resolveInput();
 
-    // Lerp the can toward the active pointer; snap on first sample after pointerdown.
-    if (inputActive) {
-      const smoothing = this.firstSampleAfterDown ? 1 : CFG.canFollowSmoothing;
-      this.can.x += (this.pointerPos.x - this.can.x) * smoothing;
-      this.can.y += (this.pointerPos.y - this.can.y) * smoothing;
-      this.firstSampleAfterDown = false;
-    } else {
-      // Lerp back to rest position
-      this.can.x += (this.canRestPos.x - this.can.x) * 0.08;
-      this.can.y += (this.canRestPos.y - this.can.y) * 0.08;
-    }
-
-    // Watering check (spout must be near cactus center, and a pointer must be active).
-    // Provisional check uses the untilted offset so the tilt itself never alters the hit area.
-    const provisionalSpoutX = this.can.x + CFG.canSpoutOffsetX;
-    const provisionalSpoutY = this.can.y + CFG.canSpoutOffsetY;
-    const dist = Phaser.Math.Distance.Between(
-      provisionalSpoutX,
-      provisionalSpoutY,
-      this.cactus.x,
-      this.cactus.y,
-    );
-    const watering = inputActive && dist <= CFG.cactusHitRadius;
-
-    // Tilt the can while pouring; lerp back when not.
-    const targetTilt = watering ? CFG.canWateringTiltRad : 0;
+    // Tilt the can toward the cactus while pouring; settle to a gentle idle lean.
+    const targetTilt = watering ? CFG.canWateringTiltRad : CFG.canRestTiltRad;
     this.can.rotation += (targetTilt - this.can.rotation) * CFG.canTiltSmoothing;
 
     // Spout position used for the rendered stream tracks the current rotation.
@@ -292,8 +264,12 @@ export class CactusCareScene extends Phaser.Scene {
     const barH = gH * (GAUGE_INTERIOR.bottomPct - GAUGE_INTERIOR.topPct) - 15;
     this.barRect.setTo(barX, barY, barW, barH);
 
-    // Watering can rests up-and-left of the cactus.
-    this.canRestPos.set(cactusX - CFG.cactusSize * 0.9, height * 0.25);
+    // Watering can sits about halfway between its old up-and-left rest spot and
+    // the top of the cactus, so the pour reads as landing right on the plant.
+    const oldRestX = cactusX - CFG.cactusSize * 0.9;
+    const oldRestY = height * 0.25;
+    const cactusTopY = cactusY - cactusDisplay / 2;
+    this.canRestPos.set((oldRestX + cactusX) / 2, (oldRestY + cactusTopY) / 2);
     this.can = this.add.image(this.canRestPos.x, this.canRestPos.y, 'wateringCan').setDepth(5);
     this.can.setDisplaySize(CFG.canSize * 1.4, CFG.canSize * 1.4);
   }
@@ -326,17 +302,10 @@ export class CactusCareScene extends Phaser.Scene {
   private setupInput(): void {
     this.input.addPointer(2);
     this.input.on('pointerdown', this.handlePointerDown, this);
-    this.input.on('pointermove', this.handlePointerMove, this);
     this.input.on('pointerup', this.handlePointerUp, this);
     this.input.on('pointerupoutside', this.handlePointerUp, this);
 
-    const kb = this.input.keyboard!;
-    this.cursors = kb.createCursorKeys();
-    this.keySpace = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-
-    // Start the virtual pointer at the cactus so the first keyboard activation
-    // doesn't fly across the screen.
-    this.virtualPointer.copy(this.canRestPos);
+    this.keySpace = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
   }
 
   // ----- Input handlers -----
@@ -345,16 +314,7 @@ export class CactusCareScene extends Phaser.Scene {
     if (this.finished) return;
     if (this.activePointerId != null) return; // already tracking a pointer
     this.activePointerId = p.id;
-    this.pointerPos.set(p.x, p.y);
     this.pointerActive = true;
-    this.firstSampleAfterDown = true;
-  }
-
-  private handlePointerMove(p: Phaser.Input.Pointer): void {
-    if (this.finished) return;
-    if (p.id !== this.activePointerId) return;
-    if (!p.isDown) return;
-    this.pointerPos.set(p.x, p.y);
   }
 
   private handlePointerUp(p: Phaser.Input.Pointer): void {
@@ -364,36 +324,11 @@ export class CactusCareScene extends Phaser.Scene {
   }
 
   /**
-   * Returns true if any pointer/keyboard input is currently driving the can.
-   * Updates `pointerPos` to the active source.
+   * True while a pour input is active. The can is fixed in place, so position
+   * is irrelevant — a tap/hold anywhere (or holding Space) pours.
    */
-  private resolveInput(dtSec: number): boolean {
-    if (this.pointerActive) return true;
-
-    // Virtual pointer driven by arrows + Space.
-    const keyboardSpeed = 360;
-    const left = this.cursors.left?.isDown;
-    const right = this.cursors.right?.isDown;
-    const up = this.cursors.up?.isDown;
-    const down = this.cursors.down?.isDown;
-    if (left || right || up || down) {
-      if (left) this.virtualPointer.x -= keyboardSpeed * dtSec;
-      if (right) this.virtualPointer.x += keyboardSpeed * dtSec;
-      if (up) this.virtualPointer.y -= keyboardSpeed * dtSec;
-      if (down) this.virtualPointer.y += keyboardSpeed * dtSec;
-      this.virtualPointer.x = Phaser.Math.Clamp(this.virtualPointer.x, 0, this.scale.width);
-      this.virtualPointer.y = Phaser.Math.Clamp(this.virtualPointer.y, 0, this.scale.height);
-    }
-    if (this.keySpace.isDown) {
-      if (!this.virtualActive) {
-        this.virtualActive = true;
-        this.firstSampleAfterDown = true;
-      }
-      this.pointerPos.copy(this.virtualPointer);
-      return true;
-    }
-    this.virtualActive = false;
-    return false;
+  private resolveInput(): boolean {
+    return this.pointerActive || this.keySpace.isDown;
   }
 
   // ----- Phase / band helpers -----
