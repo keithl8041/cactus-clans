@@ -17,7 +17,7 @@ import { breadcrumbSvg, type BreadcrumbOptions } from './placeholders/breadcrumb
 import { camelSvg, type CamelOptions } from './placeholders/camel';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
-import { dartboardSvg, type DartboardOptions } from './placeholders/dartboard';
+import type { DartboardOptions } from './placeholders/dartboard';
 import type { DesertParallaxOptions } from './placeholders/desertParallax';
 import { duneFloorSvg, type DuneFloorOptions } from './placeholders/duneFloor';
 import { duneWallSvg, type DuneWallOptions } from './placeholders/duneWall';
@@ -76,6 +76,7 @@ export const ASSETS: Record<string, AssetEntry> = {
   'balloon.prickling': { kind: 'image', src: '/art/balloon-prickling-clan.png' },
   'cactus.spike': { kind: 'image', src: '/art/cactus-spike.png' },
   'cactus.spike.game2': { kind: 'image', src: '/art/cactus-spike-game2.svg' },
+  'cactus.spike.game6': { kind: 'image', src: '/art/game6-cactus-dart.png' },
   'camel.prickling': { kind: 'image', src: '/art/camel-prickling-clan.png' },
   'card.frame': { kind: 'svg', generate: (opts) => clanCardSvg(opts as ClanCardOptions) },
   'card.prickling.1': { kind: 'image', src: '/art/card-prickling-clan-form1.png' },
@@ -111,9 +112,10 @@ export const ASSETS: Record<string, AssetEntry> = {
   'game4.water-droplet': { kind: 'image', src: '/art/game4-water-droplet.svg' },
   'game4.thirst-gauge': { kind: 'image', src: '/art/game4-thirst-gauge.png' },
   'game5.background': { kind: 'image', src: '/art/game5-background.png' },
+  'game6.background': { kind: 'image', src: '/art/game6-background.png' },
   'cactus.pet.prickling.happy': { kind: 'image', src: '/art/cactus-pet-prickling-clan.png' },
   'cactus.pet.prickling.sad': { kind: 'image', src: '/art/cactus-pet-prickling-clan-drenched-wilted.png' },
-  dartboard: { kind: 'svg', generate: (opts) => dartboardSvg(opts as DartboardOptions) },
+  dartboard: { kind: 'image', src: '/art/game6-dartboard.png' },
   character: { kind: 'svg', generate: (opts) => characterSvg(opts as CharacterOptions) },
   'character.prickling.1': { kind: 'image', src: '/art/prickling-prickling-clan-form1.png' },
   'character.prickling.2': { kind: 'image', src: '/art/spiket-prickling-clan-form2.png' },

@@ -50,15 +50,16 @@ export class CactusDartsScene extends Phaser.Scene {
       formNumber: this.ctx.formNumber,
       size: CFG.playerSize,
     });
-    loadAsset(this, 'cactus.spike', 'cactus.spike');
+    loadAsset(this, 'game6.background', 'game6.background');
+    loadAsset(this, 'cactus.spike.game6', 'cactus.spike.game6');
     loadAsset(this, 'dartboard', 'dartboard', { size: CFG.boardSize });
   }
 
   create(): void {
     const { width, height } = this.scale;
 
-    this.add.rectangle(0, 0, width, height, 0x2a1a0c).setOrigin(0);
-    this.add.rectangle(0, height - CFG.floorPadding, width, CFG.floorPadding, 0x7a5a3a).setOrigin(0);
+    this.add.rectangle(0, 0, width, height, 0x2a1a0c).setOrigin(0).setDepth(-1);
+    this.add.image(width / 2, height / 2, 'game6.background').setDisplaySize(width, height).setDepth(0);
 
     this.physics.world.gravity.y = CFG.gravityY;
 
@@ -328,7 +329,7 @@ export class CactusDartsScene extends Phaser.Scene {
     this.quiverRemaining -= 1;
     this.updateQuiverText();
     sfx.throw();
-    const s = this.physics.add.sprite(this.player.x, this.player.y, 'cactus.spike');
+    const s = this.physics.add.sprite(this.player.x, this.player.y, 'cactus.spike.game6');
     s.setScale(CFG.spikeSize / s.height);
     s.setDepth(6);
     // Spike SVG natural orientation is tip-up; add +π/2 so it points along velocity.
