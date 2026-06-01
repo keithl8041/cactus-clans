@@ -82,8 +82,11 @@ export class DuneMazeScene extends Phaser.Scene {
     loadAsset(this, 'dune.quicksand', 'dune.quicksand', { size: CFG.quicksandSize });
     loadAsset(this, 'dune.trap', 'dune.trap', { size: CFG.trapSize });
     loadAsset(this, 'dune.exit', 'dune.exit', { size: CFG.tileSize });
-    loadAsset(this, 'dune.artifact', 'dune.artifact', { size: CFG.artifactSize });
+    loadAsset(this, 'dune.artifact.1', 'dune.artifact.1');
+    loadAsset(this, 'dune.artifact.2', 'dune.artifact.2');
+    loadAsset(this, 'dune.artifact.3', 'dune.artifact.3');
     loadAsset(this, 'dune.breadcrumb', 'dune.breadcrumb');
+    loadAsset(this, 'dune.compass', 'dune.compass');
     loadAsset(this, 'character', resolveCharacterKey(this.ctx.clan.name, this.ctx.formNumber), {
       clanColor: this.ctx.clan.color,
       formNumber: this.ctx.formNumber,
@@ -229,7 +232,7 @@ export class DuneMazeScene extends Phaser.Scene {
       const exitY = this.map.exit.row * CFG.tileSize + CFG.tileSize / 2;
       const a = Math.atan2(exitY - this.player.y, exitX - this.player.x);
       this.compass.setVisible(true);
-      this.compass.setRotation(a);
+      this.compass.setRotation(a + Math.PI / 2);
       // Pin the compass above the player; the camera-follow keeps it on screen.
       this.compass.setPosition(this.player.x, this.player.y - 36);
     } else {
@@ -278,10 +281,11 @@ export class DuneMazeScene extends Phaser.Scene {
 
   private buildArtifacts(): void {
     const t = CFG.tileSize;
-    for (const cell of this.map.artifacts) {
+    const variants = ['dune.artifact.1', 'dune.artifact.2', 'dune.artifact.3'];
+    this.map.artifacts.forEach((cell, i) => {
       const x = cell.col * t + t / 2;
       const y = cell.row * t + t / 2;
-      const sprite = this.add.image(x, y, 'dune.artifact').setDepth(3);
+      const sprite = this.add.image(x, y, variants[i % variants.length]).setDepth(3);
       sprite.setScale(CFG.artifactSize / sprite.height);
       this.tweens.add({
         targets: sprite,
@@ -292,7 +296,7 @@ export class DuneMazeScene extends Phaser.Scene {
         ease: 'Sine.easeInOut',
       });
       this.artifacts.push({ sprite, x, y, collected: false });
-    }
+    });
   }
 
   private buildExit(): void {
@@ -366,9 +370,8 @@ export class DuneMazeScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(20);
 
-    this.compass = this.add.image(0, 0, 'dune.exit').setDepth(15);
-    this.compass.setScale(0.4);
-    this.compass.setAlpha(0.7);
+    this.compass = this.add.image(0, 0, 'dune.compass').setDepth(15);
+    this.compass.setAlpha(0.85);
     this.compass.setVisible(false);
   }
 

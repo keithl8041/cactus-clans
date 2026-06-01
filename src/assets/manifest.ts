@@ -11,58 +11,44 @@
 // `resolveCharacterKey` so callers automatically fall back to the procedural
 // placeholder when clan-specific art hasn't landed yet.
 
-import { artifactSvg, type ArtifactOptions } from './placeholders/artifact';
 import { balloonSvg, type BalloonOptions } from './placeholders/balloon';
-import { breadcrumbSvg, type BreadcrumbOptions } from './placeholders/breadcrumb';
 import { camelSvg, type CamelOptions } from './placeholders/camel';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
 import type { DartboardOptions } from './placeholders/dartboard';
 import type { DesertParallaxOptions } from './placeholders/desertParallax';
-import { duneFloorSvg, type DuneFloorOptions } from './placeholders/duneFloor';
-import { duneWallSvg, type DuneWallOptions } from './placeholders/duneWall';
-import { exitSvg, type ExitOptions } from './placeholders/exit';
 import type { FinishBannerOptions } from './placeholders/finishBanner';
 import { hitSplatSvg, type HitSplatOptions } from './placeholders/hitSplat';
 import { lizardSvg, type LizardOptions } from './placeholders/lizard';
 import { petCactusSvg, type PetCactusOptions } from './placeholders/petCactus';
 import { potSvg, type PotOptions } from './placeholders/pot';
-import { quicksandSvg, type QuicksandOptions } from './placeholders/quicksand';
 import { rainOverlaySvg, type RainOverlayOptions } from './placeholders/rainOverlay';
 import type { RockOptions } from './placeholders/rock';
 import type { SliceableCactusOptions } from './placeholders/sliceableCactus';
 import { starSvg, type StarOptions } from './placeholders/star';
 import { sunOverlaySvg, type SunOverlayOptions } from './placeholders/sunOverlay';
 import type { TarantulaOptions } from './placeholders/tarantula';
-import { trapSvg, type TrapOptions } from './placeholders/trap';
 import type { WaterFlaskOptions } from './placeholders/waterFlask';
 import { wateringCanSvg, type WateringCanOptions } from './placeholders/wateringCan';
 
 export type AssetOptions =
-  | ArtifactOptions
   | BalloonOptions
-  | BreadcrumbOptions
   | CamelOptions
   | ClanCardOptions
   | CharacterOptions
   | DartboardOptions
   | DesertParallaxOptions
-  | DuneFloorOptions
-  | DuneWallOptions
-  | ExitOptions
   | FinishBannerOptions
   | HitSplatOptions
   | LizardOptions
   | PetCactusOptions
   | PotOptions
-  | QuicksandOptions
   | RainOverlayOptions
   | RockOptions
   | SliceableCactusOptions
   | StarOptions
   | SunOverlayOptions
   | TarantulaOptions
-  | TrapOptions
   | WaterFlaskOptions
   | WateringCanOptions
   | undefined;
@@ -145,13 +131,16 @@ export const ASSETS: Record<string, AssetEntry> = {
   'desert.parallax.mid': { kind: 'image', src: '/art/desert-parallax-mid.png' },
   'desert.parallax.near': { kind: 'image', src: '/art/desert-parallax-near.png' },
   finishBanner: { kind: 'image', src: '/art/finish-banner.png' },
-  'dune.floor': { kind: 'svg', generate: (opts) => duneFloorSvg(opts as DuneFloorOptions) },
-  'dune.wall': { kind: 'svg', generate: (opts) => duneWallSvg(opts as DuneWallOptions) },
-  'dune.quicksand': { kind: 'svg', generate: (opts) => quicksandSvg(opts as QuicksandOptions) },
-  'dune.trap': { kind: 'svg', generate: (opts) => trapSvg(opts as TrapOptions) },
-  'dune.exit': { kind: 'svg', generate: (opts) => exitSvg(opts as ExitOptions) },
-  'dune.artifact': { kind: 'svg', generate: (opts) => artifactSvg(opts as ArtifactOptions) },
-  'dune.breadcrumb': { kind: 'svg', generate: (opts) => breadcrumbSvg(opts as BreadcrumbOptions) },
+  'dune.floor': { kind: 'image', src: '/art/game7-floor.png' },
+  'dune.wall': { kind: 'image', src: '/art/game7-wall.png' },
+  'dune.quicksand': { kind: 'image', src: '/art/game7-quicksand.png' },
+  'dune.trap': { kind: 'image', src: '/art/game7-trap.png' },
+  'dune.exit': { kind: 'image', src: '/art/game7-exit.png' },
+  'dune.artifact.1': { kind: 'image', src: '/art/game7-artifact-1.png' },
+  'dune.artifact.2': { kind: 'image', src: '/art/game7-artifact-2.png' },
+  'dune.artifact.3': { kind: 'image', src: '/art/game7-artifact-3.png' },
+  'dune.breadcrumb': { kind: 'image', src: '/art/game7-breadcrumb.png' },
+  'dune.compass': { kind: 'image', src: '/art/game7-compass.svg' },
   wateringCan: { kind: 'svg', generate: (opts) => wateringCanSvg(opts as WateringCanOptions) },
 };
 
