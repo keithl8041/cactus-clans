@@ -133,6 +133,10 @@ export function NicknameEntry() {
             </button>
           </div>
         </form>
+        <p style={{ maxWidth: '28rem', textAlign: 'center', fontSize: '0.8rem', opacity: 0.6, marginTop: '1.5rem' }}>
+          We use anonymised event tracking to understand how the game is played. We don't collect
+          personal information.
+        </p>
       </div>
     );
   }

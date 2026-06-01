@@ -1,18 +1,36 @@
 const GA_MEASUREMENT_ID = 'G-5K2BCNPSYB';
-const GA_HOST = 'www.cactusclans.co.uk';
 
 /**
- * Loads Google Analytics (gtag.js), but only for the real production site.
+ * Hostnames that should never report to GA: local dev boxes and LAN IPs used
+ * for phone testing. Anything else (www / beta / staging cactusclans.co.uk,
+ * etc.) is treated as a real deploy and measured.
+ */
+function isLocalHost(hostname: string): boolean {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '0.0.0.0' ||
+    hostname === '[::1]' ||
+    hostname.endsWith('.local') ||
+    // private LAN ranges (e.g. 192.168.x.x / 10.x.x.x phone-testing addresses)
+    /^192\.168\./.test(hostname) ||
+    /^10\./.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+  );
+}
+
+/**
+ * Loads Google Analytics (gtag.js) on every real (non-localhost) domain.
  *
  * Guarded twice on purpose:
  * - `import.meta.env.PROD` keeps GA out of `vite dev`.
- * - the hostname check keeps it off preview/staging deploys and any other
- *   domain the bundle might be served from, so only real traffic is measured.
+ * - the hostname check keeps it off local dev boxes and LAN IPs used for phone
+ *   testing, while allowing all deployed domains (www, beta, etc.).
  */
 export function initAnalytics(): void {
   if (!import.meta.env.PROD) return;
   if (typeof window === 'undefined') return;
-  if (window.location.hostname !== GA_HOST) return;
+  if (isLocalHost(window.location.hostname)) return;
 
   const script = document.createElement('script');
   script.async = true;
