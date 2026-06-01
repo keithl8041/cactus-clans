@@ -38,9 +38,13 @@ export function initAnalytics(): void {
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
-  // gtag must push `arguments` verbatim, so it can't be an arrow function.
-  function gtag(...args: unknown[]) {
-    window.dataLayer.push(args);
+  // gtag must push the `arguments` object verbatim — gtag.js only processes
+  // dataLayer entries that are the actual Arguments object, not a plain array.
+  // So this can't be an arrow function or use rest params (which would push a
+  // real Array and be silently ignored).
+  function gtag(..._args: unknown[]) {
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer.push(arguments);
   }
   window.gtag = gtag;
 
