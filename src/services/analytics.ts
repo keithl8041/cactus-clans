@@ -30,6 +30,16 @@ export function initAnalytics(): void {
   gtag('config', GA_MEASUREMENT_ID);
 }
 
+/**
+ * Send a GA4 event. No-op unless `initAnalytics` actually loaded gtag (i.e. the
+ * real production site) — on dev/preview `window.gtag` is undefined, so this
+ * silently does nothing and callers don't need their own env guards.
+ */
+export function trackEvent(name: string, params?: Record<string, unknown>): void {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+  window.gtag('event', name, params);
+}
+
 declare global {
   interface Window {
     dataLayer: unknown[];

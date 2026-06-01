@@ -8,6 +8,7 @@ import { clanByName } from '../data/clans';
 import { recordLevelResult } from '../services/progress';
 import { submitMockRun } from '../services/leaderboard';
 import { usingRealBackend } from '../services/api';
+import { trackEvent } from '../services/analytics';
 import type { LevelResult } from '../levels/types';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
@@ -64,6 +65,16 @@ export function GameContainer() {
     const handleResult = async (result: LevelResult) => {
       if (cancelled) return;
       const score = level.scoreFor(result);
+      trackEvent('level_complete', {
+        level_number: level.number,
+        level_title: level.title,
+        passed: result.passed,
+        score,
+        mini_game_points: result.miniGamePoints,
+        elapsed_ms: result.elapsedMs,
+        attempt: attempt + 1,
+        practice: !!run.completedAt,
+      });
       const next = await recordLevelResult(run, {
         levelNumber: level.number,
         passed: result.passed,
@@ -99,7 +110,15 @@ export function GameContainer() {
       clan,
       formNumber: level.number,
       onComplete: handleResult,
-      onAbort: () => navigate('/journey'),
+      onAbort: () => {
+        trackEvent('level_quit', {
+          level_number: level.number,
+          level_title: level.title,
+          attempt: attempt + 1,
+          practice: !!run.completedAt,
+        });
+        navigate('/journey');
+      },
     });
 
     const game = new Phaser.Game({
@@ -202,6 +221,11 @@ export function GameContainer() {
           instructions={level.instructions}
           onStart={() => {
             setStarted(true);
+            trackEvent('level_start', {
+              level_number: level.number,
+              level_title: level.title,
+              practice: !!run?.completedAt,
+            });
             // Hide mobile browser chrome (URL bar etc) while playing. Must run
             // inside this gesture handler or the browser rejects the request.
             if (isTouchDevice()) void enterFullscreen();

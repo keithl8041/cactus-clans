@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 import { useGameStore } from '../store/gameStore';
 import { usingRealBackend } from '../services/api';
 import { VersusClient, type VersusRosterEntry, type VersusState } from '../services/versus';
+import { trackEvent } from '../services/analytics';
 import { VersusBalloonScene } from '../multiplayer/VersusBalloonScene';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
@@ -62,7 +63,10 @@ export function VersusLobby() {
 
     client
       .connect(cleanedCode, { nickname: player.nickname, clan: clanName })
-      .then(() => setConnected(true))
+      .then(() => {
+        setConnected(true);
+        trackEvent('versus_join', { lobby: cleanedCode });
+      })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)));
 
     // Mount Phaser only after we've kicked off the connection. The scene

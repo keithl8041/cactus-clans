@@ -3,6 +3,7 @@ import { loadAsset } from '../assets/loader';
 import { sfx } from '../assets/sfx';
 import { clanByName } from '../data/clans';
 import { resolveBalloonKey, resolveCharacterKey } from '../assets/manifest';
+import { trackEvent } from '../services/analytics';
 import type { VersusClient, VersusState, VersusPlayer, VersusSpike } from '../services/versus';
 
 // Versus mode is locked to Prickling Clan art for now — the other clans
@@ -62,6 +63,10 @@ export class VersusBalloonScene extends Phaser.Scene {
   private players = new Map<string, PlayerVisuals>();
   private spikeSprites: Phaser.GameObjects.Image[] = [];
   private lastSpikeCount = 0;
+
+  // Last phase we saw from the server, so we can fire an analytics event on the
+  // edge into 'playing' (a round actually starting) rather than every tick.
+  private lastPhase: VersusState['phase'] | null = null;
 
   private hitText!: Phaser.GameObjects.Text;
   private phaseText!: Phaser.GameObjects.Text;
@@ -288,6 +293,16 @@ export class VersusBalloonScene extends Phaser.Scene {
       this.phaseText.setText('');
     }
 
+    // Edge-trigger a round_start when the server flips into 'playing'.
+    if (s.phase !== this.lastPhase) {
+      if (s.phase === 'playing') {
+        trackEvent('versus_round_start', {
+          practise: s.practise,
+          players: s.players.length,
+        });
+      }
+      this.lastPhase = s.phase;
+    }
   }
 
   private createPlayerVisuals(sp: VersusPlayer): PlayerVisuals {
@@ -401,6 +416,13 @@ export class VersusBalloonScene extends Phaser.Scene {
     newTeamBest: boolean;
     teamBest: { score: number; nicknames: string[] };
   }): void {
+    trackEvent('versus_round_end', {
+      reason: e.reason,
+      team_score: e.teamScore,
+      team_hits: e.teamHits,
+      elapsed_ms: e.elapsedMs,
+      new_team_best: e.newTeamBest,
+    });
     sfx.pop();
     const seconds = (e.elapsedMs / 1000).toFixed(1);
     const bopWord = e.teamHits === 1 ? 'bop' : 'bops';
