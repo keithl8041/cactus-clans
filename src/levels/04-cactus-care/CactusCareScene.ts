@@ -56,10 +56,7 @@ export class CactusCareScene extends Phaser.Scene {
   private bgScale = 1;
   private currentBgKey = 'game4.background';
 
-  // Mood texture keys for the pet cactus
   private cactusHappyKey = 'cactus.pet';
-  private cactusSadKey = 'cactus.pet';
-  private currentCactusMood: 'happy' | 'sad' = 'happy';
 
   // Gauge (decorative frame for the meter)
   private gauge!: Phaser.GameObjects.Image;
@@ -87,10 +84,8 @@ export class CactusCareScene extends Phaser.Scene {
 
   preload(): void {
     this.cactusHappyKey = resolvePetCactusKey(this.ctx.clan.name, 'happy');
-    this.cactusSadKey = resolvePetCactusKey(this.ctx.clan.name, 'sad');
     const cactusOpts = { size: CFG.cactusSize, clanColor: this.ctx.clan.color };
     loadAsset(this, this.cactusHappyKey, this.cactusHappyKey, cactusOpts);
-    loadAsset(this, this.cactusSadKey, this.cactusSadKey, cactusOpts);
 
     loadAsset(this, 'wateringCan', 'game4.watering-can');
     loadAsset(this, 'waterDroplet', 'game4.water-droplet');
@@ -168,7 +163,6 @@ export class CactusCareScene extends Phaser.Scene {
 
     // Scoring uses the raw meter, not the displayed value.
     const inHappy = this.meter >= bandLow && this.meter <= bandHigh;
-    this.setCactusMood(inHappy ? 'happy' : 'sad');
     if (inHappy) {
       this.happyTimeMs += delta;
       const inCenter =
@@ -382,12 +376,6 @@ export class CactusCareScene extends Phaser.Scene {
     this.currentEvent = null;
     this.swapBackground('game4.background');
     this.scheduleNextEvent();
-  }
-
-  private setCactusMood(mood: 'happy' | 'sad'): void {
-    if (this.currentCactusMood === mood) return;
-    this.currentCactusMood = mood;
-    this.cactus.setTexture(mood === 'happy' ? this.cactusHappyKey : this.cactusSadKey);
   }
 
   private swapBackground(key: string): void {
