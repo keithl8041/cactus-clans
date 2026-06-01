@@ -36,7 +36,7 @@ const COMING_SOON_HOSTS = new Set(['www.cactusclans.co.uk', 'cactusclans.co.uk']
 const COMING_SOON_LAUNCH_AT_MS = Date.parse('2026-06-13T00:00:00+01:00');
 // Paths the splash page itself needs to render; everything else on the gated
 // host is replaced with the coming-soon HTML.
-const COMING_SOON_ALLOWED_PATHS = new Set(['/logo.jpg', '/favicon.ico']);
+const COMING_SOON_ALLOWED_PATHS = new Set(['/logo.png', '/favicon.ico']);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -488,7 +488,7 @@ const COMING_SOON_HTML = `<!doctype html>
 </head>
 <body>
   <main class="card">
-    <img class="logo" src="/logo.jpg" alt="Cactus Clans" />
+    <img class="logo" src="/logo.png" alt="Cactus Clans" />
     <h1>Coming Soon</h1>
     <p class="tagline">The Cactus Clans are gathering. Sharpen your spikes — the desert opens 13 June 2026.</p>
     <div class="countdown" id="countdown" aria-live="polite">

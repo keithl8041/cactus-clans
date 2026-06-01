@@ -115,7 +115,7 @@ These are currently rendered as flat coloured rectangles. Replacing them is a po
 |---|---|---|---|---|
 | Sky / sandy backdrop | Level 1 (and future levels) | 1280 × 720 | 1 or 1 per level | Subtle parallax-friendly horizon would be lovely but not required. |
 | Floor strip (sandy ground) | bottom of the play arena | 1280 × ~60 px | 1 | Currently a solid `#7a5a3a` rect. |
-| Splash / title illustration | Splash screen | flexible, ~1024 × 600 | 1 | Could supersede the existing `public/logo.jpg`. |
+| Splash / title illustration | Splash screen | flexible, ~1024 × 600 | 1 | Could supersede the existing `public/logo.png`. |
 | Level-map background | journey map screen | flexible | 1 | A stylised desert path with 8 nodes would be ideal, but we can fake it with the current node track for a while. |
 
 ---

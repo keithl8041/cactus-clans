@@ -75,7 +75,7 @@ export function SplashScreen() {
 
   return (
     <div className="screen">
-      <img src="/logo.jpg" alt="Cactus Clans" className="logo" />
+      <img src="/logo.png" alt="Cactus Clans" className="logo" />
       <IosInstallHint />
       {roster.length === 0 ? (
         <>
