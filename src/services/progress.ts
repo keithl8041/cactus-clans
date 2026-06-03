@@ -85,7 +85,7 @@ function sortedLevels(run: RunProgress): LevelClearRecord[] {
   return [...run.levels].sort((a, b) => a.levelNumber - b.levelNumber);
 }
 
-function needsSync(run: RunProgress | null | undefined): run is RunProgress {
+function needsSync(run: RunProgress | null | undefined): boolean {
   return !!run && (run.pendingSync || isLocalRunId(run.runId));
 }
 
@@ -302,11 +302,12 @@ export async function syncActiveRunFromServer(playerId: string): Promise<RunProg
     if (local) clearActiveRun(playerId);
     return null;
   }
-  if (!local || local.runId !== serverRun.runId) {
+  const localRun: RunProgress | null = local;
+  if (!localRun || localRun.runId !== serverRun.runId) {
     writeRun(serverRun);
     return serverRun;
   }
-  const merged = mergeRunLevels(local, serverRun);
+  const merged = mergeRunLevels(localRun, serverRun);
   writeRun(merged);
   return merged;
 }
