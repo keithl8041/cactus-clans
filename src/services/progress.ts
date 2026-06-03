@@ -32,7 +32,7 @@ export interface RunChangeDetail {
 
 const RUN_KEY = (playerId: string) => `cc.run.${playerId}.v1`;
 const LOCAL_RUN_PREFIX = 'local-run-';
-const RETRY_DELAYS_MS = [2_000, 5_000, 15_000, 30_000, 60_000] as const;
+const RETRY_BACKOFF_MS = [2_000, 5_000, 15_000, 30_000, 60_000] as const;
 const retryTimers = new Map<string, number>();
 const retryCounts = new Map<string, number>();
 let syncInitialized = false;
@@ -169,7 +169,7 @@ function scheduleRunRetry(playerId: string): void {
   const existing = retryTimers.get(playerId);
   if (existing != null) window.clearTimeout(existing);
   const attempt = retryCounts.get(playerId) ?? 0;
-  const delay = RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length - 1)];
+  const delay = RETRY_BACKOFF_MS[Math.min(attempt, RETRY_BACKOFF_MS.length - 1)];
   retryCounts.set(playerId, attempt + 1);
   const timer = window.setTimeout(() => {
     retryTimers.delete(playerId);
@@ -200,15 +200,15 @@ export function initProgressSync(): void {
   if (!usingRealBackend || syncInitialized || typeof window === 'undefined') return;
   syncInitialized = true;
 
-  const trigger = () => {
+  const flushPendingSync = () => {
     void flushPendingRuns();
   };
 
-  window.addEventListener('online', trigger);
+  window.addEventListener('online', flushPendingSync);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') trigger();
+    if (document.visibilityState === 'visible') flushPendingSync();
   });
-  window.setTimeout(trigger, 0);
+  window.setTimeout(flushPendingSync, 0);
 }
 
 export async function startRun(playerId: string, clan: string): Promise<RunProgress> {
@@ -302,12 +302,11 @@ export async function syncActiveRunFromServer(playerId: string): Promise<RunProg
     if (local) clearActiveRun(playerId);
     return null;
   }
-  const localRun: RunProgress | null = local;
-  if (!localRun || localRun.runId !== serverRun.runId) {
+  if (!local || local.runId !== serverRun.runId) {
     writeRun(serverRun);
     return serverRun;
   }
-  const merged = mergeRunLevels(localRun, serverRun);
+  const merged = mergeRunLevels(local, serverRun);
   writeRun(merged);
   return merged;
 }
