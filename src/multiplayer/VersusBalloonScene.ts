@@ -154,7 +154,7 @@ export class VersusBalloonScene extends Phaser.Scene {
   }
 
   private setupJumpButton(): void {
-    const r = 48;
+    const r = 56;
     const cx = WORLD_W - 18 - r;
     const cy = WORLD_H - 60 - 18 - r;
     this.jumpButtonBg = this.add.circle(cx, cy, r, 0xf7c948, 0.85)
@@ -163,11 +163,11 @@ export class VersusBalloonScene extends Phaser.Scene {
       .setDepth(12);
     this.jumpButtonLabel = this.add.text(cx, cy, '↑', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '40px',
+      fontSize: `${Math.round(r * 0.86)}px`,
       color: '#3d2a07',
       fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(13);
-    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 8);
+    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 12);
   }
 
   private handlePointerDown(p: Phaser.Input.Pointer): void {
@@ -475,4 +475,3 @@ export class VersusBalloonScene extends Phaser.Scene {
     }
   }
 }
-

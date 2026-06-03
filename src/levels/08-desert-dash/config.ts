@@ -55,7 +55,7 @@ export const DESERT_DASH_CONFIG = {
   starColliderRadiusPx: 50,
 
   // Jump button (reuses Balloon pattern)
-  jumpButtonRadius: 56,
+  jumpButtonRadius: 64,
   jumpButtonMargin: 18,
 
   // Ground / sky

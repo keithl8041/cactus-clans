@@ -22,7 +22,7 @@ export const BALLOON_CONFIG = {
   playerGroundDrag: 1200,       // horizontal drag when no input (px/sec^2)
 
   // Input — touch jump button
-  jumpButtonRadius: 48,         // visible radius (px); hit area is slightly larger
+  jumpButtonRadius: 56,         // visible radius (px); hit area is slightly larger
   jumpButtonMargin: 18,         // distance from the bottom-right corner (above the floor strip)
   // Input — swipe-up to jump (mobile-friendly alternative to the button)
   swipeUpJumpPx: 60,            // vertical drag distance that counts as a jump swipe

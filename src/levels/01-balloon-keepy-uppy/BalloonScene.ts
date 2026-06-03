@@ -249,13 +249,13 @@ export class BalloonScene extends Phaser.Scene {
       .setDepth(12);
     this.jumpButtonLabel = this.add.text(cx, cy, '↑', {
       fontFamily: 'system-ui, sans-serif',
-      fontSize: '40px',
+      fontSize: `${Math.round(r * 0.86)}px`,
       color: '#3d2a07',
       fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(13);
 
     // Hit area is slightly larger than the visible circle for forgiving taps.
-    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 8);
+    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 12);
   }
 
   // ----- Input handlers -----

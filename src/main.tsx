@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { initAnalytics } from './services/analytics';
+import { initProgressSync } from './services/progress';
 import './styles/global.css';
 
 initAnalytics();
+initProgressSync();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

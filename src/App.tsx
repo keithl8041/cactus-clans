@@ -8,6 +8,7 @@ import { LevelMap } from './shell/LevelMap';
 import { Leaderboard } from './shell/Leaderboard';
 import { StorePage } from './shell/StorePage';
 import { Footer } from './shell/Footer';
+import { useGameStore } from './store/gameStore';
 
 // Phaser is heavy — only load it when the player actually opens a level.
 const GameContainer = lazy(() =>
@@ -21,10 +22,16 @@ const VersusLobby = lazy(() =>
 
 export function App() {
   const location = useLocation();
+  const run = useGameStore((s) => s.run);
   // Hide the footer in-game so it doesn't overlap Phaser scenes.
   const inGame = location.pathname.startsWith('/play/');
   return (
     <>
+      {run?.pendingSync && (
+        <div className="sync-banner" role="status">
+          {run.lastSyncError ?? 'Connection lost — progress is saved on this device and will retry automatically.'}
+        </div>
+      )}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/game" element={<SplashScreen />} />

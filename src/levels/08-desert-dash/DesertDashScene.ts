@@ -358,7 +358,7 @@ export class DesertDashScene extends Phaser.Scene {
       .setDepth(20);
     this.jumpButton.setDisplaySize(r * 2, r * 2);
 
-    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 10);
+    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 14);
   }
 
   // ----- Input handlers -----
