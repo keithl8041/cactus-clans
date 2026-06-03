@@ -1,4 +1,3 @@
-import { useGameStore } from '../store/gameStore';
 import { apiFetch, usingRealBackend } from './api';
 
 export interface LevelClearRecord {
@@ -22,6 +21,15 @@ export interface RunProgress {
   lastSyncError?: string;
 }
 
+export const RUN_CHANGE_EVENT = 'cc:run-change';
+export const DEFAULT_PENDING_SYNC_MESSAGE =
+  'Progress is saved on this device and will retry automatically.';
+
+export interface RunChangeDetail {
+  playerId: string;
+  run: RunProgress | null;
+}
+
 const RUN_KEY = (playerId: string) => `cc.run.${playerId}.v1`;
 const LOCAL_RUN_PREFIX = 'local-run-';
 const RETRY_DELAYS_MS = [2_000, 5_000, 15_000, 30_000, 60_000] as const;
@@ -40,8 +48,7 @@ function readRun(playerId: string): RunProgress | null {
 
 function writeRun(run: RunProgress): void {
   localStorage.setItem(RUN_KEY(run.playerId), JSON.stringify(run));
-  const store = useGameStore.getState();
-  if (store.player?.id === run.playerId) store.setRun(run);
+  notifyRunChange(run.playerId, run);
 }
 
 function localRunId(playerId: string): string {
@@ -76,6 +83,19 @@ function markPendingSync(run: RunProgress, err: unknown): RunProgress {
 
 function sortedLevels(run: RunProgress): LevelClearRecord[] {
   return [...run.levels].sort((a, b) => a.levelNumber - b.levelNumber);
+}
+
+function needsSync(run: RunProgress | null | undefined): run is RunProgress {
+  return !!run && (run.pendingSync || isLocalRunId(run.runId));
+}
+
+function notifyRunChange(playerId: string, run: RunProgress | null): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent<RunChangeDetail>(RUN_CHANGE_EVENT, {
+      detail: { playerId, run },
+    }),
+  );
 }
 
 async function syncRunToServer(run: RunProgress): Promise<RunProgress> {
@@ -124,7 +144,7 @@ async function flushPendingRun(playerId: string): Promise<RunProgress | null> {
   if (!usingRealBackend) return readRun(playerId);
   const run = readRun(playerId);
   if (!run) return null;
-  if (!run.pendingSync && !isLocalRunId(run.runId)) return run;
+  if (!needsSync(run)) return run;
   try {
     return await syncRunToServer(run);
   } catch (err) {
@@ -261,9 +281,9 @@ export async function syncActiveRunFromServer(playerId: string): Promise<RunProg
   let local = readRun(playerId);
   if (!usingRealBackend) return local;
 
-  if (local?.pendingSync || isLocalRunId(local?.runId ?? '')) {
+  if (needsSync(local)) {
     const synced = await flushPendingRun(playerId);
-    if (synced?.pendingSync || isLocalRunId(synced?.runId ?? '')) return synced;
+    if (needsSync(synced)) return synced;
     local = synced;
   }
 
@@ -323,8 +343,7 @@ function pickBetterLevel(prior: LevelClearRecord, next: LevelClearRecord): Level
  */
 export function clearActiveRun(playerId: string): void {
   localStorage.removeItem(RUN_KEY(playerId));
-  const store = useGameStore.getState();
-  if (store.player?.id === playerId) store.setRun(null);
+  notifyRunChange(playerId, null);
 }
 
 export async function recordLevelResult(
