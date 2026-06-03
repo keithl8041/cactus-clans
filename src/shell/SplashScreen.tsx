@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import {
   getCurrentSession,
@@ -124,13 +124,9 @@ export function SplashScreen() {
       )}
       <div className="splash-cta">
         Like the cards?{' '}
-        <a
-          href="https://payhip.com/b/SCwL1"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Link to="/shop">
           Get the printable card set →
-        </a>
+        </Link>
       </div>
     </div>
   );

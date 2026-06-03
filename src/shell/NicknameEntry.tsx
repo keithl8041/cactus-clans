@@ -95,7 +95,7 @@ export function NicknameEntry() {
           />
           {error && <div style={{ color: 'var(--danger)' }}>{error}</div>}
           <div className="row">
-            <button type="button" onClick={() => navigate('/', { state: { pickPlayer: true } })}>Back</button>
+            <button type="button" onClick={() => navigate('/game', { state: { pickPlayer: true } })}>Back</button>
             <button className="primary" type="submit" disabled={busy || !nickname.trim()}>
               {busy ? 'Checking…' : 'Continue'}
             </button>

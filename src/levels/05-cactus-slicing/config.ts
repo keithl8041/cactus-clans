@@ -2,9 +2,9 @@
 
 export const CACTUS_SLICING_CONFIG = {
   // Win condition
-  passThreshold: 55,                // points to clear
+  passThreshold: 85,                // points to clear (raised — was too easy at 55)
   strikeLimit: 2,                   // tarantula slices allowed before instant fail
-  missTolerance: 10,                // cacti that fall off-screen unsliced before fail
+  missTolerance: 6,                 // cacti that fall off-screen unsliced before fail (was 10)
   sessionDurationMs: 45_000,        // round length
 
   // World
@@ -20,31 +20,32 @@ export const CACTUS_SLICING_CONFIG = {
   spinPerSecMin: 90,
   spinPerSecMax: 300,
 
-  // Projectile sizes / hitboxes
-  cactusRadiusPx: 38,
-  cactusDisplaySize: 84,
-  cactusHalfSize: 80,
-  tarantulaRadiusPx: 36,
-  tarantulaDisplaySize: 78,
+  // Projectile sizes / hitboxes (slightly bigger sprites per design feedback;
+  // hitboxes scaled in proportion so slicing accuracy stays consistent)
+  cactusRadiusPx: 42,
+  cactusDisplaySize: 96,
+  cactusHalfSize: 92,
+  tarantulaRadiusPx: 41,
+  tarantulaDisplaySize: 90,
 
   // Small cactus variant (ramp)
-  cactusSmallRadiusPx: 26,
-  cactusSmallDisplaySize: 60,
+  cactusSmallRadiusPx: 30,
+  cactusSmallDisplaySize: 70,
 
-  // Spawning cadence
-  spawnIntervalStartMs: 1200,
-  spawnIntervalMinMs: 360,
-  spawnRampPerSecond: 12,           // ms shaved off the interval per elapsed sec
+  // Spawning cadence (quicker + busier than the original easy tuning)
+  spawnIntervalStartMs: 1000,
+  spawnIntervalMinMs: 280,
+  spawnRampPerSecond: 16,           // ms shaved off the interval per elapsed sec
   burstChanceStart: 0,
-  burstChanceMax: 0.45,
-  burstRampSeconds: 35,
+  burstChanceMax: 0.58,
+  burstRampSeconds: 26,
   burstMaxSize: 4,
-  burstStaggerMs: 110,
-  smallCactusUnlockSec: 18,
-  smallCactusChance: 0.35,
-  tarantulaChanceStart: 0.15,
-  tarantulaChanceMax: 0.50,
-  tarantulaRampSeconds: 30,
+  burstStaggerMs: 100,
+  smallCactusUnlockSec: 12,
+  smallCactusChance: 0.45,
+  tarantulaChanceStart: 0.18,
+  tarantulaChanceMax: 0.55,
+  tarantulaRampSeconds: 24,
 
   // Slash trail (ring buffer)
   trailSampleLifetimeMs: 140,

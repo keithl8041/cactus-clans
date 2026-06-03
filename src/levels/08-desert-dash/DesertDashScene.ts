@@ -76,6 +76,7 @@ export class DesertDashScene extends Phaser.Scene {
   private parallaxFar!: Phaser.GameObjects.TileSprite;
   private parallaxMid!: Phaser.GameObjects.TileSprite;
   private parallaxNear!: Phaser.GameObjects.TileSprite;
+  private floorVisual!: Phaser.GameObjects.TileSprite;
 
   // ----- Running-phase entities -----
   private obstacles: ObstacleEntity[] = [];
@@ -112,8 +113,7 @@ export class DesertDashScene extends Phaser.Scene {
 
   // ----- Input -----
   private activePointers = new Map<number, ActivePointer>();
-  private jumpButtonBg!: Phaser.GameObjects.Arc;
-  private jumpButtonLabel!: Phaser.GameObjects.Text;
+  private jumpButton!: Phaser.GameObjects.Image;
   private jumpButtonHit!: Phaser.Geom.Circle;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keyA!: Phaser.Input.Keyboard.Key;
@@ -132,10 +132,13 @@ export class DesertDashScene extends Phaser.Scene {
     });
     loadAsset(this, 'cactus.spike', 'cactus.spike');
     loadAsset(this, 'rock', 'rock', { size: CFG.obstacleSize });
-    loadAsset(this, 'star', 'star', { size: CFG.starSize });
-    loadAsset(this, 'desert.parallax.far', 'desert.parallax.far');
-    loadAsset(this, 'desert.parallax.mid', 'desert.parallax.mid');
-    loadAsset(this, 'desert.parallax.near', 'desert.parallax.near');
+    loadAsset(this, 'star', 'game8.star');
+    loadAsset(this, 'desert.parallax.far', 'game8.parallax.far');
+    loadAsset(this, 'desert.parallax.mid', 'game8.parallax.mid');
+    loadAsset(this, 'desert.parallax.near', 'game8.parallax.near');
+    loadAsset(this, 'game8.floor', 'game8.floor');
+    loadAsset(this, 'game8.jumpButton', 'game8.jumpButton');
+    loadAsset(this, 'game8.bossHealthBar', 'game8.bossHealthBar');
     loadAsset(this, 'finishBanner', 'finishBanner', { size: 220 });
     loadAsset(this, 'tarantula', 'tarantula', { size: CFG.bossSize });
     loadAsset(this, 'boss.spike', 'cactus.spike');
@@ -155,7 +158,17 @@ export class DesertDashScene extends Phaser.Scene {
     this.setupJumpButton();
 
     this.bossHomeX = width * CFG.bossArenaXFraction;
-    this.bossGroundY = height - CFG.floorPaddingPx - CFG.bossGroundYOffset - CFG.bossSize / 2;
+    // Rest the boss's VISIBLE feet on the same embedded ground line as the
+    // player so its stompable top stays within the player's jump arc. The
+    // sprite has transparent padding below the body, so we sink the bounding-box
+    // anchor by that padding (bossArtBottomPadFrac) — otherwise the spider
+    // floats above the sand. bossGroundYOffset can raise it a touch, but keep
+    // that small or the boss becomes unreachable.
+    this.bossGroundY =
+      height - CFG.floorPaddingPx + CFG.floorEmbedPx
+      - CFG.bossGroundYOffset
+      - CFG.bossSize / 2
+      + CFG.bossSize * CFG.bossArtBottomPadFrac;
 
     this.nextObstacleSpawnX = CFG.obstacleWarmupPx;
     this.nextStarSpawnX = CFG.starWarmupPx;
@@ -222,30 +235,45 @@ export class DesertDashScene extends Phaser.Scene {
 
   private setupParallax(): void {
     const { width, height } = this.scale;
-    const skyH = height * CFG.skyHeightFraction;
-    this.parallaxFar = this.add.tileSprite(width / 2, skyH * 0.40, width, skyH * 0.5, 'desert.parallax.far').setDepth(1);
-    this.parallaxMid = this.add.tileSprite(width / 2, skyH * 0.65, width, skyH * 0.6, 'desert.parallax.mid').setDepth(2);
-    this.add.rectangle(0, skyH, width, height - skyH, CFG.groundColor).setOrigin(0).setDepth(3);
-    this.parallaxNear = this.add.tileSprite(
-      width / 2,
-      skyH + (height - skyH) * 0.20,
-      width,
-      (height - skyH) * 0.6,
-      'desert.parallax.near',
-    ).setDepth(4);
+    // The three parallax PNGs are full 1280×720 scene layers authored to be
+    // composited on top of one another (far = sky + distant mesas, mid = the
+    // dune-ridge band across the middle, near = foreground dunes + cacti at the
+    // bottom). Render each as a full-canvas tile sprite so horizontal scrolling
+    // wraps seamlessly — only tilePositionX moves.
+    //
+    // The previous version sampled a thin horizontal strip from the TOP of each
+    // texture. That happened to work for the far layer (its content sits at the
+    // top) but cropped the mid layer's centre dune band out entirely, so it
+    // never appeared. Full-canvas sprites show every layer in full.
+    this.parallaxFar = this.add.tileSprite(width / 2, height / 2, width, height, 'desert.parallax.far').setDepth(1);
+    this.parallaxMid = this.add.tileSprite(width / 2, height / 2, width, height, 'desert.parallax.mid').setDepth(2);
+    this.parallaxNear = this.add.tileSprite(width / 2, height / 2, width, height, 'desert.parallax.near').setDepth(3);
   }
 
   private setupFloor(): void {
     const { width, height } = this.scale;
     const floorTop = height - CFG.floorPaddingPx;
-    this.floor = this.add.zone(width / 2, floorTop, width, 4);
+    // Visual sand strip (game8-floor.png is 1280×60 — matches floorPaddingPx).
+    // Tiled so it can scroll horizontally with the run; depth 5 sits above the
+    // parallax layers (1–3) but below entities (7) and the player (9).
+    this.floorVisual = this.add.tileSprite(
+      width / 2,
+      floorTop + CFG.floorPaddingPx / 2,
+      width,
+      CFG.floorPaddingPx,
+      'game8.floor',
+    ).setDepth(5);
+    // Physics floor — invisible thin zone the player collides with. Placed
+    // below the strip's top edge by floorEmbedPx so the player's feet sit
+    // embedded in the sand rather than perched on top of it.
+    this.floor = this.add.zone(width / 2, floorTop + CFG.floorEmbedPx, width, 4);
     this.physics.add.existing(this.floor, true);
   }
 
   private setupPlayer(): void {
     const { width, height } = this.scale;
     const x = width * CFG.playerXFraction;
-    const spawnY = height - CFG.floorPaddingPx - CFG.playerSize / 2;
+    const spawnY = height - CFG.floorPaddingPx + CFG.floorEmbedPx - CFG.playerSize / 2;
     this.player = this.physics.add.sprite(x, spawnY, 'character').setDepth(9);
     this.player.setScale(CFG.playerSize / this.player.height);
     this.player.setCollideWorldBounds(true);
@@ -291,7 +319,16 @@ export class DesertDashScene extends Phaser.Scene {
       this.heartIcons.push(heart);
     }
 
-    this.bossHealthBar = this.add.graphics().setScrollFactor(0).setDepth(15);
+    // Boss health bar: ornate SVG frame (full bar art) + a dark overlay that
+    // covers the depleted portion. Both hidden until the boss phase.
+    const frameW = CFG.bossHealthBarFrameWidthPx;
+    const frameH = frameW * (52.5 / 375); // preserve the SVG's aspect ratio
+    this.bossHealthFrame = this.add.image(width / 2, CFG.bossHealthBarYPx + frameH / 2, 'game8.bossHealthBar')
+      .setDisplaySize(frameW, frameH)
+      .setScrollFactor(0)
+      .setDepth(15)
+      .setVisible(false);
+    this.bossHealthBar = this.add.graphics().setScrollFactor(0).setDepth(16);
   }
 
   private setupInput(): void {
@@ -316,16 +353,10 @@ export class DesertDashScene extends Phaser.Scene {
     const cx = width - CFG.jumpButtonMargin - r;
     const cy = height - CFG.floorPaddingPx - CFG.jumpButtonMargin - r;
 
-    this.jumpButtonBg = this.add.circle(cx, cy, r, 0xf7c948, 0.85)
-      .setStrokeStyle(3, 0x7a4d0c)
+    this.jumpButton = this.add.image(cx, cy, 'game8.jumpButton')
       .setScrollFactor(0)
       .setDepth(20);
-    this.jumpButtonLabel = this.add.text(cx, cy, '↑', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: '42px',
-      color: '#3d2a07',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(21);
+    this.jumpButton.setDisplaySize(r * 2, r * 2);
 
     this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 10);
   }
@@ -359,13 +390,15 @@ export class DesertDashScene extends Phaser.Scene {
   }
 
   private pressJumpButton(): void {
-    this.tweens.killTweensOf(this.jumpButtonBg);
-    this.tweens.killTweensOf(this.jumpButtonLabel);
-    this.jumpButtonBg.setScale(0.88);
-    this.jumpButtonLabel.setScale(0.88);
+    // Display size is set explicitly, so animate scale relative to scaleX/Y=1.
+    this.tweens.killTweensOf(this.jumpButton);
+    this.jumpButton.setScale(this.jumpButton.scaleX * 0.88, this.jumpButton.scaleY * 0.88);
+    const baseX = this.jumpButton.scaleX / 0.88;
+    const baseY = this.jumpButton.scaleY / 0.88;
     this.tweens.add({
-      targets: [this.jumpButtonBg, this.jumpButtonLabel],
-      scale: 1,
+      targets: this.jumpButton,
+      scaleX: baseX,
+      scaleY: baseY,
       duration: 140,
       ease: 'Back.easeOut',
     });
@@ -383,8 +416,8 @@ export class DesertDashScene extends Phaser.Scene {
     // and "overlap" between frames. Treat near-zero vy + body bottom flush
     // with the floor strip as grounded too.
     if (Math.abs(body.velocity.y) > 5) return false;
-    const floorTop = this.scale.height - CFG.floorPaddingPx;
-    return body.bottom >= floorTop - 2;
+    const groundLine = this.scale.height - CFG.floorPaddingPx + CFG.floorEmbedPx;
+    return body.bottom >= groundLine - 2;
   }
 
   private tryJump(): void {
@@ -435,6 +468,7 @@ export class DesertDashScene extends Phaser.Scene {
     this.parallaxFar.tilePositionX += advance * CFG.parallaxFarMult;
     this.parallaxMid.tilePositionX += advance * CFG.parallaxMidMult;
     this.parallaxNear.tilePositionX += advance * CFG.parallaxNearMult;
+    this.floorVisual.tilePositionX += advance;
 
     // Reposition entities
     for (let i = this.obstacles.length - 1; i >= 0; i--) {
@@ -501,13 +535,13 @@ export class DesertDashScene extends Phaser.Scene {
 
   private spawnObstacleAt(worldX: number): void {
     const { height } = this.scale;
-    const baseY = height - CFG.floorPaddingPx;
+    const baseY = height - CFG.floorPaddingPx + CFG.floorEmbedPx;
     const spawn = (wx: number) => {
       const kind: ObstacleKind = Math.random() < CFG.obstacleRockChance ? 'rock' : 'cactus';
       const texture = kind === 'rock' ? 'rock' : 'cactus.spike';
       const sprite = this.add.image(0, 0, texture).setDepth(7);
       sprite.setScale(CFG.obstacleSize / sprite.height);
-      // Anchor sprite so its bottom rests on the floor strip top
+      // Anchor sprite so its base sits embedded in the sand strip
       sprite.y = baseY - sprite.displayHeight / 2;
       this.obstacles.push({ sprite, worldX: wx, kind, hit: false });
     };
@@ -599,6 +633,12 @@ export class DesertDashScene extends Phaser.Scene {
   private startBossIntro(): void {
     this.phase = 'bossIntro';
     const { width, height } = this.scale;
+
+    // Clear the running-phase obstacles so the boss arena is a clean pit. Once
+    // updateRunning stops being called these would otherwise freeze in place
+    // and litter the fight floor. (startOutro wipes any stragglers too.)
+    for (const o of this.obstacles) o.sprite.destroy();
+    this.obstacles = [];
 
     // Show "Boss Incoming!" banner
     this.unlockBanner = this.add.text(width / 2, height * 0.32, 'BOSS INCOMING!', {
@@ -796,7 +836,7 @@ export class DesertDashScene extends Phaser.Scene {
     const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.3, this.boss.y - CFG.bossSize * 0.35, 'cactus.spike').setDepth(8);
     sprite.setScale(CFG.bossLobSize / sprite.height);
     const vxJitter = Phaser.Math.Between(-60, 60);
-    const groundY = this.scale.height - CFG.floorPaddingPx - CFG.bossLobSize / 2;
+    const groundY = this.scale.height - CFG.floorPaddingPx + CFG.floorEmbedPx - CFG.bossLobSize / 2;
     this.lobs.push({
       sprite,
       vx: CFG.bossLobLaunchVx + vxJitter,
@@ -980,35 +1020,49 @@ export class DesertDashScene extends Phaser.Scene {
   private redrawBossHealthBar(): void {
     if (this.phase !== 'bossCycle' && this.phase !== 'bossIntro') {
       this.bossHealthBar.clear();
+      this.bossHealthFrame.setVisible(false);
       return;
     }
     const { width } = this.scale;
-    const w = CFG.bossHealthBarWidthPx;
-    const h = CFG.bossHealthBarHeightPx;
-    const x = width / 2 - w / 2;
-    const y = CFG.bossHealthBarYPx;
+    const frameW = CFG.bossHealthBarFrameWidthPx;
+    const frameH = frameW * (52.5 / 375);
+    const frameLeft = width / 2 - frameW / 2;
+    const frameTop = CFG.bossHealthBarYPx;
+    this.bossHealthFrame.setVisible(true);
+
+    // Interior region of the frame where the fill lives.
+    const insetX = frameW * CFG.bossHealthBarFillInsetXFrac;
+    const insetY = frameH * CFG.bossHealthBarFillInsetYFrac;
+    const interiorX = frameLeft + insetX;
+    const interiorY = frameTop + insetY;
+    const interiorW = frameW - insetX * 2;
+    const interiorH = frameH - insetY * 2;
+
+    const hpFrac = Phaser.Math.Clamp(this.bossHp / CFG.bossHp, 0, 1);
+    const emptyW = interiorW * (1 - hpFrac);
+
     const g = this.bossHealthBar;
     g.clear();
-    // Frame
-    g.fillStyle(0x1a1a1a, 0.65);
-    g.fillRoundedRect(x - 3, y - 3, w + 6, h + 6, 5);
-    g.fillStyle(0x3a1010, 1);
-    g.fillRoundedRect(x, y, w, h, 3);
-    const fillW = Math.max(0, (this.bossHp / CFG.bossHp) * (w - 4));
-    g.fillStyle(0xff6b6b, 1);
-    g.fillRoundedRect(x + 2, y + 2, fillW, h - 4, 2);
+    // Darken the depleted (right) portion so HP reads regardless of the
+    // frame art's baked-in fill.
+    if (emptyW > 0.5) {
+      g.fillStyle(0x140404, 0.78);
+      g.fillRect(interiorX + (interiorW - emptyW), interiorY, emptyW, interiorH);
+    }
+
     // Label
     if (!this.bossLabelDrawn) {
-      this.add.text(width / 2, y - 12, 'GIANT SAND TARANTULA', {
+      this.add.text(width / 2, frameTop - 6, 'GIANT SAND TARANTULA', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '14px',
         color: '#ffd5a8',
         fontStyle: 'bold',
-      }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(15);
+      }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(16);
       this.bossLabelDrawn = true;
     }
   }
   private bossLabelDrawn = false;
+  private bossHealthFrame!: Phaser.GameObjects.Image;
 
   private defeatBoss(): void {
     this.phase = 'bossDefeated';
@@ -1098,6 +1152,7 @@ export class DesertDashScene extends Phaser.Scene {
     this.parallaxFar.tilePositionX += advance * CFG.parallaxFarMult;
     this.parallaxMid.tilePositionX += advance * CFG.parallaxMidMult;
     this.parallaxNear.tilePositionX += advance * CFG.parallaxNearMult;
+    this.floorVisual.tilePositionX += advance;
 
     // Keep spawning + scrolling stars so the player sees foreground objects
     // sweeping past during the run to the finish. Without this the parallax

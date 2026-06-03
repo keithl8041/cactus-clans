@@ -1,10 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { LandingPage } from './shell/LandingPage';
 import { SplashScreen } from './shell/SplashScreen';
 import { NicknameEntry } from './shell/NicknameEntry';
 import { ClanSelect } from './shell/ClanSelect';
 import { LevelMap } from './shell/LevelMap';
 import { Leaderboard } from './shell/Leaderboard';
+import { StorePage } from './shell/StorePage';
 import { Footer } from './shell/Footer';
 
 // Phaser is heavy — only load it when the player actually opens a level.
@@ -24,7 +26,8 @@ export function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<SplashScreen />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/game" element={<SplashScreen />} />
         <Route path="/nickname" element={<NicknameEntry />} />
         <Route path="/clans" element={<ClanSelect />} />
         <Route path="/journey" element={<LevelMap />} />
@@ -37,6 +40,7 @@ export function App() {
           }
         />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/shop" element={<StorePage />} />
         <Route
           path="/versus/:code"
           element={

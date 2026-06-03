@@ -1,10 +1,11 @@
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export function Footer() {
   const { pathname } = useLocation();
   const showCredit = pathname === '/leaderboard';
-  // Splash already has its own "Like the cards?" CTA — don't duplicate it here.
-  const showPayhipLink = pathname !== '/';
+  // The landing page (/) and the splash (/game) both carry their own card CTA,
+  // and the shop page IS the card set — so don't show the footer link there.
+  const showPayhipLink = pathname !== '/' && pathname !== '/game' && pathname !== '/shop';
   if (!showCredit && !showPayhipLink) return null;
   return (
     <footer className="app-footer">
@@ -17,14 +18,9 @@ export function Footer() {
         </>
       )}
       {showPayhipLink && (
-        <a
-          className="footer-link"
-          href="https://payhip.com/b/SCwL1"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Link className="footer-link" to="/shop">
           Get the printable card set
-        </a>
+        </Link>
       )}
     </footer>
   );

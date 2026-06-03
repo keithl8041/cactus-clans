@@ -59,7 +59,11 @@ export const DESERT_DASH_CONFIG = {
   jumpButtonMargin: 18,
 
   // Ground / sky
-  floorPaddingPx: 60,                  // visible sand strip height
+  floorPaddingPx: 60,                  // visible sand strip height (matches game8-floor.png height)
+  // The player and obstacles rest with their base embedded this far below the
+  // TOP of the sand strip — i.e. ~2/3 of the way up the 60px strip — so they
+  // read as standing in the sand rather than floating on its top edge.
+  floorEmbedPx: 20,
   skyHeightFraction: 0.62,
 
   // Parallax scroll multipliers
@@ -67,15 +71,20 @@ export const DESERT_DASH_CONFIG = {
   parallaxMidMult: 0.35,
   parallaxNearMult: 0.85,
 
-  // Background palette (sunset to differentiate from L6's dusk-blue and L7's sand)
+  // Background fill behind the parallax layers (the full-canvas parallax PNGs
+  // cover this, but it guards against any letterbox/scale gap).
   backgroundColor: 0x6a3a5a,
-  groundColor: 0xc88a55,
 
   // ----- Boss phase -----
   bossHp: 3,
   bossSize: 180,                       // tarantula scaled big
   bossArenaXFraction: 0.78,            // boss home position (x)
-  bossGroundYOffset: 18,               // raise off the floor a touch
+  bossGroundYOffset: 0,                // raise off the embedded ground line (keep small — the boss must stay jump-on-able)
+  // tarantula.png has ~22% transparent padding below the spider's body, so
+  // anchoring by the sprite's bounding box leaves the visible legs floating.
+  // Sink the anchor by this fraction of the display height so the visible feet
+  // rest on the ground (the transparent padding tucks below the sand line).
+  bossArtBottomPadFrac: 0.22,
   bossIntroMs: 1100,                   // boss skitter-in animation
   bossTelegraphMs: 700,                // rear-up wind-up before the leap
   bossLeapMs: 950,                     // time of the leap arc
@@ -106,8 +115,10 @@ export const DESERT_DASH_CONFIG = {
   bossLobSecondDelayMs: 380,           // delay before the second cactus
   bossLobCycleMs: 1800,                // substate duration before the next attack begins
 
-  // Boss UI
-  bossHealthBarWidthPx: 220,
-  bossHealthBarHeightPx: 16,
+  // Boss UI — the frame is the game8-boss-health-bar.svg art; the red fill is
+  // drawn dynamically inside it, inset by these fractions of the frame size.
+  bossHealthBarFrameWidthPx: 300,
+  bossHealthBarFillInsetXFrac: 0.085,
+  bossHealthBarFillInsetYFrac: 0.30,
   bossHealthBarYPx: 70,
 } as const;

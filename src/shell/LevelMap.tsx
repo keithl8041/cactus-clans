@@ -22,6 +22,11 @@ export function LevelMap() {
 
   if (!player || !run) return null;
 
+  // Test convenience: on localhost, every level is playable regardless of
+  // progress so we can jump straight to any mini-game. Real deploys are gated.
+  const devUnlockAll =
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
   const clan = clanByName(run.clan);
   const cleared = highestClearedLevel(run);
   const currentForm = Math.min(cleared + 1, MAX_LEVEL);
@@ -77,8 +82,8 @@ export function LevelMap() {
           let cls = 'level-node';
           if (n <= cleared) cls += ' cleared';
           else if (n === cleared + 1) cls += ' current';
-          else cls += ' locked';
-          const clickable = level != null && n <= cleared + 1;
+          else if (!devUnlockAll) cls += ' locked';
+          const clickable = level != null && (devUnlockAll || n <= cleared + 1);
           const titleText = level
             ? n <= cleared
               ? `${level.title} (replay)`
@@ -104,7 +109,7 @@ export function LevelMap() {
       </div>
 
       <div className="row">
-        <button onClick={() => navigate('/', { state: { pickPlayer: true } })}>Switch player</button>
+        <button onClick={() => navigate('/game', { state: { pickPlayer: true } })}>Switch player</button>
         {cleared >= MAX_LEVEL && !run.completedAt && (
           <button className="primary" onClick={finishRun}>Submit run</button>
         )}

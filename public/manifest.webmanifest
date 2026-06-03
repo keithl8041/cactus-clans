@@ -2,7 +2,7 @@
   "name": "Cactus Clans",
   "short_name": "Cactus Clans",
   "description": "Mini-game journey through the prickly cactus tribes.",
-  "start_url": "/",
+  "start_url": "/game",
   "scope": "/",
   "display": "standalone",
   "orientation": "landscape",

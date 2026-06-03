@@ -55,7 +55,9 @@ export function ClanSelect() {
           return (
             <div
               key={clan.name}
-              className={`card-tile${selected === clan.name ? ' selected' : ''}`}
+              className={`card-tile${selected === clan.name ? ' selected' : ''}${
+                selectable ? '' : ' card-tile--locked'
+              }`}
               onClick={selectable ? () => setSelected(clan.name) : undefined}
             >
               <img src={url} alt={clan.name} />
@@ -67,7 +69,7 @@ export function ClanSelect() {
         })}
       </div>
       <div className="row">
-        <button onClick={() => navigate('/', { state: { pickPlayer: true } })}>Back</button>
+        <button onClick={() => navigate('/game', { state: { pickPlayer: true } })}>Back</button>
         <button className="primary" disabled={!selected || busy} onClick={confirm}>
           {busy ? 'Starting…' : selected ? `Begin as ${selected}` : 'Pick a clan'}
         </button>

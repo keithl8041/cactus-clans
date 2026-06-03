@@ -12,6 +12,7 @@
 // placeholder when clan-specific art hasn't landed yet.
 
 import { balloonSvg, type BalloonOptions } from './placeholders/balloon';
+import { breadcrumbSvg, type BreadcrumbOptions } from './placeholders/breadcrumb';
 import { camelSvg, type CamelOptions } from './placeholders/camel';
 import { clanCardSvg, type ClanCardOptions } from './placeholders/clanCard';
 import { characterSvg, type CharacterOptions } from './placeholders/character';
@@ -33,6 +34,7 @@ import { wateringCanSvg, type WateringCanOptions } from './placeholders/watering
 
 export type AssetOptions =
   | BalloonOptions
+  | BreadcrumbOptions
   | CamelOptions
   | ClanCardOptions
   | CharacterOptions
@@ -139,8 +141,20 @@ export const ASSETS: Record<string, AssetEntry> = {
   'dune.artifact.1': { kind: 'image', src: '/art/game7-artifact-1.png' },
   'dune.artifact.2': { kind: 'image', src: '/art/game7-artifact-2.png' },
   'dune.artifact.3': { kind: 'image', src: '/art/game7-artifact-3.png' },
-  'dune.breadcrumb': { kind: 'image', src: '/art/game7-breadcrumb.png' },
+  'dune.breadcrumb': { kind: 'svg', generate: (opts) => breadcrumbSvg(opts as BreadcrumbOptions) },
   'dune.compass': { kind: 'image', src: '/art/game7-compass.svg' },
+  // Desert Dash (level 8). Dedicated parallax/star keys — do NOT reuse the
+  // shared `desert.parallax.*` (Camel Race) or `star` (Balloon) keys.
+  'game8.parallax.far': { kind: 'image', src: '/art/game8-parallax-far.png' },
+  'game8.parallax.mid': { kind: 'image', src: '/art/game8-parallax-mid.png' },
+  'game8.parallax.near': { kind: 'image', src: '/art/game8-parallax-near.png' },
+  'game8.floor': { kind: 'image', src: '/art/game8-floor.png' },
+  'game8.star': { kind: 'image', src: '/art/game8-star.svg' },
+  'game8.jumpButton': { kind: 'image', src: '/art/game8-button-jump.png' },
+  'game8.bossHealthBar': { kind: 'image', src: '/art/game8-boss-health-bar.svg' },
+  'game8.prop.a': { kind: 'image', src: '/art/game8-cactus-prop-a.png' },
+  'game8.prop.b': { kind: 'image', src: '/art/game8-cactus-prop-b.png' },
+  'game8.prop.c': { kind: 'image', src: '/art/game8-cactus-prop-c.png' },
   wateringCan: { kind: 'svg', generate: (opts) => wateringCanSvg(opts as WateringCanOptions) },
 };
 
