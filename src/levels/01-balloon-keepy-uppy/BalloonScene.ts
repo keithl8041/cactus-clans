@@ -587,7 +587,7 @@ export class BalloonScene extends Phaser.Scene {
   }
 
   private handleTimeout(): void {
-    const message = this.passed ? 'Time’s up — level cleared!' : "Time's up!";
+    const message = this.passed ? "Time's up — level cleared!" : "Time's up!";
     this.finish(message, false);
   }
 
