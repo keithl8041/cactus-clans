@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
 import { assetUrl, resolveCardKey } from '../assets/manifest';
 
 // The creators' intro — the first thing a web visitor sees at `/`. It tells the
 // origin story of the game (who made it, how, and why) and showcases the cards,
-// then offers a direct path into gameplay (/game).
+// then offers the two choices: get the printable set (/shop) or play the game (/game).
 // NOTE: do NOT import from `phaser` or `src/levels/registry.ts` here — this page
 // is eagerly loaded, and pulling Phaser in would bloat the main bundle.
 
@@ -23,8 +23,8 @@ const STORY_TABS = [
     label: 'Who made it',
     body: (
       <p className="placeholder">
-        [Copy coming soon.] Built by Sonny, Leo, Toby, Felix &amp; Jasper — a group of school
-        friends — together with their parents.
+        [Copy coming soon.] Built by Sonny, Leo & Felix - a group of school
+        friends, with amazing support and feedback from their siblings Toby, Jasper & Jessie.
       </p>
     ),
   },
@@ -45,8 +45,7 @@ const STORY_TABS = [
       <>
         <p>
           Cactus Clans is <strong>open</strong> — that means the whole project, every line of
-          code and every drawing, is published for anyone to read, copy and change for any
-          non-commercial use, like learning and tinkering. There's no secret recipe: you can see
+          code and every drawing, is published for anyone to read, copy and change. There's no secret recipe: you can see
           exactly how it works and make it your own.
         </p>
         <p>
@@ -81,6 +80,9 @@ export function LandingPage() {
         <img src="/logo.png" alt="Cactus Clans" className="logo" />
         <p className="landing-tagline">An adventure through the prickly wilds</p>
         <div className="row">
+          <Link className="button-link" to="/shop">
+            Get the printable card set →
+          </Link>
           <button className="primary" onClick={() => navigate('/game')}>
             Play the game
           </button>
@@ -144,6 +146,9 @@ export function LandingPage() {
       <section className="landing-cta-band">
         <h2>Ready?</h2>
         <div className="row">
+          <Link className="button-link" to="/shop">
+            Get the printable card set →
+          </Link>
           <button className="primary" onClick={() => navigate('/game')}>
             Play the game
           </button>
