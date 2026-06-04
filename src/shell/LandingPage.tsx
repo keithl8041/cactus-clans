@@ -44,9 +44,10 @@ const STORY_TABS = [
     body: (
       <>
         <p>
-          Cactus Clans is <strong>open source</strong> — that means the whole project, every line of
-          code and every drawing, is published for anyone to read, copy and change. There's no secret
-          recipe: you can see exactly how it works and make it your own.
+          Cactus Clans is <strong>open</strong> — that means the whole project, every line of
+          code and every drawing, is published for anyone to read, copy and change for any
+          non-commercial use, like learning and tinkering. There's no secret recipe: you can see
+          exactly how it works and make it your own.
         </p>
         <p>
           It's a brilliant way to learn. Grab a kid, open the code together, and tinker — add a new
