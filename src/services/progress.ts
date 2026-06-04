@@ -111,6 +111,7 @@ async function syncRunToServer(run: RunProgress): Promise<RunProgress> {
       runId: created.id,
       startedAt: created.startedAt,
     };
+    writeRun(next);
   }
 
   for (const level of sortedLevels(next)) {
@@ -148,7 +149,8 @@ async function flushPendingRun(playerId: string): Promise<RunProgress | null> {
   try {
     return await syncRunToServer(run);
   } catch (err) {
-    const pending = markPendingSync(run, err);
+    const latest = readRun(playerId);
+    const pending = markPendingSync(latest ?? run, err);
     writeRun(pending);
     scheduleRunRetry(playerId);
     return pending;
@@ -386,7 +388,8 @@ export async function recordLevelResult(
       clearRunRetry(run.playerId);
       return synced;
     } catch (err) {
-      const pending = markPendingSync(next, err);
+      const latest = readRun(run.playerId);
+      const pending = markPendingSync(latest ?? next, err);
       writeRun(pending);
       scheduleRunRetry(run.playerId);
       return pending;
@@ -413,7 +416,8 @@ export async function completeRun(run: RunProgress): Promise<RunProgress> {
       clearRunRetry(run.playerId);
       return synced;
     } catch (err) {
-      const pending = markPendingSync(next, err);
+      const latest = readRun(run.playerId);
+      const pending = markPendingSync(latest ?? next, err);
       writeRun(pending);
       scheduleRunRetry(run.playerId);
       return pending;
