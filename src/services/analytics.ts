@@ -59,7 +59,11 @@ export function initAnalytics(): void {
  */
 export function trackEvent(name: string, params?: Record<string, unknown>): void {
   if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
-  window.gtag('event', name, params);
+  try {
+    window.gtag('event', name, params);
+  } catch (err) {
+    console.warn('analytics event dropped', err);
+  }
 }
 
 declare global {

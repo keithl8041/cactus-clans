@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { LandingPage } from './shell/LandingPage';
 import { SplashScreen } from './shell/SplashScreen';
@@ -8,6 +8,12 @@ import { LevelMap } from './shell/LevelMap';
 import { Leaderboard } from './shell/Leaderboard';
 import { StorePage } from './shell/StorePage';
 import { Footer } from './shell/Footer';
+import { useGameStore } from './store/gameStore';
+import {
+  DEFAULT_PENDING_SYNC_MESSAGE,
+  RUN_CHANGE_EVENT,
+  type RunChangeDetail,
+} from './services/progress';
 
 // Phaser is heavy — only load it when the player actually opens a level.
 const GameContainer = lazy(() =>
@@ -21,10 +27,29 @@ const VersusLobby = lazy(() =>
 
 export function App() {
   const location = useLocation();
+  const playerId = useGameStore((s) => s.player?.id);
+  const run = useGameStore((s) => s.run);
+  const setRun = useGameStore((s) => s.setRun);
   // Hide the footer in-game so it doesn't overlap Phaser scenes.
   const inGame = location.pathname.startsWith('/play/');
+
+  useEffect(() => {
+    function onRunChange(event: Event) {
+      const { playerId: changedPlayerId, run: nextRun } = (event as CustomEvent<RunChangeDetail>).detail;
+      if (playerId && changedPlayerId === playerId) setRun(nextRun);
+    }
+
+    window.addEventListener(RUN_CHANGE_EVENT, onRunChange);
+    return () => window.removeEventListener(RUN_CHANGE_EVENT, onRunChange);
+  }, [playerId, setRun]);
+
   return (
     <>
+      {run?.pendingSync && (
+        <div className="sync-banner" role="status">
+          {run.lastSyncError ?? DEFAULT_PENDING_SYNC_MESSAGE}
+        </div>
+      )}
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/game" element={<SplashScreen />} />
