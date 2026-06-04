@@ -107,7 +107,8 @@ export class BalloonScene extends Phaser.Scene {
     this.startedAt = this.time.now;
     this.scheduleWind();
     this.scheduleStar(CFG.starFirstDelayMs);
-    this.timeoutTimer = this.time.delayedCall(CFG.timeLimitMs, () => this.finish("Time's up!", false));
+    this.timeoutTimer = this.time.delayedCall(CFG.timeLimitMs, () =>
+      this.finish(this.passed ? 'Time’s up — level cleared!' : "Time's up!", false));
   }
 
   update(): void {
@@ -369,9 +370,9 @@ export class BalloonScene extends Phaser.Scene {
 
   /**
    * Threshold reached — next level is now unlocked, but the player keeps going
-   * until the balloon pops. The unlock cue + a brief celebration overlay tell
-   * them they're safe, then play continues. `passed` is stamped onto the final
-   * result whenever they eventually fail.
+   * until the timer expires or the balloon pops. The unlock cue + a brief
+   * celebration overlay tell them they're safe, then play continues for bonus
+   * hits. `passed` is stamped onto the final result when the run ends.
    */
   private markUnlocked(): void {
     this.passed = true;
@@ -589,9 +590,9 @@ export class BalloonScene extends Phaser.Scene {
   // ----- End state -----
 
   /**
-   * The only way a run ends — the balloon pops. If `passed` is set the player
-   * already hit the threshold and the result screen shows "Cleared"; otherwise
-   * it shows "Try again".
+   * Ends the run when the balloon pops or the countdown expires. If `passed` is
+   * set the player already hit the threshold and the result screen shows the
+   * successful final-hit summary; otherwise it shows the failure message.
    */
   private finish(message: string, popped: boolean): void {
     if (this.finished) return;
