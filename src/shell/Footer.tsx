@@ -13,8 +13,8 @@ export function Footer() {
         <>
           made with <span aria-hidden="true">❤️</span>{' '}
           <span className="visually-hidden">love </span>
-          by Sonny, Leo, Toby, Felix &amp; Jasper
-          {showPayhipLink && ' · '}
+          by Sonny, Leo & Felix with help from their siblings Toby, Jasper & Jessie.
+          {showPayhipLink && <br />}
         </>
       )}
       {showPayhipLink && (
