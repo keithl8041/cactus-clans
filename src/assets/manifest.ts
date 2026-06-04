@@ -10,6 +10,13 @@
 // opts)` instead. For per-clan/per-form variants, use `resolveBalloonKey` /
 // `resolveCharacterKey` so callers automatically fall back to the procedural
 // placeholder when clan-specific art hasn't landed yet.
+//
+// CONVENTION: image PNGs must be TIGHTLY CROPPED to their content. Scenes size
+// sprites via setDisplaySize()/setScale() against the whole frame, so a sprite
+// with large transparent margins renders its art far too small. (A regenerated
+// game4-water-droplet.png with ~90% transparent padding made the L4 droplets
+// invisible — the art scaled to ~2px.) When recompressing/regenerating art,
+// keep the crop tight.
 
 import { balloonSvg, type BalloonOptions } from './placeholders/balloon';
 import { breadcrumbSvg, type BreadcrumbOptions } from './placeholders/breadcrumb';
@@ -62,6 +69,8 @@ export type AssetEntry =
 export const ASSETS: Record<string, AssetEntry> = {
   balloon: { kind: 'svg', generate: (opts) => balloonSvg(opts as BalloonOptions) },
   'balloon.prickling': { kind: 'image', src: '/art/balloon-prickling-clan.png' },
+  // SHARED across levels — used by L1 (Balloon), L4 (Cactus Care), L8 (Desert
+  // Dash boss spikes) and Versus. Repoint with care; changes hit every one.
   'cactus.spike': { kind: 'image', src: '/art/cactus-spike.png' },
   'cactus.spike.game2': { kind: 'image', src: '/art/cactus-spike-game2.png' },
   'cactus.spike.game6': { kind: 'image', src: '/art/game6-cactus-dart.png' },
@@ -125,14 +134,14 @@ export const ASSETS: Record<string, AssetEntry> = {
   rainOverlay: { kind: 'svg', generate: (opts) => rainOverlaySvg(opts as RainOverlayOptions) },
   star: { kind: 'svg', generate: (opts) => starSvg(opts as StarOptions) },
   sunOverlay: { kind: 'svg', generate: (opts) => sunOverlaySvg(opts as SunOverlayOptions) },
-  tarantula: { kind: 'image', src: '/art/tarantula.png' },
+  tarantula: { kind: 'image', src: '/art/tarantula.png' }, // SHARED: L5 (Cactus Slicing) + L8 (Desert Dash boss)
   camel: { kind: 'svg', generate: (opts) => camelSvg(opts as CamelOptions) },
-  rock: { kind: 'image', src: '/art/rock.png' },
+  rock: { kind: 'image', src: '/art/rock.png' }, // SHARED: L2 (Camel Race) + L8 (Desert Dash)
   waterFlask: { kind: 'image', src: '/art/water-flask.png' },
   'desert.parallax.far': { kind: 'image', src: '/art/desert-parallax-far.png' },
   'desert.parallax.mid': { kind: 'image', src: '/art/desert-parallax-mid.png' },
   'desert.parallax.near': { kind: 'image', src: '/art/desert-parallax-near.png' },
-  finishBanner: { kind: 'image', src: '/art/finish-banner.png' },
+  finishBanner: { kind: 'image', src: '/art/finish-banner.png' }, // SHARED: L2 (Camel Race) + L8 (Desert Dash)
   'dune.floor': { kind: 'image', src: '/art/game7-floor.png' },
   'dune.wall': { kind: 'image', src: '/art/game7-wall.png' },
   'dune.quicksand': { kind: 'image', src: '/art/game7-quicksand.png' },
