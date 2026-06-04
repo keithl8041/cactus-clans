@@ -107,8 +107,7 @@ export class BalloonScene extends Phaser.Scene {
     this.startedAt = this.time.now;
     this.scheduleWind();
     this.scheduleStar(CFG.starFirstDelayMs);
-    this.timeoutTimer = this.time.delayedCall(CFG.timeLimitMs, () =>
-      this.finish(this.passed ? 'Time’s up — level cleared!' : "Time's up!", false));
+    this.timeoutTimer = this.time.delayedCall(CFG.timeLimitMs, () => this.handleTimeout());
   }
 
   update(): void {
@@ -587,6 +586,11 @@ export class BalloonScene extends Phaser.Scene {
     });
   }
 
+  private handleTimeout(): void {
+    const message = this.passed ? 'Time’s up — level cleared!' : "Time's up!";
+    this.finish(message, false);
+  }
+
   // ----- End state -----
 
   /**
@@ -594,11 +598,11 @@ export class BalloonScene extends Phaser.Scene {
    * set the player already hit the threshold and the result screen shows the
    * successful final-hit summary; otherwise it shows the failure message.
    */
-  private finish(message: string, popped: boolean): void {
+  private finish(message: string, playPopSound: boolean): void {
     if (this.finished) return;
     this.finished = true;
     this.cancelTimers();
-    if (popped) sfx.pop();
+    if (playPopSound) sfx.pop();
     const elapsedMs = this.time.now - this.startedAt;
     this.balloon.setActive(false).setVisible(false);
     const headline = this.passed
