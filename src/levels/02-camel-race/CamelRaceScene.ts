@@ -190,7 +190,8 @@ export class CamelRaceScene extends Phaser.Scene {
     }
 
     // Spawn obstacles + pickups one screen ahead
-    while (this.nextObstacleSpawnX < this.distanceCovered + width + 200) {
+    const obstacleSpawnLimit = CFG.courseDistancePx - CFG.obstacleFinishClearDistancePx;
+    while (this.nextObstacleSpawnX < this.distanceCovered + width + 200 && this.nextObstacleSpawnX <= obstacleSpawnLimit) {
       this.spawnObstacleRow(this.nextObstacleSpawnX);
       this.nextObstacleSpawnX += this.currentObstacleGap();
     }

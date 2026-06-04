@@ -44,6 +44,7 @@ export const CAMEL_RACE_CONFIG = {
   obstacleEndGapPx: 360,
   obstacleLanesAtOnceStart: 1,
   obstacleLanesAtOnceEnd: 2,
+  obstacleFinishClearDistancePx: 1200,  // keep the finish stretch clear of obstacles
   obstacleRockChance: 0.55,            // chance of rock vs cactus
   obstacleSize: 80,
 

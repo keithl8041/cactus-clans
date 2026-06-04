@@ -49,8 +49,8 @@ export const DESERT_DASH_CONFIG = {
   starSpawnJitter: 0.30,
   starSize: 56,
   starBonusPoints: 5,
-  starHighYFraction: 0.40,             // require double-jump (height of canvas)
-  starLowYFraction: 0.55,
+  starHighYFraction: 0.48,             // reachable with a double-jump
+  starLowYFraction: 0.63,              // reachable with a single jump
   starHighChance: 0.45,                // chance a star spawns high vs low
   starColliderRadiusPx: 50,
 
@@ -99,17 +99,22 @@ export const DESERT_DASH_CONFIG = {
 
   // Spike spit attack (high projectile — player must NOT jump into it).
   bossSpitMs: 1200,                    // travel time across the arena
-  bossSpitSpeed: 520,                  // px/sec horizontal projectile speed (leftward)
+  bossSpitSpeed: 680,                  // px/sec horizontal projectile speed (leftward)
+  bossSpitYOffsetMinPx: -96,           // random launch height range relative to boss center
+  bossSpitYOffsetMaxPx: -24,
   bossSpitColliderRadiusPx: 38,
   bossSpitSize: 56,
 
   // Cactus lob attack (low projectile that arcs then rolls along the ground —
   // player must JUMP over it). Cycles after leap and spit.
   bossLobSize: 60,
-  bossLobLaunchVx: -360,               // initial leftward velocity at toss
-  bossLobLaunchVy: -560,               // initial upward velocity at toss
+  bossLobLaunchVx: -420,               // initial leftward velocity at toss
+  bossLobLaunchVyMin: -660,            // randomized arc height range
+  bossLobLaunchVyMax: -500,
   bossLobGravity: 1800,                // px/sec² applied to the lob in-flight
-  bossLobRollSpeed: -340,              // leftward roll speed once landed
+  bossLobRollSpeed: -420,              // leftward roll speed once landed
+  bossLobSpawnYOffsetMinPx: -90,       // random toss height range relative to boss center
+  bossLobSpawnYOffsetMaxPx: -45,
   bossLobColliderRadiusPx: 34,
   bossLobDoubleChance: 0.55,           // chance the boss tosses a second cactus
   bossLobSecondDelayMs: 380,           // delay before the second cactus

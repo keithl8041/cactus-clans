@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
 import { assetUrl, resolveCardKey } from '../assets/manifest';
 
 // The creators' intro — the first thing a web visitor sees at `/`. It tells the
 // origin story of the game (who made it, how, and why) and showcases the cards,
-// then offers the two choices: get the printable set (/shop) or play the game (/game).
+// then offers a direct path into gameplay (/game).
 // NOTE: do NOT import from `phaser` or `src/levels/registry.ts` here — this page
 // is eagerly loaded, and pulling Phaser in would bloat the main bundle.
 
@@ -81,9 +81,6 @@ export function LandingPage() {
         <img src="/logo.png" alt="Cactus Clans" className="logo" />
         <p className="landing-tagline">An adventure through the prickly wilds</p>
         <div className="row">
-          <Link className="button-link" to="/shop">
-            Get the printable card set →
-          </Link>
           <button className="primary" onClick={() => navigate('/game')}>
             Play the game
           </button>
@@ -147,9 +144,6 @@ export function LandingPage() {
       <section className="landing-cta-band">
         <h2>Ready?</h2>
         <div className="row">
-          <Link className="button-link" to="/shop">
-            Get the printable card set →
-          </Link>
           <button className="primary" onClick={() => navigate('/game')}>
             Play the game
           </button>

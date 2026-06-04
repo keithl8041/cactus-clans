@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { LevelInstructions } from '../levels/types';
 
 interface Props {
@@ -11,6 +11,8 @@ interface Props {
 }
 
 export function InstructionsModal({ levelNumber, title, passThreshold, instructions, onStart, onCancel }: Props) {
+  const modalRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Enter' || e.code === 'Space') {
@@ -25,9 +27,19 @@ export function InstructionsModal({ levelNumber, title, passThreshold, instructi
     return () => window.removeEventListener('keydown', onKey);
   }, [onStart, onCancel]);
 
+  useEffect(() => {
+    const modal = modalRef.current;
+    if (!modal) return;
+    modal.scrollTop = 0;
+    const frame = window.requestAnimationFrame(() => {
+      modal.scrollTop = 0;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [levelNumber, title, instructions]);
+
   return (
     <div className="instructions-backdrop">
-      <div className="instructions-modal">
+      <div className="instructions-modal" ref={modalRef}>
         <div>
           <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             Level {levelNumber}
