@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { DuneMazeScene } from './DuneMazeScene';
 import { DUNE_MAZE_CONFIG } from './config';
 
@@ -22,5 +22,5 @@ export const duneMazeLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new DuneMazeScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(1.42),
 };

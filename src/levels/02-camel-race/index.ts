@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { CamelRaceScene } from './CamelRaceScene';
 import { CAMEL_RACE_CONFIG } from './config';
 
@@ -22,5 +22,5 @@ export const camelRaceLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new CamelRaceScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(0.25),
 };

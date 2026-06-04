@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { LizardWhackScene } from './LizardWhackScene';
 import { LIZARD_WHACK_CONFIG } from './config';
 
@@ -22,5 +22,5 @@ export const lizardWhackLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new LizardWhackScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(0.67),
 };

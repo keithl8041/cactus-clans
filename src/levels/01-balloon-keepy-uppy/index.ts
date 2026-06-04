@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { BalloonScene } from './BalloonScene';
 import { BALLOON_CONFIG } from './config';
 
@@ -9,7 +9,7 @@ export const balloonLevel: LevelDefinition = {
   blurb: 'Bounce the balloon off your head. Tap to jump, hold left/right to move — keep it off the spikes!',
   passThreshold: BALLOON_CONFIG.passThreshold,
   instructions: {
-    objective: `Head-bonk the balloon ${BALLOON_CONFIG.passThreshold} times without letting it touch the ground or any cactus spike.`,
+    objective: `Head-bonk the balloon ${BALLOON_CONFIG.passThreshold} times within ${BALLOON_CONFIG.timeLimitMs / 1000} seconds without letting it touch the ground or any cactus spike. Once the level is unlocked, any extra hits before the timer expires boost your score.`,
     controls: [
       { label: 'Move', value: 'Hold the left or right half of the screen · ← → or A / D (keyboard)' },
       { label: 'Jump', value: 'Tap the ↑ button or swipe up anywhere (touch) · Space, W, or ↑ (keyboard)' },
@@ -22,5 +22,5 @@ export const balloonLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new BalloonScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(2.3),
 };
