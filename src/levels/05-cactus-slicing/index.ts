@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { CactusSlicingScene } from './CactusSlicingScene';
 import { CACTUS_SLICING_CONFIG } from './config';
 
@@ -23,5 +23,5 @@ export const cactusSlicingLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new CactusSlicingScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(0.24),
 };

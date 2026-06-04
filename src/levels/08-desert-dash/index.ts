@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { DesertDashScene } from './DesertDashScene';
 import { DESERT_DASH_CONFIG } from './config';
 
@@ -23,5 +23,5 @@ export const desertDashLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new DesertDashScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(0.49),
 };

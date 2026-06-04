@@ -56,6 +56,7 @@ export class BalloonScene extends Phaser.Scene {
   private lastHitAt = 0;
   private windTimer?: Phaser.Time.TimerEvent;
   private windResetTimer?: Phaser.Time.TimerEvent;
+  private timeoutTimer?: Phaser.Time.TimerEvent;
 
   constructor(ctx: LevelContext) {
     super({ key: 'BalloonScene' });
@@ -106,13 +107,15 @@ export class BalloonScene extends Phaser.Scene {
     this.startedAt = this.time.now;
     this.scheduleWind();
     this.scheduleStar(CFG.starFirstDelayMs);
+    this.timeoutTimer = this.time.delayedCall(CFG.timeLimitMs, () => this.fail("Time's up!"));
   }
 
   update(): void {
     if (this.finished) return;
 
     const elapsedMs = this.time.now - this.startedAt;
-    this.timeText.setText(`Time: ${(elapsedMs / 1000).toFixed(1)}s`);
+    const remainingMs = Math.max(0, CFG.timeLimitMs - elapsedMs);
+    this.timeText.setText(`Time: ${(remainingMs / 1000).toFixed(1)}s`);
 
     // Movement: hold-zone touches and keyboard arrows feed the same left/right
     // intent. If both sides are held (left finger + right finger, or arrow keys
@@ -229,7 +232,7 @@ export class BalloonScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(10);
 
-    this.timeText = this.add.text(width - 16, 16, 'Time: 0.0s', {
+    this.timeText = this.add.text(width - 16, 16, `Time: ${(CFG.timeLimitMs / 1000).toFixed(1)}s`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '24px',
       color: '#f3efe0',
@@ -612,6 +615,7 @@ export class BalloonScene extends Phaser.Scene {
   }
 
   private cancelTimers(): void {
+    this.timeoutTimer?.remove();
     this.windTimer?.remove();
     this.windResetTimer?.remove();
     this.starSpawnTimer?.remove();

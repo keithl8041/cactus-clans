@@ -61,3 +61,11 @@ export function defaultScoreFor(r: LevelResult): number {
   const bonus = r.bonusPoints ?? 0;
   return Math.max(0, r.miniGamePoints * 10 + bonus - Math.floor(r.elapsedMs / 1000));
 }
+
+export function scaledDefaultScoreFor(scoreMultiplier: number): (r: LevelResult) => number {
+  return (r: LevelResult) => {
+    const bonus = r.bonusPoints ?? 0;
+    const scaledPoints = Math.round((r.miniGamePoints * 10 + bonus) * scoreMultiplier);
+    return Math.max(0, scaledPoints - Math.floor(r.elapsedMs / 1000));
+  };
+}

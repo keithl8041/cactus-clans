@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { CactusCareScene } from './CactusCareScene';
 import { CACTUS_CARE_CONFIG } from './config';
 
@@ -22,5 +22,5 @@ export const cactusCareLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new CactusCareScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(1.6),
 };

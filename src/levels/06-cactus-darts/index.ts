@@ -1,4 +1,4 @@
-import { defaultScoreFor, type LevelDefinition } from '../types';
+import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
 import { CactusDartsScene } from './CactusDartsScene';
 import { CACTUS_DARTS_CONFIG } from './config';
 
@@ -22,5 +22,5 @@ export const cactusDartsLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new CactusDartsScene(ctx),
-  scoreFor: defaultScoreFor,
+  scoreFor: scaledDefaultScoreFor(0.28),
 };
