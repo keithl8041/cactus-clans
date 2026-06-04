@@ -838,12 +838,12 @@ export class DesertDashScene extends Phaser.Scene {
     const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.3, this.boss.y + spawnYOffset, 'cactus.spike').setDepth(8);
     sprite.setScale(CFG.bossLobSize / sprite.height);
     const vxJitter = Phaser.Math.Between(-60, 60);
-    const launchVy = Phaser.Math.Between(CFG.bossLobLaunchVyMin, CFG.bossLobLaunchVyMax);
+    const lobLaunchVy = Phaser.Math.Between(CFG.bossLobLaunchVyMin, CFG.bossLobLaunchVyMax);
     const groundY = this.scale.height - CFG.floorPaddingPx + CFG.floorEmbedPx - CFG.bossLobSize / 2;
     this.lobs.push({
       sprite,
       vx: CFG.bossLobLaunchVx + vxJitter,
-      vy: launchVy,
+      vy: lobLaunchVy,
       landed: false,
       spent: false,
       groundY,
