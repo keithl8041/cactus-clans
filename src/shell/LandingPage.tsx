@@ -23,8 +23,8 @@ const STORY_TABS = [
     label: 'Who made it',
     body: (
       <p className="placeholder">
-        [Copy coming soon.] Built by Sonny, Leo, Toby, Felix &amp; Jasper — a group of school
-        friends — together with their parents.
+        [Copy coming soon.] Built by Sonny, Leo & Felix - a group of school
+        friends, with amazing support and feedback from their siblings Toby, Jasper & Jessie.
       </p>
     ),
   },
@@ -45,8 +45,7 @@ const STORY_TABS = [
       <>
         <p>
           Cactus Clans is <strong>open</strong> — that means the whole project, every line of
-          code and every drawing, is published for anyone to read, copy and change for any
-          non-commercial use, like learning and tinkering. There's no secret recipe: you can see
+          code and every drawing, is published for anyone to read, copy and change. There's no secret recipe: you can see
           exactly how it works and make it your own.
         </p>
         <p>
