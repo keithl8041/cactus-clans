@@ -798,7 +798,8 @@ export class DesertDashScene extends Phaser.Scene {
     // The spit IS the attack — there's no landed phase after it.
     this.bossSubstateUntil = this.time.now + CFG.bossSpitMs;
 
-    const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.4, this.boss.y - CFG.bossSize * 0.2, 'boss.spike').setDepth(8);
+    const spitYOffset = Phaser.Math.Between(CFG.bossSpitYOffsetMinPx, CFG.bossSpitYOffsetMaxPx);
+    const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.4, this.boss.y + spitYOffset, 'boss.spike').setDepth(8);
     sprite.setScale(CFG.bossSpitSize / sprite.height);
     sprite.setAngle(-90); // point leftward (the cactus.spike points up by default; -90 rotates it left)
     this.spits.push({ sprite, vx: -CFG.bossSpitSpeed, spent: false });
@@ -833,14 +834,16 @@ export class DesertDashScene extends Phaser.Scene {
 
   private spawnLob(): void {
     if (!this.boss) return;
-    const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.3, this.boss.y - CFG.bossSize * 0.35, 'cactus.spike').setDepth(8);
+    const spawnYOffset = Phaser.Math.Between(CFG.bossLobSpawnYOffsetMinPx, CFG.bossLobSpawnYOffsetMaxPx);
+    const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.3, this.boss.y + spawnYOffset, 'cactus.spike').setDepth(8);
     sprite.setScale(CFG.bossLobSize / sprite.height);
     const vxJitter = Phaser.Math.Between(-60, 60);
+    const lobLaunchVy = Phaser.Math.Between(CFG.bossLobLaunchVyMin, CFG.bossLobLaunchVyMax);
     const groundY = this.scale.height - CFG.floorPaddingPx + CFG.floorEmbedPx - CFG.bossLobSize / 2;
     this.lobs.push({
       sprite,
       vx: CFG.bossLobLaunchVx + vxJitter,
-      vy: CFG.bossLobLaunchVy,
+      vy: lobLaunchVy,
       landed: false,
       spent: false,
       groundY,
@@ -1177,7 +1180,8 @@ export class DesertDashScene extends Phaser.Scene {
 
     if (!this.finishBanner) {
       // Place finish banner one screen ahead of the player at start of outro
-      this.finishBanner = this.add.image(width + 200, height * 0.42, 'finishBanner').setDepth(6);
+      const finishY = height - CFG.floorPaddingPx + CFG.floorEmbedPx - CFG.playerSize / 2;
+      this.finishBanner = this.add.image(width + 200, finishY, 'finishBanner').setDepth(6);
       this.finishBanner.setScale(220 / this.finishBanner.height);
     }
     if (this.finishBanner) {
