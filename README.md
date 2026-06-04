@@ -111,7 +111,23 @@ The deployed app uses a Cloudflare Worker (`worker/index.ts`) that talks to a D1
 
 The app is deployed as a Worker with static assets — the same Worker that serves `dist/` also handles `/api/*` against D1.
 
-1. One-time: `npm run db:apply` (see above).
-2. `npm run worker:deploy` — runs `tsc && vite build`, then `wrangler deploy` (Worker + assets in one shot).
+Deployment is automated by **Cloudflare Workers Builds**, which watches the **`release` branch** (not `main`). On a push to `release`, Cloudflare runs `npm run build` then `npx wrangler deploy` (Worker + assets in one shot). Day-to-day work merges into `main`, which does **not** deploy.
+
+To ship the current `main` to production:
+
+```bash
+git push origin main:release        # fast-forwards release → Cloudflare builds & deploys
+git tag v1.2.0 && git push origin v1.2.0   # optional: mark the release for the changelog
+```
+
+Tags are just human-readable release markers; the push to `release` is what triggers the deploy. One-time before the first deploy: `npm run db:apply` (see above). You can still run `npm run worker:deploy` locally for a manual deploy if you have Cloudflare credentials.
 
 SPA deep-link fallback is configured in `wrangler.jsonc` via `assets.not_found_handling: "single-page-application"`, so any unknown non-`/api` path falls back to `index.html` and the React router handles it.
+
+## Contributing
+
+Pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). In short: fork, `npm install`, make your change, run `npm run typecheck`, and open a PR against `main`. CI runs typecheck + build on every PR. Merging never deploys; only the maintainer promotes `main` to `release`.
+
+## Licence
+
+Cactus Clans is released under the [PolyForm Noncommercial 1.0.0](LICENSE) licence. You're free to read, copy, modify, and share the code and assets for **non-commercial** purposes — learning, personal projects, education, and hobby use are all fine. Commercial use is not permitted. © 2026 Keith Lawrence.
