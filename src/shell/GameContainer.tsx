@@ -35,6 +35,7 @@ export function GameContainer() {
 
   const hostRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+  const runRef = useRef(run);
   const [finished, setFinished] = useState<FinishedState | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [started, setStarted] = useState(false);
@@ -45,7 +46,12 @@ export function GameContainer() {
   const level = Number.isFinite(n) ? levelByNumber(n) : undefined;
 
   useEffect(() => {
-    if (!player || !run) {
+    runRef.current = run;
+  }, [run]);
+
+  useEffect(() => {
+    const currentRun = runRef.current;
+    if (!player || !currentRun) {
       navigate('/');
       return;
     }
@@ -53,7 +59,7 @@ export function GameContainer() {
       navigate('/journey');
       return;
     }
-    const clan = clanByName(run.clan);
+    const clan = clanByName(currentRun.clan);
     if (!clan) {
       navigate('/clans');
       return;
@@ -73,9 +79,9 @@ export function GameContainer() {
         mini_game_points: result.miniGamePoints,
         elapsed_ms: result.elapsedMs,
         attempt: attempt + 1,
-        practice: !!run.completedAt,
+        practice: !!currentRun.completedAt,
       });
-      const next = await recordLevelResult(run, {
+      const next = await recordLevelResult(currentRun, {
         levelNumber: level.number,
         passed: result.passed,
         miniGamePoints: result.miniGamePoints,
@@ -94,7 +100,7 @@ export function GameContainer() {
         });
       }
       if (!cancelled) {
-        setRun(next);
+        runRef.current = next;
         setFinished({
           passed: result.passed,
           miniGamePoints: result.miniGamePoints,
@@ -102,6 +108,7 @@ export function GameContainer() {
           bonusPoints: result.bonusPoints ?? 0,
           score,
         });
+        setRun(next);
       }
     };
 
@@ -115,7 +122,7 @@ export function GameContainer() {
           level_number: level.number,
           level_title: level.title,
           attempt: attempt + 1,
-          practice: !!run.completedAt,
+          practice: !!currentRun.completedAt,
         });
         navigate('/journey');
       },
@@ -148,7 +155,7 @@ export function GameContainer() {
       game.destroy(true);
       gameRef.current = null;
     };
-  }, [player, run, level, navigate, setRun, finished, attempt, started]);
+  }, [player, level, navigate, setRun, finished, attempt, started]);
 
   useEffect(() => {
     const game = gameRef.current;
