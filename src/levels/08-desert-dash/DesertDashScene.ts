@@ -1076,7 +1076,7 @@ export class DesertDashScene extends Phaser.Scene {
 
     // Label
     if (!this.bossLabelDrawn) {
-      this.add.text(width - 16 - frameW / 2, frameTop - 6, 'GIANT SAND TARANTULA', {
+      this.add.text(width - 16 - frameW / 2, frameTop + 6, 'GIANT SAND TARANTULA', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '14px',
         color: '#ffd5a8',
