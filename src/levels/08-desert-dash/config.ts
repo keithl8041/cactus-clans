@@ -79,7 +79,7 @@ export const DESERT_DASH_CONFIG = {
   bossHp: 3,
   bossSize: 180,                       // tarantula scaled big
   bossArenaXFraction: 0.78,            // boss home position (x)
-  bossGroundYOffset: 0,                // raise off the embedded ground line (keep small — the boss must stay jump-on-able)
+  bossGroundYOffset: 30,               // raise off the embedded ground line (keep small — the boss must stay jump-on-able)
   // tarantula.png has ~22% transparent padding below the spider's body, so
   // anchoring by the sprite's bounding box leaves the visible legs floating.
   // Sink the anchor by this fraction of the display height so the visible feet
@@ -100,8 +100,8 @@ export const DESERT_DASH_CONFIG = {
   // Spike spit attack (high projectile — player must NOT jump into it).
   bossSpitMs: 1200,                    // travel time across the arena
   bossSpitSpeed: 680,                  // px/sec horizontal projectile speed (leftward)
-  bossSpitYOffsetMinPx: -96,           // random launch height range relative to boss center
-  bossSpitYOffsetMaxPx: -24,
+  bossSpitYOffsetMinPx: -26,            // random launch height range relative to boss center (just above player head)
+  bossSpitYOffsetMaxPx: 72,             // (just above ground level)
   bossSpitColliderRadiusPx: 38,
   bossSpitSize: 56,
 
@@ -117,14 +117,23 @@ export const DESERT_DASH_CONFIG = {
   bossLobSpawnYOffsetMaxPx: -45,
   bossLobColliderRadiusPx: 34,
   bossLobDoubleChance: 0.55,           // chance the boss tosses a second cactus
+  bossLobBonusSpitChance: 0.40,        // chance the boss fires a bonus spit after the lob cycle ends
   bossLobSecondDelayMs: 380,           // delay before the second cactus
   bossLobCycleMs: 1800,                // substate duration before the next attack begins
 
-  // Boss UI — the frame is the game8-boss-health-bar.svg art; the red fill is
-  // drawn dynamically inside it, inset by these fractions of the frame size.
-  bossHealthBarFrameWidthPx: 300,
-  bossHealthBarFillInsetXFrac: 0.085,      // left inset
-  bossHealthBarFillInsetRightFrac: 0.22,   // right inset — larger to clear RHS decoration
-  bossHealthBarFillInsetYFrac: 0.30,
-  bossHealthBarYPx: 82,
+  // Boss UI — game8-boss-health-bar.png (602×138 native).
+  // The colored fill is drawn BEHIND the frame at the pixel coordinates below.
+  bossHealthBarFrameWidthPx: 420,          // display width; height scales to preserve aspect ratio
+  bossHealthBarNativeW: 602,
+  bossHealthBarNativeH: 138,
+  // Fill row within the PNG (pixel coords, image space)
+  bossHealthBarFillY1: 54,
+  bossHealthBarFillY2: 100,
+  // Segment x-boundaries in image space (right-to-left depletion order):
+  //   seg 1 (first hit): 410–546, seg 2: 267–410, seg 3 (last hit): 128–267
+  bossHealthBarSegX0: 128,
+  bossHealthBarSegX1: 267,
+  bossHealthBarSegX2: 410,
+  bossHealthBarSegX3: 546,
+  bossHealthBarYPx: 16,
 } as const;

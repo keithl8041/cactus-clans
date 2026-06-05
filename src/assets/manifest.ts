@@ -161,7 +161,7 @@ export const ASSETS: Record<string, AssetEntry> = {
   'game8.floor': { kind: 'image', src: '/art/game8-floor.png' },
   'game8.star': { kind: 'image', src: '/art/game8-star.svg' },
   'game8.jumpButton': { kind: 'image', src: '/art/game8-button-jump.png' },
-  'game8.bossHealthBar': { kind: 'image', src: '/art/game8-boss-health-bar.svg' },
+  'game8.bossHealthBar': { kind: 'image', src: '/art/game8-boss-health-bar.png' },
   'game8.prop.a': { kind: 'image', src: '/art/game8-cactus-prop-a.png' },
   'game8.prop.b': { kind: 'image', src: '/art/game8-cactus-prop-b.png' },
   'game8.prop.c': { kind: 'image', src: '/art/game8-cactus-prop-c.png' },

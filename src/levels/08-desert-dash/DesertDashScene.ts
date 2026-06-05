@@ -311,21 +311,20 @@ export class DesertDashScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(15);
 
-    // Hearts row in top-right under the timer
+    // Hearts row in top-left so they don't overlap the boss health bar
     for (let i = 0; i < CFG.startingLives; i++) {
-      const heart = this.add.text(width - 16 - i * 28, 46, '♥', {
+      const heart = this.add.text(16 + i * 28, 46, '♥', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '26px',
         color: '#ff6b6b',
         fontStyle: 'bold',
-      }).setOrigin(1, 0).setScrollFactor(0).setDepth(15);
+      }).setOrigin(0, 0).setScrollFactor(0).setDepth(15);
       this.heartIcons.push(heart);
     }
 
-    // Boss health bar: ornate SVG frame (full bar art) + a dark overlay that
-    // covers the depleted portion. Right-aligned under the hearts row.
+    // Boss health bar: PNG frame + colored fill drawn behind it per HP segment.
     const frameW = CFG.bossHealthBarFrameWidthPx;
-    const frameH = frameW * (52.5 / 375); // preserve the SVG's aspect ratio
+    const frameH = frameW * (CFG.bossHealthBarNativeH / CFG.bossHealthBarNativeW);
     this.bossHealthFrame = this.add.image(width - 16 - frameW / 2, CFG.bossHealthBarYPx + frameH / 2, 'game8.bossHealthBar')
       .setDisplaySize(frameW, frameH)
       .setScrollFactor(0)
@@ -793,7 +792,7 @@ export class DesertDashScene extends Phaser.Scene {
     // Aim landing slightly off the player's current x for variety; clamp to arena.
     const targetX = Phaser.Math.Clamp(
       this.player.x + Phaser.Math.Between(-40, 40),
-      this.scale.width * 0.15,
+      this.scale.width * CFG.bossPlayerMinXFraction,
       this.scale.width * 0.45,
     );
     this.bossLeapTargetX = targetX;
@@ -834,8 +833,21 @@ export class DesertDashScene extends Phaser.Scene {
     }
 
     this.time.delayedCall(duration, () => {
-      if (this.phase !== 'bossCycle') return;
-      this.startNextBossAttack();
+      if (this.phase !== 'bossCycle' || !this.boss) return;
+      if (Math.random() < CFG.bossLobBonusSpitChance) {
+        const spitYOffset = Phaser.Math.Between(CFG.bossSpitYOffsetMinPx, CFG.bossSpitYOffsetMaxPx);
+        const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.4, this.boss.y + spitYOffset, 'boss.spike').setDepth(8);
+        sprite.setScale(CFG.bossSpitSize / sprite.height);
+        sprite.setAngle(-90);
+        this.spits.push({ sprite, vx: -CFG.bossSpitSpeed, spent: false });
+        sfx.throw();
+        this.time.delayedCall(CFG.bossSpitMs, () => {
+          if (this.phase !== 'bossCycle') return;
+          this.startNextBossAttack();
+        });
+      } else {
+        this.startNextBossAttack();
+      }
     });
   }
 
@@ -1036,30 +1048,30 @@ export class DesertDashScene extends Phaser.Scene {
     }
     const { width } = this.scale;
     const frameW = CFG.bossHealthBarFrameWidthPx;
-    const frameH = frameW * (52.5 / 375);
+    const frameH = frameW * (CFG.bossHealthBarNativeH / CFG.bossHealthBarNativeW);
     const frameLeft = width - 16 - frameW;
     const frameTop = CFG.bossHealthBarYPx;
     this.bossHealthFrame.setVisible(true);
 
-    // Interior region of the frame where the fill lives.
-    const insetLeft = frameW * CFG.bossHealthBarFillInsetXFrac;
-    const insetRight = frameW * CFG.bossHealthBarFillInsetRightFrac;
-    const insetY = frameH * CFG.bossHealthBarFillInsetYFrac;
-    const interiorX = frameLeft + insetLeft;
-    const interiorY = frameTop + insetY;
-    const interiorW = frameW - insetLeft - insetRight;
-    const interiorH = frameH - insetY * 2;
+    // Scale image-space coordinates to screen space.
+    const sx = frameW / CFG.bossHealthBarNativeW;
+    const sy = frameH / CFG.bossHealthBarNativeH;
+    const fillY = frameTop + CFG.bossHealthBarFillY1 * sy;
+    const fillH = (CFG.bossHealthBarFillY2 - CFG.bossHealthBarFillY1) * sy;
 
-    const hpFrac = Phaser.Math.Clamp(this.bossHp / CFG.bossHp, 0, 1);
-    const emptyW = interiorW * (1 - hpFrac);
+    // Depleted segments are masked with a dark rect drawn OVER the PNG (depth 16 > frame 15).
+    // Rightmost segment depletes first; segLefts/segRights are ordered right-to-left.
+    const segRights = [CFG.bossHealthBarSegX3, CFG.bossHealthBarSegX2, CFG.bossHealthBarSegX1];
+    const segLefts  = [CFG.bossHealthBarSegX2, CFG.bossHealthBarSegX1, CFG.bossHealthBarSegX0];
+    const depleted = CFG.bossHp - this.bossHp;
 
     const g = this.bossHealthBar;
     g.clear();
-    // Darken the depleted (right) portion so HP reads regardless of the
-    // frame art's baked-in fill.
-    if (emptyW > 0.5) {
-      g.fillStyle(0x0a0206, 1.0);
-      g.fillRect(interiorX + (interiorW - emptyW), interiorY, emptyW, interiorH);
+    g.fillStyle(0x0a0206, 1.0);
+    for (let j = 0; j < depleted; j++) {
+      const x = frameLeft + segLefts[j] * sx;
+      const w = (segRights[j] - segLefts[j]) * sx;
+      g.fillRect(x, fillY, w, fillH);
     }
 
     // Label
@@ -1189,7 +1201,7 @@ export class DesertDashScene extends Phaser.Scene {
 
     if (!this.finishBanner) {
       // Place finish banner one screen ahead of the player at start of outro
-      const finishY = height - CFG.floorPaddingPx + CFG.floorEmbedPx - CFG.playerSize / 2;
+      const finishY = height - CFG.floorPaddingPx + CFG.floorEmbedPx - CFG.playerSize / 2 - 70;
       this.finishBanner = this.add.image(width + 200, finishY, 'finishBanner').setDepth(6);
       this.finishBanner.setScale(220 / this.finishBanner.height);
     }
