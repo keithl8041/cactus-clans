@@ -137,10 +137,13 @@ export class DesertDashScene extends Phaser.Scene {
     loadAsset(this, 'desert.parallax.mid', 'game8.parallax.mid');
     loadAsset(this, 'desert.parallax.near', 'game8.parallax.near');
     loadAsset(this, 'game8.floor', 'game8.floor');
+    loadAsset(this, 'game8.prop.a', 'game8.prop.a');
+    loadAsset(this, 'game8.prop.b', 'game8.prop.b');
+    loadAsset(this, 'game8.prop.c', 'game8.prop.c');
     loadAsset(this, 'game8.jumpButton', 'game8.jumpButton');
     loadAsset(this, 'game8.bossHealthBar', 'game8.bossHealthBar');
     loadAsset(this, 'finishBanner', 'finishBanner', { size: 220 });
-    loadAsset(this, 'tarantula', 'tarantula', { size: CFG.bossSize });
+    loadAsset(this, 'tarantula', 'game8.boss', { size: CFG.bossSize });
     loadAsset(this, 'boss.spike', 'cactus.spike');
   }
 
@@ -320,10 +323,10 @@ export class DesertDashScene extends Phaser.Scene {
     }
 
     // Boss health bar: ornate SVG frame (full bar art) + a dark overlay that
-    // covers the depleted portion. Both hidden until the boss phase.
+    // covers the depleted portion. Right-aligned under the hearts row.
     const frameW = CFG.bossHealthBarFrameWidthPx;
     const frameH = frameW * (52.5 / 375); // preserve the SVG's aspect ratio
-    this.bossHealthFrame = this.add.image(width / 2, CFG.bossHealthBarYPx + frameH / 2, 'game8.bossHealthBar')
+    this.bossHealthFrame = this.add.image(width - 16 - frameW / 2, CFG.bossHealthBarYPx + frameH / 2, 'game8.bossHealthBar')
       .setDisplaySize(frameW, frameH)
       .setScrollFactor(0)
       .setDepth(15)
@@ -538,7 +541,7 @@ export class DesertDashScene extends Phaser.Scene {
     const baseY = height - CFG.floorPaddingPx + CFG.floorEmbedPx;
     const spawn = (wx: number) => {
       const kind: ObstacleKind = Math.random() < CFG.obstacleRockChance ? 'rock' : 'cactus';
-      const texture = kind === 'rock' ? 'rock' : 'cactus.spike';
+      const texture = kind === 'rock' ? 'rock' : Phaser.Math.RND.pick(['game8.prop.a', 'game8.prop.b', 'game8.prop.c']);
       const sprite = this.add.image(0, 0, texture).setDepth(7);
       sprite.setScale(CFG.obstacleSize / sprite.height);
       // Anchor sprite so its base sits embedded in the sand strip
@@ -634,11 +637,13 @@ export class DesertDashScene extends Phaser.Scene {
     this.phase = 'bossIntro';
     const { width, height } = this.scale;
 
-    // Clear the running-phase obstacles so the boss arena is a clean pit. Once
-    // updateRunning stops being called these would otherwise freeze in place
-    // and litter the fight floor. (startOutro wipes any stragglers too.)
+    // Clear the running-phase obstacles and stars so the boss arena is a clean
+    // pit. Once updateRunning stops being called these would otherwise freeze
+    // in place and litter the fight floor. (startOutro wipes any stragglers too.)
     for (const o of this.obstacles) o.sprite.destroy();
     this.obstacles = [];
+    for (const s of this.stars) s.sprite.destroy();
+    this.stars = [];
 
     // Show "Boss Incoming!" banner
     this.unlockBanner = this.add.text(width / 2, height * 0.32, 'BOSS INCOMING!', {
@@ -757,8 +762,10 @@ export class DesertDashScene extends Phaser.Scene {
     this.bossSubstate = 'telegraph';
     this.bossSubstateUntil = this.time.now + CFG.bossTelegraphMs;
 
-    // Visual telegraph: rear up (scale Y up briefly + tint)
+    // Visual telegraph: rear up (scale Y up briefly + tint). Restore facing toward player.
     this.tweens.killTweensOf(this.boss);
+    this.boss.setAlpha(1);
+    this.boss.setFlipX(false);
     this.boss.setAngle(0);
     const baseScale = this.boss.scale;
     this.tweens.add({
@@ -900,10 +907,11 @@ export class DesertDashScene extends Phaser.Scene {
       }
     } else if (this.bossSubstate === 'landed') {
       if (this.time.now >= this.bossSubstateUntil) {
-        // Return to home
+        // Return to home — flip to face right while scurrying back.
         this.bossSubstate = 'returning';
         this.bossSubstateUntil = this.time.now + CFG.bossReturnMs;
         this.tweens.killTweensOf(this.boss);
+        this.boss.setFlipX(true);
         this.tweens.add({
           targets: this.boss,
           x: this.bossHomeX,
@@ -1029,16 +1037,17 @@ export class DesertDashScene extends Phaser.Scene {
     const { width } = this.scale;
     const frameW = CFG.bossHealthBarFrameWidthPx;
     const frameH = frameW * (52.5 / 375);
-    const frameLeft = width / 2 - frameW / 2;
+    const frameLeft = width - 16 - frameW;
     const frameTop = CFG.bossHealthBarYPx;
     this.bossHealthFrame.setVisible(true);
 
     // Interior region of the frame where the fill lives.
-    const insetX = frameW * CFG.bossHealthBarFillInsetXFrac;
+    const insetLeft = frameW * CFG.bossHealthBarFillInsetXFrac;
+    const insetRight = frameW * CFG.bossHealthBarFillInsetRightFrac;
     const insetY = frameH * CFG.bossHealthBarFillInsetYFrac;
-    const interiorX = frameLeft + insetX;
+    const interiorX = frameLeft + insetLeft;
     const interiorY = frameTop + insetY;
-    const interiorW = frameW - insetX * 2;
+    const interiorW = frameW - insetLeft - insetRight;
     const interiorH = frameH - insetY * 2;
 
     const hpFrac = Phaser.Math.Clamp(this.bossHp / CFG.bossHp, 0, 1);
@@ -1049,13 +1058,13 @@ export class DesertDashScene extends Phaser.Scene {
     // Darken the depleted (right) portion so HP reads regardless of the
     // frame art's baked-in fill.
     if (emptyW > 0.5) {
-      g.fillStyle(0x140404, 0.78);
+      g.fillStyle(0x0a0206, 1.0);
       g.fillRect(interiorX + (interiorW - emptyW), interiorY, emptyW, interiorH);
     }
 
     // Label
     if (!this.bossLabelDrawn) {
-      this.add.text(width / 2, frameTop - 6, 'GIANT SAND TARANTULA', {
+      this.add.text(width - 16 - frameW / 2, frameTop - 6, 'GIANT SAND TARANTULA', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '14px',
         color: '#ffd5a8',

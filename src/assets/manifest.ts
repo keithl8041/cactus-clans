@@ -134,7 +134,8 @@ export const ASSETS: Record<string, AssetEntry> = {
   rainOverlay: { kind: 'svg', generate: (opts) => rainOverlaySvg(opts as RainOverlayOptions) },
   star: { kind: 'svg', generate: (opts) => starSvg(opts as StarOptions) },
   sunOverlay: { kind: 'svg', generate: (opts) => sunOverlaySvg(opts as SunOverlayOptions) },
-  tarantula: { kind: 'image', src: '/art/tarantula.png' }, // SHARED: L5 (Cactus Slicing) + L8 (Desert Dash boss)
+  tarantula: { kind: 'image', src: '/art/tarantula.png' }, // SHARED: L5 (Cactus Slicing)
+  'game8.boss': { kind: 'image', src: '/art/game8-boss-tarantula.png' }, // L8 Desert Dash boss (dedicated art)
   camel: { kind: 'svg', generate: (opts) => camelSvg(opts as CamelOptions) },
   rock: { kind: 'image', src: '/art/rock.png' }, // SHARED: L2 (Camel Race) + L8 (Desert Dash)
   waterFlask: { kind: 'image', src: '/art/water-flask.png' },

@@ -49,7 +49,7 @@ export const DESERT_DASH_CONFIG = {
   starSpawnJitter: 0.30,
   starSize: 56,
   starBonusPoints: 5,
-  starHighYFraction: 0.48,             // reachable with a double-jump
+  starHighYFraction: 0.55,             // reachable with a double-jump
   starLowYFraction: 0.63,              // reachable with a single jump
   starHighChance: 0.45,                // chance a star spawns high vs low
   starColliderRadiusPx: 50,
@@ -123,7 +123,8 @@ export const DESERT_DASH_CONFIG = {
   // Boss UI — the frame is the game8-boss-health-bar.svg art; the red fill is
   // drawn dynamically inside it, inset by these fractions of the frame size.
   bossHealthBarFrameWidthPx: 300,
-  bossHealthBarFillInsetXFrac: 0.085,
+  bossHealthBarFillInsetXFrac: 0.085,      // left inset
+  bossHealthBarFillInsetRightFrac: 0.22,   // right inset — larger to clear RHS decoration
   bossHealthBarFillInsetYFrac: 0.30,
-  bossHealthBarYPx: 70,
+  bossHealthBarYPx: 82,
 } as const;
