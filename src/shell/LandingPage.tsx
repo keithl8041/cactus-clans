@@ -16,27 +16,53 @@ const STORY_TABS = [
   {
     id: 'how-it-started',
     label: 'How it started',
-    body: <p className="placeholder">[Origin story copy coming soon — how the idea was born.]</p>,
+    body: (
+      <>
+        <p>
+          Cactus Clans began at <strong>Ms Pippa's Young CEOs Club</strong>, where Sonny and Leo got
+          talking and dreamed up the idea of their very own set of trading cards. They were soon joined
+          by Felix, and over the school break the three of them threw themselves into the project with
+          remarkable energy and focus.
+        </p>
+        <p>
+          Starting from their own ideas, drawings and characters, they worked feverishly to invent the
+          clans — every creature, name and trait. What began as sketches in a club has grown into a full
+          set of trading cards, a digital download, and a website with eight mini-games.
+        </p>
+        <p>
+          A huge shout-out to Ms Pippa and her Young CEOs Club for sparking it all. You'll be able to meet
+          the team at the <strong><a href="https://www.fojkps.org/events/2026/6/13/jkps-summer-festical" target="_blank" rel="noopener noreferrer">JKPS Summer Festival</a></strong>, where they'll have a stall to showcase
+          and sell their creations — please do go along and support them!
+        </p>
+      </>
+    ),
   },
   {
     id: 'who-made-it',
     label: 'Who made it',
     body: (
-      <p className="placeholder">
-        [Copy coming soon.] Built by Sonny, Leo & Felix - a group of school
-        friends, with amazing support and feedback from their siblings Toby, Jasper & Jessie.
-      </p>
+      <>
+        <figure className="team-photo">
+          <img src="/the-team.jpeg" alt="The Cactus Clans team" />
+          <figcaption>The Cactus Clans team</figcaption>
+        </figure>
+        <p>
+          Cactus Clans was built by <strong>Sonny, Leo &amp; Felix</strong> — a group of school friends —
+          with brilliant support from their families.
+        </p>
+        <p>
+          Sonny and Leo led on character design, artwork and card production, with Sonny's mum creating
+          the amazing artwork for every card and game asset. Felix collaborated to use AI to build the
+          online game, and together with his brother Jasper and their dad, coded the website and its eight
+          mini-games — all based on ideas from the whole group.
+        </p>
+        <p>
+          And it wouldn't have happened without their siblings <strong>Toby, Jasper &amp; Jessie</strong>,
+          who played a key role as dedicated testers. It's a fantastic example of creativity, teamwork and
+          entrepreneurial spirit in action.
+        </p>
+      </>
     ),
-  },
-  {
-    id: 'why-we-built-it',
-    label: 'Why we built it',
-    body: <p className="placeholder">[Copy coming soon — why the clans, why the cards, why the game.]</p>,
-  },
-  {
-    id: 'how-we-built-it',
-    label: 'How we built it',
-    body: <p className="placeholder">[Copy coming soon — the collaboration process, kids and parents.]</p>,
   },
   {
     id: 'build-it-yourself',

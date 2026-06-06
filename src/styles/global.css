@@ -87,7 +87,7 @@ input[type='text']:focus {
 }
 
 .app-footer {
-  position: fixed;
+  position: relative;
   left: 0;
   right: 0;
   bottom: 0;
@@ -108,6 +108,18 @@ input[type='text']:focus {
 
 .app-footer a:hover {
   color: var(--accent-warm);
+}
+
+.footer-credit {
+  margin: 0 0 0.4rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem 1rem;
 }
 
 .sync-banner {
@@ -207,6 +219,40 @@ input[type='text']:focus {
   width: 100%;
   max-width: 760px;
   min-height: 520px;
+}
+
+/* Privacy policy — plain readable text page. */
+.privacy-page {
+  gap: 1rem;
+  text-align: left;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.privacy-sub {
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.privacy-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  line-height: 1.5;
+}
+
+.privacy-body h2 {
+  margin: 1rem 0 0;
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.privacy-body ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 /* "Coming soon" clans can't be picked — don't fake clickability. */
@@ -332,6 +378,40 @@ input[type='text']:focus {
   margin: 0;
   font-size: clamp(1.3rem, 3.5vw, 1.8rem);
   color: var(--accent);
+}
+
+/* Inline text links in the story copy — keep them on-brand, not browser-blue.
+   Scoped with :not(.button-link) so the GitHub button link keeps its own style. */
+.story-panel a:not(.button-link) {
+  color: var(--accent);
+  font-weight: inherit;
+  text-decoration: underline;
+}
+
+.story-panel a:not(.button-link):hover {
+  color: var(--text);
+}
+
+.story-panel .team-photo {
+  margin: 0;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.story-panel .team-photo img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 2px solid var(--panel-dim);
+}
+
+.story-panel .team-photo figcaption {
+  font-size: 0.85rem;
+  color: var(--text-dim);
 }
 
 .card-grid--showcase {
