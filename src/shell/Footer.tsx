@@ -9,14 +9,17 @@ export function Footer() {
   const showCardLink = pathname !== '/game' && pathname !== '/shop';
   // No point linking to the privacy page from itself.
   const showPrivacyLink = pathname !== '/privacy';
+  const showLeaderboard = pathname === '/leaderboard';
 
   return (
     <footer className="app-footer">
-      <p className="footer-credit">
-        made with <span aria-hidden="true">❤️</span>{' '}
-        <span className="visually-hidden">love </span>
-        by Sonny, Leo &amp; Felix with help from their siblings Toby, Jasper &amp; Jessie.
-      </p>
+      {showLeaderboard && (
+        <p className="footer-credit">
+          made with <span aria-hidden="true">❤️</span>{' '}
+          <span className="visually-hidden">love </span>
+          by Sonny, Leo &amp; Felix with help from their siblings Toby, Jasper &amp; Jessie.
+        </p>
+      )}
       <nav className="footer-links" aria-label="More about Cactus Clans">
         {showCardLink && (
           <Link className="footer-link" to="/shop">
