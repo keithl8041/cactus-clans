@@ -15,6 +15,7 @@ export interface Clan {
 // real art lands.
 const CLAN_META: Record<string, { color: string; tagline: string }> = {
   'Camo Clan': { color: '#4a6b3a', tagline: 'Masters of disguise.' },
+  'Crystalline Clan': { color: '#9d5ce6', tagline: 'Forged in light, sharp as glass.' },
   'Duskerns': { color: '#5d3a8c', tagline: 'Born of shadow and silence.' },
   'Earth Clan': { color: '#7a5a3a', tagline: 'Unshakable. Unbreakable.' },
   'Hot Dog Clan': { color: '#c44a3a', tagline: 'Loyal, loud, and lethal.' },
@@ -26,10 +27,29 @@ const CLAN_META: Record<string, { color: string; tagline: string }> = {
   'Wildfire Clan': { color: '#e86a2a', tagline: 'Burns brightest in danger.' },
 };
 
-const FEATURED_CLAN = 'Prickling Clan';
+// Explicit display order for the clan-select screen. Clans not listed here fall
+// to the end (in the order they appear in the card data).
+const CLAN_ORDER = [
+  'Prickling Clan',
+  'Duskerns',
+  'Tumbleweed Clan',
+  'Wildfire Clan',
+  'Tropica Clan',
+  'Hot Dog Clan',
+  'Camo Clan',
+  'Earth Clan',
+  'Metal Clan',
+  'Crystalline Clan',
+  'Oasis Clan',
+];
+
+const orderIndex = (name: string) => {
+  const i = CLAN_ORDER.indexOf(name);
+  return i === -1 ? CLAN_ORDER.length : i;
+};
 
 export const CLANS: Clan[] = [...new Set(CARDS.map((c) => c.clan))]
-  .sort((a, b) => (a === FEATURED_CLAN ? -1 : b === FEATURED_CLAN ? 1 : 0))
+  .sort((a, b) => orderIndex(a) - orderIndex(b))
   .map((name) => ({
     name,
     color: CLAN_META[name]?.color ?? '#888',
