@@ -39,7 +39,7 @@ const COMING_SOON_LAUNCH_AT_MS = Date.parse('2026-06-13T00:00:00+01:00');
 const COMING_SOON_ALLOWED_PATHS = new Set(['/logo.png', '/favicon.ico']);
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     // Belt-and-braces HTTPS. Cloudflare's edge already upgrades workers.dev
     // HTTP requests, but on custom domains the rule isn't guaranteed. A 301
@@ -73,7 +73,7 @@ export default {
       return withHsts(assetRes);
     }
     try {
-      const res = await route(url, request, env);
+      const res = await route(url, request, env, ctx);
       return withHsts(res ?? json({ error: 'not found' }, 404));
     } catch (err) {
       return withHsts(json({ error: err instanceof Error ? err.message : String(err) }, 500));
@@ -91,7 +91,12 @@ function withHsts(res: Response): Response {
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }
 
-async function route(url: URL, request: Request, env: Env): Promise<Response | null> {
+async function route(
+  url: URL,
+  request: Request,
+  env: Env,
+  ctx: ExecutionContext,
+): Promise<Response | null> {
   const { pathname } = url;
   const method = request.method;
 
@@ -177,23 +182,15 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
       .first<{ id: string; playerId: string; clan: string; startedAt: string; totalScore: number; completedAt: string | null }>();
     if (!run) return json({ run: null });
 
-    // Multiple level_results rows can exist per level (retries). Dedupe with the
-    // same "sticky pass + higher score" rule the client applies in recordLevelResult.
+    // One row per (run_id, level_number) — UPSERT on write keeps the best attempt
+    // (sticky pass + higher score), so reads no longer need a ROW_NUMBER() dedup.
+    // WHERE run_id seeks the UNIQUE(run_id, level_number) index.
     const levelRows = await env.DB
       .prepare(
-        `WITH ranked AS (
-           SELECT level_number, passed, mini_game_points, elapsed_ms, score, recorded_at,
-                  ROW_NUMBER() OVER (
-                    PARTITION BY level_number
-                    ORDER BY passed DESC, score DESC, recorded_at DESC
-                  ) AS rn
-           FROM level_results
-           WHERE run_id = ?
-         )
-         SELECT level_number AS levelNumber, passed, mini_game_points AS miniGamePoints,
+        `SELECT level_number AS levelNumber, passed, mini_game_points AS miniGamePoints,
                 elapsed_ms AS elapsedMs, score, recorded_at AS recordedAt
-         FROM ranked
-         WHERE rn = 1
+         FROM level_results
+         WHERE run_id = ?
          ORDER BY level_number ASC`,
       )
       .bind(run.id)
@@ -252,9 +249,24 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
       totalScore: number;
     }>(request);
     await env.DB.batch([
+      // UPSERT one row per (run_id, level_number). The ON CONFLICT WHERE clause
+      // mirrors pickBetterLevel in src/services/progress.ts: a pass is sticky (a
+      // later fail can't overwrite it) and otherwise the higher score wins. When
+      // the incoming attempt doesn't win, the WHERE filters out the update (no-op).
       env.DB
         .prepare(
-          'INSERT INTO level_results (id, run_id, level_number, passed, mini_game_points, elapsed_ms, score) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          `INSERT INTO level_results
+             (id, run_id, level_number, passed, mini_game_points, elapsed_ms, score)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(run_id, level_number) DO UPDATE SET
+             passed = excluded.passed,
+             mini_game_points = excluded.mini_game_points,
+             elapsed_ms = excluded.elapsed_ms,
+             score = excluded.score,
+             recorded_at = excluded.recorded_at
+           WHERE NOT (level_results.passed = 1 AND excluded.passed = 0)
+             AND ((level_results.passed = 0 AND excluded.passed = 1)
+                  OR excluded.score > level_results.score)`,
         )
         .bind(
           crypto.randomUUID(),
@@ -266,8 +278,8 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
           body.score,
         ),
       env.DB
-        .prepare('UPDATE runs SET total_score = ? WHERE id = ?')
-        .bind(body.totalScore, runId),
+        .prepare('UPDATE runs SET total_score = ?, current_level = MAX(current_level, ?) WHERE id = ?')
+        .bind(body.totalScore, body.levelNumber, runId),
     ]);
     return json({ ok: true });
   }
@@ -285,69 +297,70 @@ async function route(url: URL, request: Request, env: Env): Promise<Response | n
   }
 
   if (pathname === '/api/leaderboard' && method === 'GET') {
-    const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
-    const limit = Math.min(Math.max(requested, 1), 200);
-    // One row per player — their highest-scoring run (in-progress runs still
-    // count so kids see effort tracked). Ties broken by most recent completion.
-    const result = await env.DB
-      .prepare(
-        `WITH ranked AS (
-           SELECT r.id AS run_id, r.player_id, r.clan, r.total_score, r.completed_at,
-                  ROW_NUMBER() OVER (
-                    PARTITION BY r.player_id
-                    ORDER BY r.total_score DESC, r.completed_at DESC
-                  ) AS rn
-           FROM runs r
-         ),
-         run_max_level AS (
-           SELECT run_id, MAX(level_number) AS max_level
-           FROM level_results
-           GROUP BY run_id
-         )
-         SELECT p.nickname, ranked.clan, ranked.total_score AS totalScore,
-                ranked.completed_at AS completedAt,
-                CASE
-                  WHEN ranked.completed_at IS NULL
-                    THEN COALESCE(run_max_level.max_level, 1)
-                  ELSE NULL
-                END AS currentLevel
-         FROM ranked
-         LEFT JOIN run_max_level ON run_max_level.run_id = ranked.run_id
-         INNER JOIN players p ON p.id = ranked.player_id
-         WHERE ranked.rn = 1
-         ORDER BY totalScore DESC
-         LIMIT ?`,
-      )
-      .bind(limit)
-      .all<LeaderboardRow>();
-    return json(result.results ?? []);
+    return withEdgeCache(url, ctx, async () => {
+      const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
+      const limit = Math.min(Math.max(requested, 1), 200);
+      // One row per player — their highest-scoring run (in-progress runs still
+      // count so kids see effort tracked). Ties broken by most recent completion.
+      // current_level is read straight off runs (denormalized), so the board
+      // never touches level_results. The window scans runs in player/score order
+      // via runs_player_score_idx.
+      const result = await env.DB
+        .prepare(
+          `WITH ranked AS (
+             SELECT r.id AS run_id, r.player_id, r.clan, r.total_score, r.completed_at,
+                    r.current_level,
+                    ROW_NUMBER() OVER (
+                      PARTITION BY r.player_id
+                      ORDER BY r.total_score DESC, r.completed_at DESC
+                    ) AS rn
+             FROM runs r
+           )
+           SELECT p.nickname, ranked.clan, ranked.total_score AS totalScore,
+                  ranked.completed_at AS completedAt,
+                  CASE
+                    WHEN ranked.completed_at IS NULL THEN ranked.current_level
+                    ELSE NULL
+                  END AS currentLevel
+           FROM ranked
+           INNER JOIN players p ON p.id = ranked.player_id
+           WHERE ranked.rn = 1
+           ORDER BY totalScore DESC
+           LIMIT ?`,
+        )
+        .bind(limit)
+        .all<LeaderboardRow>();
+      return json(result.results ?? []);
+    });
   }
 
   if (pathname === '/api/team-leaderboard' && method === 'GET') {
-    const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
-    const limit = Math.min(Math.max(requested, 1), 200);
-    // One row per team (a sorted nickname pair) — their best co-op round.
-    // Mirrors the solo board: ties broken by most recent. team_scores is only
-    // written for genuine two-player rounds, so practise runs never appear.
-    const result = await env.DB
-      .prepare(
-        `WITH ranked AS (
-           SELECT team_label, score, recorded_at,
-                  ROW_NUMBER() OVER (
-                    PARTITION BY team_key
-                    ORDER BY score DESC, recorded_at DESC
-                  ) AS rn
-           FROM team_scores
-         )
-         SELECT team_label AS teamLabel, score, recorded_at AS recordedAt
-         FROM ranked
-         WHERE rn = 1
-         ORDER BY score DESC
-         LIMIT ?`,
-      )
-      .bind(limit)
-      .all<TeamLeaderboardRow>();
-    return json(result.results ?? []);
+    return withEdgeCache(url, ctx, async () => {
+      const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
+      const limit = Math.min(Math.max(requested, 1), 200);
+      // One row per team (a sorted nickname pair) — their best co-op round.
+      // Mirrors the solo board: ties broken by most recent. team_scores is only
+      // written for genuine two-player rounds, so practise runs never appear.
+      const result = await env.DB
+        .prepare(
+          `WITH ranked AS (
+             SELECT team_label, score, recorded_at,
+                    ROW_NUMBER() OVER (
+                      PARTITION BY team_key
+                      ORDER BY score DESC, recorded_at DESC
+                    ) AS rn
+             FROM team_scores
+           )
+           SELECT team_label AS teamLabel, score, recorded_at AS recordedAt
+           FROM ranked
+           WHERE rn = 1
+           ORDER BY score DESC
+           LIMIT ?`,
+        )
+        .bind(limit)
+        .all<TeamLeaderboardRow>();
+      return json(result.results ?? []);
+    });
   }
 
   return null;
@@ -366,6 +379,36 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { 'content-type': 'application/json' },
   });
+}
+
+const LEADERBOARD_CACHE_TTL_S = 30;
+
+/**
+ * Edge-cache a read-only JSON endpoint for a short TTL. The leaderboards are
+ * read-heavy and tolerate a few seconds of staleness (family game), so this
+ * collapses repeated loads to near-zero D1 work. The cache key is the full URL
+ * (the `limit` param lives there), so different limits cache independently. No
+ * explicit invalidation — the short TTL handles it.
+ */
+async function withEdgeCache(
+  url: URL,
+  ctx: ExecutionContext,
+  build: () => Promise<Response>,
+): Promise<Response> {
+  const cache = caches.default;
+  const cacheKey = new Request(url.toString(), { method: 'GET' });
+  const hit = await cache.match(cacheKey);
+  if (hit) return hit;
+  const res = await build();
+  // Only cache successful responses, and attach a TTL the Cache API honours.
+  if (res.status === 200) {
+    const headers = new Headers(res.headers);
+    headers.set('cache-control', `public, max-age=${LEADERBOARD_CACHE_TTL_S}`);
+    const cacheable = new Response(res.body, { status: res.status, headers });
+    ctx.waitUntil(cache.put(cacheKey, cacheable.clone()));
+    return cacheable;
+  }
+  return res;
 }
 
 function comingSoonResponse(): Response {

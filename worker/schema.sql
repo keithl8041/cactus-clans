@@ -14,10 +14,17 @@ CREATE TABLE IF NOT EXISTS runs (
   clan TEXT NOT NULL,
   started_at TEXT NOT NULL DEFAULT (datetime('now')),
   completed_at TEXT,
-  total_score INTEGER NOT NULL DEFAULT 0
+  total_score INTEGER NOT NULL DEFAULT 0,
+  -- Furthest level reached, denormalized from level_results so the leaderboard
+  -- can report in-progress players' current level without scanning level_results.
+  -- Bumped on every level write via MAX(current_level, level_number).
+  current_level INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE INDEX IF NOT EXISTS runs_total_score_idx ON runs (total_score DESC);
+-- Feeds the leaderboard's per-player window (PARTITION BY player_id ORDER BY
+-- total_score DESC) and the /active-run latest-run lookup, in scan order.
+CREATE INDEX IF NOT EXISTS runs_player_score_idx ON runs (player_id, total_score DESC);
 
 CREATE TABLE IF NOT EXISTS level_results (
   id TEXT PRIMARY KEY,
@@ -27,7 +34,11 @@ CREATE TABLE IF NOT EXISTS level_results (
   mini_game_points INTEGER NOT NULL,
   elapsed_ms INTEGER NOT NULL,
   score INTEGER NOT NULL,
-  recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
+  recorded_at TEXT NOT NULL DEFAULT (datetime('now')),
+  -- One row per level per run. Writes UPSERT into this row (keeping the best
+  -- attempt) instead of appending every retry — bounds growth and lets reads
+  -- skip the old ROW_NUMBER() dedup. Also serves as the index for WHERE run_id.
+  UNIQUE(run_id, level_number)
 );
 
 -- Co-op (versus) mode: one row per finished two-player round. The MatchLobby
