@@ -146,7 +146,7 @@ export function LandingPage() {
       {/* Card showcase — form-1 art for every clan. Presentational only. */}
       <section className="landing-section">
         <h2>Meet the clans</h2>
-        <p className="landing-section-sub">Ten clans, eighty cards. The collection speaks for itself.</p>
+        <p className="landing-section-sub">Eleven clans and counting. The collection speaks for itself.</p>
         <div className="card-grid card-grid--showcase">
           {CLANS.map((clan) => {
             const form1 = cardsForClan(clan.name)[0];

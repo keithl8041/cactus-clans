@@ -1683,5 +1683,26 @@
     "speed": 30,
     "health": 120,
     "overallScore": 399
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 1,
+    "name": "Spiren",
+    "description": "A sprout of living crystal — small, sharp, and just beginning to shine.",
+    "strengths": [
+      "Hardened",
+      "Sharp edges",
+      "Light-bending"
+    ],
+    "weaknesses": [
+      "Brittle",
+      "Slow",
+      "Reflective"
+    ],
+    "attack": 25,
+    "defence": 35,
+    "speed": 40,
+    "health": 45,
+    "overallScore": 100
   }
 ]
