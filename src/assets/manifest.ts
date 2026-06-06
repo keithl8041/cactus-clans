@@ -190,32 +190,57 @@ function clanAssetSlug(clanName: string): string {
   return clanName.toLowerCase().replace(/\s+clan$/, '').replace(/\s+/g, '-');
 }
 
-/** Returns the clan-specific balloon key if registered, else the generic placeholder. */
+// Prickling is our most complete art set (every form + balloon, camel, pet),
+// so it's the default fallback for clans that don't yet have their own art.
+const FALLBACK_CLAN_SLUG = 'prickling';
+
+/**
+ * Resolve a clan-specific asset key. Tries the requested clan first, then falls
+ * back to the Prickling Clan, and finally to the generic procedural placeholder
+ * if even Prickling lacks the variant.
+ *
+ *   resolveClanKey('character', 'Metal Clan', '.3', 'character')
+ *     → 'character.metal.3' if present
+ *     → else 'character.prickling.3' if present
+ *     → else 'character'
+ */
+function resolveClanKey(prefix: string, clanName: string, suffix: string, placeholder: string): string {
+  const own = `${prefix}.${clanAssetSlug(clanName)}${suffix}`;
+  if (own in ASSETS) return own;
+  const fallback = `${prefix}.${FALLBACK_CLAN_SLUG}${suffix}`;
+  if (fallback in ASSETS) return fallback;
+  return placeholder;
+}
+
+/** Clan-specific balloon key, falling back to Prickling, then the procedural placeholder. */
 export function resolveBalloonKey(clanName: string): string {
-  const key = `balloon.${clanAssetSlug(clanName)}`;
-  return key in ASSETS ? key : 'balloon';
+  return resolveClanKey('balloon', clanName, '', 'balloon');
 }
 
-/** Returns the clan+form-specific character key if registered, else the generic placeholder. */
+/** Clan+form-specific character key, falling back to Prickling, then the procedural placeholder. */
 export function resolveCharacterKey(clanName: string, formNumber: number): string {
-  const key = `character.${clanAssetSlug(clanName)}.${formNumber}`;
-  return key in ASSETS ? key : 'character';
+  return resolveClanKey('character', clanName, `.${formNumber}`, 'character');
 }
 
-/** Returns the clan-specific camel key if registered, else the generic placeholder. */
+/** Clan-specific camel key, falling back to Prickling, then the procedural placeholder. */
 export function resolveCamelKey(clanName: string): string {
-  const key = `camel.${clanAssetSlug(clanName)}`;
-  return key in ASSETS ? key : 'camel';
+  return resolveClanKey('camel', clanName, '', 'camel');
 }
 
-/** Returns the clan+form-specific card key if registered, else the generic card frame. */
+/**
+ * Clan+form-specific card key, falling back to the procedural card frame.
+ *
+ * Unlike the other resolvers, cards do NOT fall back to Prickling: the
+ * procedural `card.frame` is already clan-aware (it draws the clan's colour and
+ * the form name), so it's a better placeholder for a missing card than another
+ * clan's art.
+ */
 export function resolveCardKey(clanName: string, formNumber: number): string {
   const key = `card.${clanAssetSlug(clanName)}.${formNumber}`;
   return key in ASSETS ? key : 'card.frame';
 }
 
-/** Returns the clan-specific pet cactus key for a given mood, else falls back to the procedural placeholder. */
+/** Clan-specific pet cactus key for a mood, falling back to Prickling, then the procedural placeholder. */
 export function resolvePetCactusKey(clanName: string, mood: 'happy' | 'sad'): string {
-  const key = `cactus.pet.${clanAssetSlug(clanName)}.${mood}`;
-  return key in ASSETS ? key : 'cactus.pet';
+  return resolveClanKey('cactus.pet', clanName, `.${mood}`, 'cactus.pet');
 }
