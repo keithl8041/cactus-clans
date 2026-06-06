@@ -51,15 +51,10 @@ const STORY_TABS = [
           with brilliant support from their families.
         </p>
         <p>
-          Sonny and Leo led on character design, artwork and card production, with Sonny's mum creating
-          the amazing artwork for every card and game asset. Felix collaborated to use AI to build the
-          online game, and together with his brother Jasper and their dad, coded the website and its eight
-          mini-games — all based on ideas from the whole group.
+          Sonny and Leo led on character design, artwork and card production and were supported by Sonny's mum and AI creating the amazing artwork for every card and game asset. Felix collaborated with his dad to use AI to build the online game, and together with his brother Jasper, coded the website and its eight mini-games — all based on ideas from the whole group.
         </p>
         <p>
-          And it wouldn't have happened without their siblings <strong>Toby, Jasper &amp; Jessie</strong>,
-          who played a key role as dedicated testers. It's a fantastic example of creativity, teamwork and
-          entrepreneurial spirit in action.
+          And it wouldn't have happened without their siblings Toby, Jasper & Jessie, who played a key role as dedicated testers. It's a fantastic example of creativity, teamwork and entrepreneurial spirit in action.
         </p>
       </>
     ),
