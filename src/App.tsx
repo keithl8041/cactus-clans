@@ -7,6 +7,7 @@ import { ClanSelect } from './shell/ClanSelect';
 import { LevelMap } from './shell/LevelMap';
 import { Leaderboard } from './shell/Leaderboard';
 import { StorePage } from './shell/StorePage';
+import { PrivacyPolicy } from './shell/PrivacyPolicy';
 import { Footer } from './shell/Footer';
 import { useGameStore } from './store/gameStore';
 import {
@@ -66,6 +67,7 @@ export function App() {
         />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/shop" element={<StorePage />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route
           path="/versus/:code"
           element={
