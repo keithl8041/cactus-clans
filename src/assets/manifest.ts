@@ -69,6 +69,7 @@ export type AssetEntry =
 export const ASSETS: Record<string, AssetEntry> = {
   balloon: { kind: 'svg', generate: (opts) => balloonSvg(opts as BalloonOptions) },
   'balloon.prickling': { kind: 'image', src: '/art/balloon-prickling-clan.png' },
+  'balloon.metal': { kind: 'image', src: '/art/balloon-metal-clan.png' },
   // SHARED across levels — used by L1 (Balloon), L4 (Cactus Care), L8 (Desert
   // Dash boss spikes) and Versus. Repoint with care; changes hit every one.
   'cactus.spike': { kind: 'image', src: '/art/cactus-spike.png' },
