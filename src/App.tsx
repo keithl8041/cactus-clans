@@ -15,6 +15,7 @@ import {
   RUN_CHANGE_EVENT,
   type RunChangeDetail,
 } from './services/progress';
+import { trackPageView } from './services/analytics';
 
 // Phaser is heavy — only load it when the player actually opens a level.
 const GameContainer = lazy(() =>
@@ -33,6 +34,10 @@ export function App() {
   const setRun = useGameStore((s) => s.setRun);
   // Hide the footer in-game so it doesn't overlap Phaser scenes.
   const inGame = location.pathname.startsWith('/play/');
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     function onRunChange(event: Event) {

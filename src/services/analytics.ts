@@ -52,6 +52,41 @@ export function initAnalytics(): void {
   gtag('config', GA_MEASUREMENT_ID);
 }
 
+const ROUTE_TITLES: Record<string, string> = {
+  '/': 'Home',
+  '/game': 'Splash',
+  '/nickname': 'Nickname Entry',
+  '/clans': 'Clan Select',
+  '/journey': 'Level Map',
+  '/leaderboard': 'Leaderboard',
+  '/shop': 'Shop',
+  '/privacy': 'Privacy Policy',
+};
+
+function pageTitle(pathname: string): string {
+  if (pathname.startsWith('/play/')) {
+    const level = pathname.split('/')[2];
+    return `Play Level ${level}`;
+  }
+  if (pathname.startsWith('/versus/')) return 'Versus Lobby';
+  return ROUTE_TITLES[pathname] ?? pathname;
+}
+
+/**
+ * Fire a GA4 page_view for SPA navigation. Call this on every route change.
+ */
+export function trackPageView(pathname: string): void {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+  try {
+    window.gtag('event', 'page_view', {
+      page_path: pathname,
+      page_title: pageTitle(pathname),
+    });
+  } catch (err) {
+    console.warn('analytics page_view dropped', err);
+  }
+}
+
 /**
  * Send a GA4 event. No-op unless `initAnalytics` actually loaded gtag (i.e. the
  * real production site) — on dev/preview `window.gtag` is undefined, so this
