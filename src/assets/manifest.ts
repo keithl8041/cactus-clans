@@ -95,6 +95,17 @@ export const ASSETS: Record<string, AssetEntry> = {
   'card.oasis.1': { kind: 'image', src: '/art/card-oasis-clan-form1.png' },
   'card.tropica.1': { kind: 'image', src: '/art/card-tropica-clan-form1.png' },
   'card.wildfire.1': { kind: 'image', src: '/art/card-wildfire-clan-form1.png' },
+  'landing-card.prickling.1': { kind: 'image', src: '/art/menu/card-prickling-clan-form1.png' },
+  'landing-card.duskerns.1': { kind: 'image', src: '/art/menu/card-duskerns-clan-form1.png' },
+  'landing-card.crystalline.1': { kind: 'image', src: '/art/menu/card-crystalline-clan-form1.png' },
+  'landing-card.tumbleweed.1': { kind: 'image', src: '/art/menu/card-tumbleweed-clan-form1.png' },
+  'landing-card.camo.1': { kind: 'image', src: '/art/menu/card-camo-clan-form1.png' },
+  'landing-card.earth.1': { kind: 'image', src: '/art/menu/card-earth-clan-form1.png' },
+  'landing-card.hot-dog.1': { kind: 'image', src: '/art/menu/card-hotdog-clan-form1.png' },
+  'landing-card.metal.1': { kind: 'image', src: '/art/menu/card-metal-clan-form1.png' },
+  'landing-card.oasis.1': { kind: 'image', src: '/art/menu/card-oasis-clan-form1.png' },
+  'landing-card.tropica.1': { kind: 'image', src: '/art/menu/card-tropica-clan-form1.png' },
+  'landing-card.wildfire.1': { kind: 'image', src: '/art/menu/card-wildfire-clan-form1.png' },
   'game1.background': { kind: 'image', src: '/art/game1background.png' },
   'game1.floor': { kind: 'image', src: '/art/Game1Floor.png' },
   'game2.floor': { kind: 'image', src: '/art/game2-floor.png' },
@@ -238,6 +249,12 @@ export function resolveCamelKey(clanName: string): string {
 export function resolveCardKey(clanName: string, formNumber: number): string {
   const key = `card.${clanAssetSlug(clanName)}.${formNumber}`;
   return key in ASSETS ? key : 'card.frame';
+}
+
+/** Clan+form-specific card key for the landing page card showcase. */
+export function resolveLandingCardKey(clanName: string, formNumber = 1): string {
+  const key = `landing-card.${clanAssetSlug(clanName)}.${formNumber}`;
+  return key in ASSETS ? key : resolveCardKey(clanName, formNumber);
 }
 
 /** Clan-specific pet cactus key for a mood, falling back to Prickling, then the procedural placeholder. */

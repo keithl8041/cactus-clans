@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
-import { assetUrl, resolveCardKey } from '../assets/manifest';
+import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 
 // The creators' intro — the first thing a web visitor sees at `/`. It tells the
 // origin story of the game (who made it, how, and why) and showcases the cards,
@@ -145,7 +145,7 @@ export function LandingPage() {
         <div className="card-grid card-grid--showcase">
           {CLANS.map((clan) => {
             const form1 = cardsForClan(clan.name)[0];
-            const url = assetUrl(resolveCardKey(clan.name, 1), {
+            const url = assetUrl(resolveLandingCardKey(clan.name), {
               clanName: clan.name,
               color: clan.color,
               formName: form1?.name ?? 'Form 1',
