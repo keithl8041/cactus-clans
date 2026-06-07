@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
+import { cardsForClan } from '../data/cards';
+import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 
 // The creators' intro — the first thing a web visitor sees at `/`. It tells the
 // origin story of the game (who made it, how, and why) and showcases the cards,
@@ -87,20 +89,6 @@ const STORY_TABS = [
   },
 ] as const;
 
-const HOMEPAGE_CARD_SLUG_BY_CLAN: Record<string, string> = {
-  'Camo Clan': 'camo',
-  'Crystalline Clan': 'crystalline',
-  Duskerns: 'duskern',
-  'Earth Clan': 'earth',
-  'Hot Dog Clan': 'hotdog',
-  'Metal Clan': 'metal',
-  'Oasis Clan': 'oasis',
-  'Prickling Clan': 'prickling',
-  'Tropica Clan': 'tropica',
-  'Tumbleweed Clan': 'tumbleweed',
-  'Wildfire Clan': 'wildfire',
-};
-
 export function LandingPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<(typeof STORY_TABS)[number]['id']>(STORY_TABS[0].id);
@@ -156,8 +144,13 @@ export function LandingPage() {
         <p className="landing-section-sub">Eleven clans and counting. The collection speaks for itself.</p>
         <div className="card-grid card-grid--showcase">
           {CLANS.map((clan) => {
-            const slug = HOMEPAGE_CARD_SLUG_BY_CLAN[clan.name];
-            const url = slug ? `/art/menu/card-${slug}-clan-form1.png` : '/art/card-prickling-clan-form1.png';
+            const form1 = cardsForClan(clan.name)[0];
+            const url = assetUrl(resolveLandingCardKey(clan.name), {
+              clanName: clan.name,
+              color: clan.color,
+              formName: form1?.name ?? 'Form 1',
+              formNumber: 1,
+            });
             return (
               <figure key={clan.name} className="card-tile card-tile--showcase">
                 <img src={url} alt={`${clan.name} card`} />
