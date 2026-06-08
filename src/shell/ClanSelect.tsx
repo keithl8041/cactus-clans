@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
-import { assetUrl, resolveCardKey } from '../assets/manifest';
+import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 import { useGameStore } from '../store/gameStore';
 import { startRun } from '../services/progress';
 import { consumeReturnTo } from './postAuthReturn';
@@ -45,7 +45,7 @@ export function ClanSelect() {
       <div className="card-grid">
         {CLANS.map((clan) => {
           const form1 = cardsForClan(clan.name)[0];
-          const url = assetUrl(resolveCardKey(clan.name, 1), {
+          const url = assetUrl(resolveLandingCardKey(clan.name, 1), {
             clanName: clan.name,
             color: clan.color,
             formName: form1?.name ?? 'Form 1',
@@ -61,6 +61,7 @@ export function ClanSelect() {
               onClick={selectable ? () => setSelected(clan.name) : undefined}
             >
               <img src={url} alt={clan.name} />
+              {!selectable && <div className="card-tile__locked-label">Coming soon</div>}
               <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
                 {clan.tagline}
               </div>

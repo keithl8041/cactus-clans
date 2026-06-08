@@ -159,8 +159,14 @@ ${[
   ...scanResult.characters.map(c => c.filename),
 ].filter(Boolean).map(f => `  cp C:/Projects/cactus-clans/_drop/${f} C:/Projects/cactus-clans/public/art/${f}`).join('\n')}
 
-${!scanResult.menuCardExists && scanResult.cards.find(c => c.form === 1) ? `Also copy form-1 card to the menu directory:
-  cp C:/Projects/cactus-clans/_drop/${scanResult.cards.find(c => c.form === 1).filename} "C:/Projects/cactus-clans/public/art/menu/card-${scanResult.filenamePart}-clan-form1.png"` : '(menu card already exists — skip)'}
+${scanResult.menuCardExists
+  ? '(art/menu/ card already exists — skip)'
+  : scanResult.cards.find(c => c.form === 1)
+    ? `REQUIRED — also copy form-1 card to the menu directory (used by ClanSelect and LandingPage via resolveLandingCardKey):
+  cp "C:/Projects/cactus-clans/_drop/${scanResult.cards.find(c => c.form === 1).filename}" "C:/Projects/cactus-clans/public/art/menu/${scanResult.cards.find(c => c.form === 1).filename.replace('card-', 'card-')}"
+  (destination filename should match what manifest.ts has for landing-card.${scanResult.clanSlug}.1 — check the manifest if unsure)`
+    : 'WARNING: no form-1 card found in _drop/ — art/menu/ card cannot be copied. The landing display for this clan will fall back to the SVG placeholder.'
+}
 
 ## Step 2: Update src/assets/manifest.ts
 

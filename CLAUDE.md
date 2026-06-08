@@ -76,7 +76,7 @@ The `_drop/` zip should contain files named exactly like this (using "hotdog" as
 
 The character files can have any name prefix (e.g. `diggidgy-dog-hotdog-clan-form1.png`). The important part is that the filename contains `-hotdog-clan-form<N>.png`.
 
-If `art/menu/card-hotdog-clan-form1.png` doesn't already exist, also copy the form-1 card there (it powers the landing page showcase).
+Also copy the form-1 card to `art/menu/` if it isn't already there — this is **required**: `ClanSelect` uses `resolveLandingCardKey` for all clan tiles, so without the menu card the tile falls back to the "art coming soon" SVG placeholder.
 
 ### Clan slug convention
 
