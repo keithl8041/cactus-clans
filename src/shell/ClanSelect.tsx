@@ -51,7 +51,7 @@ export function ClanSelect() {
             formName: form1?.name ?? 'Form 1',
             formNumber: 1,
           });
-          const selectable = clan.name === 'Prickling Clan' || clan.name === 'Metal Clan' || clan.name === 'Tropica Clan' || clan.name === 'Hot Dog Clan';
+          const selectable = clan.name === 'Prickling Clan' || clan.name === 'Metal Clan' || clan.name === 'Tropica Clan' || clan.name === 'Hot Dog Clan' || clan.name === 'Camo Clan' || clan.name === 'Duskerns';
           return (
             <div
               key={clan.name}
