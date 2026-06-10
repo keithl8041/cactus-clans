@@ -10,10 +10,11 @@ import {
 import { DemoGame } from './DemoGame';
 
 /**
- * The clan used for all demo players. Prickling Clan is the first clan in the
- * ordered list and has placeholder art for every form.
+ * The clan used for all demo players. Named explicitly rather than relying on
+ * CLANS[0] so this stays stable if the display order ever changes.
  */
-const DEMO_CLAN = CLANS[0];
+const DEMO_CLAN_NAME = 'Prickling Clan';
+const DEMO_CLAN = CLANS.find((c) => c.name === DEMO_CLAN_NAME) ?? CLANS[0];
 const DEMO_LEVEL_NUMBER = 6;
 
 // ---------------------------------------------------------------------------
@@ -299,7 +300,7 @@ function DemoLeaderboard({
         <div className="leaderboard-list" ref={listRef}>
           {entries.map((e, i) => (
             <div
-              key={`${e.nickname}-${i}`}
+              key={e.nickname}
               className={`leaderboard-row${e.nickname === currentNickname ? ' me' : ''}`}
             >
               <span className="rank">#{i + 1}</span>
