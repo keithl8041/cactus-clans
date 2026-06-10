@@ -118,11 +118,19 @@ function readRunsForPlayer(playerId: string): RunProgress[] {
 }
 
 function preferredRun(runs: RunProgress[]): RunProgress | null {
-  if (runs.length === 0) return null;
-  return [...runs].sort((a, b) => {
-    if (!!a.completedAt !== !!b.completedAt) return a.completedAt ? 1 : -1;
-    return b.startedAt.localeCompare(a.startedAt);
-  })[0] ?? null;
+  let best: RunProgress | null = null;
+  for (const run of runs) {
+    if (!best) {
+      best = run;
+      continue;
+    }
+    if (!!best.completedAt !== !!run.completedAt) {
+      if (!run.completedAt) best = run;
+      continue;
+    }
+    if (run.startedAt > best.startedAt) best = run;
+  }
+  return best;
 }
 
 function readActiveRun(playerId: string): RunProgress | null {
@@ -142,9 +150,12 @@ function writeRun(
   run: RunProgress,
   options: { activate?: boolean; notify?: boolean } = {},
 ): void {
+  const activate = options.activate ?? true;
   localStorage.setItem(RUN_KEY(run.playerId, run.clan), JSON.stringify(run));
-  if (options.activate ?? true) writeActiveClan(run.playerId, run.clan);
-  if ((options.notify ?? true) && readActiveClan(run.playerId) === run.clan) {
+  if (activate) writeActiveClan(run.playerId, run.clan);
+  const notify = options.notify ?? true;
+  if (!notify) return;
+  if (activate || readActiveClan(run.playerId) === run.clan) {
     notifyRunChange(run.playerId, run);
   }
 }
@@ -385,7 +396,6 @@ export async function syncActiveRunFromServer(
   playerId: string,
   clan?: string,
 ): Promise<RunProgress | null> {
-  if (clan) writeActiveClan(playerId, clan);
   const targetClan = clan ?? readActiveRun(playerId)?.clan ?? null;
   let local = targetClan ? readRun(playerId, targetClan) : readActiveRun(playerId);
   if (!usingRealBackend) return local;
@@ -398,9 +408,9 @@ export async function syncActiveRunFromServer(
 
   let serverRun: RunProgress | null;
   try {
-    const params = clan ? `?clan=${encodeURIComponent(clan)}` : '';
+    const queryString = clan ? `?clan=${encodeURIComponent(clan)}` : '';
     const res = await apiFetch<{ run: RunProgress | null }>(
-      `/players/${encodeURIComponent(playerId)}/active-run${params}`,
+      `/players/${encodeURIComponent(playerId)}/active-run${queryString}`,
     );
     serverRun = res.run;
   } catch (err) {
@@ -408,6 +418,8 @@ export async function syncActiveRunFromServer(
     return local;
   }
   if (!serverRun) {
+    // Changed behavior: preserve local state instead of clearing it when the
+    // server has no matching run, so offline/unsynced progress is never erased.
     return local;
   }
   if (!local || local.runId !== serverRun.runId) {
