@@ -4,7 +4,7 @@ import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
 import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 import { useGameStore } from '../store/gameStore';
-import { startRun } from '../services/progress';
+import { getOrCreateRunForClan } from '../services/progress';
 import { consumeReturnTo } from './postAuthReturn';
 
 export function ClanSelect() {
@@ -30,7 +30,7 @@ export function ClanSelect() {
     if (!player || !selected) return;
     setBusy(true);
     try {
-      const run = await startRun(player.id, selected);
+      const run = await getOrCreateRunForClan(player.id, selected);
       setRun(run);
       navigate('/journey');
     } finally {
