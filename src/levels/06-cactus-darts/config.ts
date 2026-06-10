@@ -8,7 +8,7 @@ export const CACTUS_DARTS_CONFIG = {
   // World
   gravityY: 900,
   floorPadding: 12,
-  playerSize: 96,
+  playerSize: 192,
   spikeSize: 56,
   boardSize: 140,
 
