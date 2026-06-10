@@ -180,29 +180,25 @@ input[type='text']:focus {
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 200px));
+  gap: 1.25rem;
   width: 100%;
   max-width: 960px;
 }
 
 .card-tile {
-  background: var(--bg-elev);
-  border: 2px solid var(--panel-dim);
-  border-radius: var(--radius);
-  padding: 0.75rem;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s ease, transform 0.05s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card-tile:hover {
-  border-color: var(--accent);
+  transform: scale(1.04);
 }
 
 .card-tile.selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(247, 201, 72, 0.25);
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px var(--accent), 0 0 16px rgba(247, 201, 72, 0.4);
 }
 
 /* Store page — embeds the Payhip product container. */
@@ -259,6 +255,7 @@ input[type='text']:focus {
 .card-tile--locked {
   cursor: default;
   position: relative;
+  opacity: 0.6;
 }
 
 .card-tile--locked img {
@@ -267,7 +264,7 @@ input[type='text']:focus {
 }
 
 .card-tile--locked:hover {
-  border-color: var(--panel-dim);
+  transform: none;
 }
 
 .card-tile__locked-label {
@@ -290,7 +287,6 @@ input[type='text']:focus {
 .card-tile img {
   width: 100%;
   height: auto;
-  border-radius: 8px;
   display: block;
 }
 
@@ -447,7 +443,7 @@ input[type='text']:focus {
 }
 
 .card-tile--showcase:hover {
-  border-color: var(--panel-dim);
+  transform: none;
 }
 
 .landing-cta-band {
