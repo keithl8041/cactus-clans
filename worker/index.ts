@@ -363,6 +363,41 @@ async function route(
     });
   }
 
+  if (pathname === '/api/demo-leaderboard' && method === 'GET') {
+    return withEdgeCache(url, ctx, async () => {
+      const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
+      const limit = Math.min(Math.max(requested, 1), 200);
+      const eventContext = url.searchParams.get('context') ?? 'jkps-summer-fair';
+      // One row per nickname — their highest score for this event context.
+      const result = await env.DB
+        .prepare(
+          `SELECT nickname, MAX(score) AS score
+           FROM demo_scores
+           WHERE context = ?
+           GROUP BY nickname
+           ORDER BY score DESC
+           LIMIT ?`,
+        )
+        .bind(eventContext, limit)
+        .all<{ nickname: string; score: number }>();
+      return json(result.results ?? []);
+    });
+  }
+
+  if (pathname === '/api/demo-scores' && method === 'POST') {
+    const body = await readJson<{ nickname?: string; score?: number; context?: string }>(request);
+    if (!body.nickname || typeof body.score !== 'number') {
+      return json({ error: 'nickname and score required' }, 400);
+    }
+    const id = crypto.randomUUID();
+    const eventContext = (body.context ?? 'jkps-summer-fair').slice(0, 64);
+    await env.DB
+      .prepare('INSERT INTO demo_scores (id, nickname, score, context) VALUES (?, ?, ?, ?)')
+      .bind(id, body.nickname.slice(0, 24), Math.round(body.score), eventContext)
+      .run();
+    return json({ ok: true });
+  }
+
   return null;
 }
 
