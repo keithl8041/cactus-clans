@@ -58,3 +58,16 @@ CREATE TABLE IF NOT EXISTS team_scores (
 );
 
 CREATE INDEX IF NOT EXISTS team_scores_score_idx ON team_scores (score DESC);
+
+-- Demo-mode high scores. One row per attempt; the leaderboard endpoint groups
+-- by nickname and returns each player's best score. The context column is
+-- reserved for future events (current value: 'jkps-summer-fair').
+CREATE TABLE IF NOT EXISTS demo_scores (
+  id TEXT PRIMARY KEY,
+  nickname TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  context TEXT NOT NULL DEFAULT 'jkps-summer-fair',
+  recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS demo_scores_score_idx ON demo_scores (score DESC);

@@ -8,9 +8,10 @@ interface Props {
   instructions: LevelInstructions;
   onStart: () => void;
   onCancel: () => void;
+  cancelLabel?: string;
 }
 
-export function InstructionsModal({ levelNumber, title, passThreshold, instructions, onStart, onCancel }: Props) {
+export function InstructionsModal({ levelNumber, title, passThreshold, instructions, onStart, onCancel, cancelLabel = 'Back to map' }: Props) {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export function InstructionsModal({ levelNumber, title, passThreshold, instructi
           <button className="primary" onClick={onStart} autoFocus>
             Start (Enter)
           </button>
-          <button onClick={onCancel}>Back to map</button>
+          <button onClick={onCancel}>{cancelLabel}</button>
         </div>
       </div>
     </div>
