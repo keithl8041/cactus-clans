@@ -97,3 +97,65 @@ export function submitMockRun(entry: MockRow): void {
   all.push(entry);
   writeMock(all);
 }
+
+// ---------------------------------------------------------------------------
+// Demo leaderboard (JKPS Summer Fair)
+// ---------------------------------------------------------------------------
+
+const DEMO_BOARD_KEY = 'cc.leaderboard.demo.v1';
+
+export interface DemoLeaderboardEntry {
+  nickname: string;
+  score: number;
+}
+
+interface MockDemoRow extends DemoLeaderboardEntry {
+  /* stored as-is; dedup by nickname on read */
+}
+
+function readMockDemo(): MockDemoRow[] {
+  try {
+    const raw = localStorage.getItem(DEMO_BOARD_KEY);
+    return raw ? (JSON.parse(raw) as MockDemoRow[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeMockDemo(rows: MockDemoRow[]): void {
+  localStorage.setItem(DEMO_BOARD_KEY, JSON.stringify(rows));
+}
+
+/** Fetch the JKPS Summer Fair demo leaderboard (best score per nickname). */
+export async function fetchDemoLeaderboard(limit = 50): Promise<DemoLeaderboardEntry[]> {
+  if (usingRealBackend) {
+    const rows = await apiFetch<DemoLeaderboardEntry[]>(`/demo-leaderboard?limit=${limit}`);
+    return rows;
+  }
+
+  // Dedup by nickname (highest score wins).
+  const byName = new Map<string, MockDemoRow>();
+  for (const row of readMockDemo()) {
+    const prior = byName.get(row.nickname);
+    if (!prior || row.score > prior.score) byName.set(row.nickname, row);
+  }
+  return [...byName.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+/** Submit a score to the JKPS Summer Fair demo leaderboard. */
+export async function submitDemoScore(entry: { nickname: string; score: number }): Promise<void> {
+  if (usingRealBackend) {
+    await apiFetch('/demo-scores', {
+      method: 'POST',
+      body: JSON.stringify({ nickname: entry.nickname, score: entry.score }),
+    });
+    return;
+  }
+
+  // Dev mode: append to localStorage (fetchDemoLeaderboard deduplicates).
+  const all = readMockDemo();
+  all.push({ nickname: entry.nickname, score: entry.score });
+  writeMockDemo(all);
+}

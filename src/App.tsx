@@ -26,6 +26,10 @@ const GameContainer = lazy(() =>
 const VersusLobby = lazy(() =>
   import('./shell/VersusLobby').then((m) => ({ default: m.VersusLobby })),
 );
+// Demo mode (JKPS Summer Fair) — also brings in Phaser, so lazy-loaded.
+const Demo = lazy(() =>
+  import('./shell/Demo').then((m) => ({ default: m.Demo })),
+);
 
 export function App() {
   const location = useLocation();
@@ -33,7 +37,7 @@ export function App() {
   const run = useGameStore((s) => s.run);
   const setRun = useGameStore((s) => s.setRun);
   // Hide the footer in-game so it doesn't overlap Phaser scenes.
-  const inGame = location.pathname.startsWith('/play/');
+  const inGame = location.pathname.startsWith('/play/') || location.pathname === '/demo';
 
   useEffect(() => {
     trackPageView(location.pathname);
@@ -73,6 +77,14 @@ export function App() {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/shop" element={<StorePage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route
+          path="/demo"
+          element={
+            <Suspense fallback={<div className="screen"><h2>Loading demo…</h2></div>}>
+              <Demo />
+            </Suspense>
+          }
+        />
         <Route
           path="/versus/:code"
           element={
