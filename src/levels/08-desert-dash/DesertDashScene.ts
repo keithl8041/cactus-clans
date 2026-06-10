@@ -86,6 +86,7 @@ export class DesertDashScene extends Phaser.Scene {
 
   // ----- Boss -----
   private boss: Phaser.GameObjects.Image | null = null;
+  private bossLair: Phaser.GameObjects.Image | null = null;
   private bossHp: number = CFG.bossHp;
   private bossSubstate: BossSubstate = 'idle';
   private bossSubstateUntil = 0;
@@ -144,6 +145,7 @@ export class DesertDashScene extends Phaser.Scene {
     loadAsset(this, 'game8.bossHealthBar', 'game8.bossHealthBar');
     loadAsset(this, 'finishBanner', 'finishBanner', { size: 220 });
     loadAsset(this, 'tarantula', 'game8.boss', { size: CFG.bossSize });
+    loadAsset(this, 'game8.bossLair', 'game8.bossLair');
     loadAsset(this, 'boss.spike', 'cactus.spike');
   }
 
@@ -643,6 +645,14 @@ export class DesertDashScene extends Phaser.Scene {
     this.obstacles = [];
     for (const s of this.stars) s.sprite.destroy();
     this.stars = [];
+
+    // Lair overlay — anchored bottom-right, sits behind boss (depth 6)
+    this.bossLair = this.add.image(width, height, 'game8.bossLair')
+      .setOrigin(1, 1)
+      .setDisplaySize(430, 400)
+      .setDepth(6)
+      .setAlpha(0);
+    this.tweens.add({ targets: this.bossLair, alpha: 1, duration: 600, ease: 'Sine.easeIn' });
 
     // Show "Boss Incoming!" banner
     this.unlockBanner = this.add.text(width / 2, height * 0.32, 'BOSS INCOMING!', {
@@ -1158,6 +1168,17 @@ export class DesertDashScene extends Phaser.Scene {
       duration: 350,
       ease: 'Sine.easeInOut',
     });
+
+    // Fade out and destroy the lair overlay as the run resumes.
+    if (this.bossLair) {
+      this.tweens.add({
+        targets: this.bossLair,
+        alpha: 0,
+        duration: 500,
+        ease: 'Sine.easeOut',
+        onComplete: () => { this.bossLair?.destroy(); this.bossLair = null; },
+      });
+    }
 
     // Frozen obstacles from the running phase have been parked off-screen for
     // the duration of the boss fight. Wipe them so the outro starts clean and

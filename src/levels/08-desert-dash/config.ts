@@ -15,7 +15,7 @@ export const DESERT_DASH_CONFIG = {
   playerSize: 96,
   playerXFraction: 0.22,               // x-position during running phase (world scrolls past)
   bossPlayerMinXFraction: 0.04,        // movement bounds during boss phase
-  bossPlayerMaxXFraction: 0.96,
+  bossPlayerMaxXFraction: 0.667,
   bossPlayerMoveSpeed: 320,            // horizontal speed during boss phase
   gravity: 1800,
   jumpImpulse: -680,                   // first jump
