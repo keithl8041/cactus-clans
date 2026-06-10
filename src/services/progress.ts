@@ -30,25 +30,123 @@ export interface RunChangeDetail {
   run: RunProgress | null;
 }
 
-const RUN_KEY = (playerId: string) => `cc.run.${playerId}.v1`;
+const RUN_KEY_PREFIX = 'cc.run.v2.';
+const RUN_KEY = (playerId: string, clan: string) =>
+  `${RUN_KEY_PREFIX}${playerId}|${encodeURIComponent(clan)}`;
+const LEGACY_RUN_KEY = (playerId: string) => `cc.run.${playerId}.v1`;
+const ACTIVE_CLAN_KEY = (playerId: string) => `cc.run.active.${playerId}.v1`;
 const LOCAL_RUN_PREFIX = 'local-run-';
 const RETRY_BACKOFF_MS = [2_000, 5_000, 15_000, 30_000, 60_000] as const;
 const retryTimers = new Map<string, number>();
 const retryCounts = new Map<string, number>();
 let syncInitialized = false;
 
-function readRun(playerId: string): RunProgress | null {
+function retryKey(playerId: string, clan: string): string {
+  return `${playerId}|${clan}`;
+}
+
+function readActiveClan(playerId: string): string | null {
+  const raw = localStorage.getItem(ACTIVE_CLAN_KEY(playerId));
+  return raw?.trim() || null;
+}
+
+function writeActiveClan(playerId: string, clan: string): void {
+  localStorage.setItem(ACTIVE_CLAN_KEY(playerId), clan);
+}
+
+function clearActiveClan(playerId: string): void {
+  localStorage.removeItem(ACTIVE_CLAN_KEY(playerId));
+}
+
+function migrateLegacyRun(playerId: string): void {
+  const legacyKey = LEGACY_RUN_KEY(playerId);
+  const raw = localStorage.getItem(legacyKey);
+  if (!raw) return;
   try {
-    const raw = localStorage.getItem(RUN_KEY(playerId));
+    const run = JSON.parse(raw) as RunProgress;
+    if (run?.playerId === playerId && run.clan) {
+      const nextKey = RUN_KEY(playerId, run.clan);
+      if (!localStorage.getItem(nextKey)) {
+        localStorage.setItem(nextKey, JSON.stringify(run));
+      }
+      writeActiveClan(playerId, run.clan);
+    }
+  } catch {
+    // ignore malformed legacy cache
+  } finally {
+    localStorage.removeItem(legacyKey);
+  }
+}
+
+function runKeyParts(key: string): { playerId: string; clan: string } | null {
+  if (!key.startsWith(RUN_KEY_PREFIX)) return null;
+  const body = key.slice(RUN_KEY_PREFIX.length);
+  const sep = body.indexOf('|');
+  if (sep <= 0 || sep >= body.length - 1) return null;
+  const playerId = body.slice(0, sep);
+  const clan = decodeURIComponent(body.slice(sep + 1));
+  if (!playerId || !clan) return null;
+  return { playerId, clan };
+}
+
+function readRun(playerId: string, clan: string): RunProgress | null {
+  try {
+    const raw = localStorage.getItem(RUN_KEY(playerId, clan));
     return raw ? (JSON.parse(raw) as RunProgress) : null;
   } catch {
     return null;
   }
 }
 
-function writeRun(run: RunProgress): void {
-  localStorage.setItem(RUN_KEY(run.playerId), JSON.stringify(run));
-  notifyRunChange(run.playerId, run);
+function readRunsForPlayer(playerId: string): RunProgress[] {
+  migrateLegacyRun(playerId);
+  const runs: RunProgress[] = [];
+  const prefix = `${RUN_KEY_PREFIX}${playerId}|`;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key?.startsWith(prefix)) continue;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const run = JSON.parse(raw) as RunProgress;
+      if (run?.playerId === playerId && run.clan) runs.push(run);
+    } catch {
+      // skip malformed cache entry
+    }
+  }
+  return runs;
+}
+
+function preferredRun(runs: RunProgress[]): RunProgress | null {
+  if (runs.length === 0) return null;
+  return [...runs].sort((a, b) => {
+    if (!!a.completedAt !== !!b.completedAt) return a.completedAt ? 1 : -1;
+    return b.startedAt.localeCompare(a.startedAt);
+  })[0] ?? null;
+}
+
+function readActiveRun(playerId: string): RunProgress | null {
+  migrateLegacyRun(playerId);
+  const activeClan = readActiveClan(playerId);
+  if (activeClan) {
+    const active = readRun(playerId, activeClan);
+    if (active) return active;
+    clearActiveClan(playerId);
+  }
+  const fallback = preferredRun(readRunsForPlayer(playerId));
+  if (fallback) writeActiveClan(playerId, fallback.clan);
+  return fallback;
+}
+
+function writeRun(
+  run: RunProgress,
+  options: { activate?: boolean; notify?: boolean } = {},
+): void {
+  localStorage.setItem(RUN_KEY(run.playerId, run.clan), JSON.stringify(run));
+  if (options.activate ?? true) writeActiveClan(run.playerId, run.clan);
+  if ((options.notify ?? true) && readActiveClan(run.playerId) === run.clan) {
+    notifyRunChange(run.playerId, run);
+  }
 }
 
 function localRunId(playerId: string): string {
@@ -98,7 +196,10 @@ function notifyRunChange(playerId: string, run: RunProgress | null): void {
   );
 }
 
-async function syncRunToServer(run: RunProgress): Promise<RunProgress> {
+async function syncRunToServer(
+  run: RunProgress,
+  options: { activate?: boolean; notify?: boolean } = {},
+): Promise<RunProgress> {
   let next = clearSyncState(run);
 
   if (isLocalRunId(next.runId)) {
@@ -111,7 +212,7 @@ async function syncRunToServer(run: RunProgress): Promise<RunProgress> {
       runId: created.id,
       startedAt: created.startedAt,
     };
-    writeRun(next);
+    writeRun(next, options);
   }
 
   for (const level of sortedLevels(next)) {
@@ -136,65 +237,67 @@ async function syncRunToServer(run: RunProgress): Promise<RunProgress> {
   }
 
   const synced = clearSyncState(next);
-  writeRun(synced);
-  clearRunRetry(run.playerId);
+  writeRun(synced, options);
+  clearRunRetry(run.playerId, run.clan);
   return synced;
 }
 
-async function flushPendingRun(playerId: string): Promise<RunProgress | null> {
-  if (!usingRealBackend) return readRun(playerId);
-  const run = readRun(playerId);
+async function flushPendingRun(playerId: string, clan: string): Promise<RunProgress | null> {
+  if (!usingRealBackend) return readRun(playerId, clan);
+  const run = readRun(playerId, clan);
   if (!run) return null;
   if (!needsSync(run)) return run;
   try {
-    return await syncRunToServer(run);
+    return await syncRunToServer(run, { activate: readActiveClan(playerId) === clan });
   } catch (err) {
-    const latest = readRun(playerId);
+    const latest = readRun(playerId, clan);
     const pending = markPendingSync(latest ?? run, err);
-    writeRun(pending);
-    scheduleRunRetry(playerId);
+    writeRun(pending, { activate: readActiveClan(playerId) === clan });
+    scheduleRunRetry(playerId, clan);
     return pending;
   }
 }
 
-function clearRunRetry(playerId: string): void {
-  retryCounts.delete(playerId);
-  const timer = retryTimers.get(playerId);
+function clearRunRetry(playerId: string, clan: string): void {
+  const key = retryKey(playerId, clan);
+  retryCounts.delete(key);
+  const timer = retryTimers.get(key);
   if (timer != null && typeof window !== 'undefined') {
     window.clearTimeout(timer);
-    retryTimers.delete(playerId);
+    retryTimers.delete(key);
   }
 }
 
-function scheduleRunRetry(playerId: string): void {
+function scheduleRunRetry(playerId: string, clan: string): void {
   if (!usingRealBackend || typeof window === 'undefined') return;
-  const existing = retryTimers.get(playerId);
+  const key = retryKey(playerId, clan);
+  const existing = retryTimers.get(key);
   if (existing != null) window.clearTimeout(existing);
-  const attempt = retryCounts.get(playerId) ?? 0;
+  const attempt = retryCounts.get(key) ?? 0;
   const delay = RETRY_BACKOFF_MS[Math.min(attempt, RETRY_BACKOFF_MS.length - 1)];
-  retryCounts.set(playerId, attempt + 1);
+  retryCounts.set(key, attempt + 1);
   const timer = window.setTimeout(() => {
-    retryTimers.delete(playerId);
-    void flushPendingRun(playerId);
+    retryTimers.delete(key);
+    void flushPendingRun(playerId, clan);
   }, delay);
-  retryTimers.set(playerId, timer);
+  retryTimers.set(key, timer);
 }
 
-function pendingPlayerIds(): string[] {
-  const ids: string[] = [];
+function pendingRuns(): Array<{ playerId: string; clan: string }> {
+  const runs: Array<{ playerId: string; clan: string }> = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (!key?.startsWith('cc.run.') || !key.endsWith('.v1')) continue;
-    const playerId = key.slice('cc.run.'.length, -'.v1'.length);
-    if (playerId) ids.push(playerId);
+    if (!key?.startsWith(RUN_KEY_PREFIX)) continue;
+    const parts = runKeyParts(key);
+    if (parts) runs.push(parts);
   }
-  return ids;
+  return runs;
 }
 
 async function flushPendingRuns(): Promise<void> {
   if (!usingRealBackend) return;
-  for (const playerId of pendingPlayerIds()) {
-    await flushPendingRun(playerId);
+  for (const run of pendingRuns()) {
+    await flushPendingRun(run.playerId, run.clan);
   }
 }
 
@@ -241,7 +344,7 @@ export async function startRun(playerId: string, clan: string): Promise<RunProgr
       };
       const pending = markPendingSync(run, err);
       writeRun(pending);
-      scheduleRunRetry(playerId);
+      scheduleRunRetry(playerId, clan);
       return pending;
     }
   }
@@ -262,7 +365,7 @@ export async function getActiveRun(playerId: string): Promise<RunProgress | null
   // localStorage is the source of truth for the active run even when the real
   // backend is wired up — keeps in-progress state snappy and survives refreshes.
   // Cross-device sync happens at sign-in via `syncActiveRunFromServer`.
-  return readRun(playerId);
+  return readActiveRun(playerId);
 }
 
 /**
@@ -273,36 +376,39 @@ export async function getActiveRun(playerId: string): Promise<RunProgress | null
  *
  * Reconciliation rules:
  *   - Backend offline (or DEV fallback) → trust local cache.
- *   - Server has no in-progress run → drop any stale local cache (the canonical
- *     run was completed elsewhere; the local copy is from a finished session).
+ *   - Server has no matching run → keep any local cache for offline resilience.
  *   - Server + local disagree on runId → trust server (it spans devices).
  *   - Same runId on both → merge level_results using the client's replay rule
  *     so any unsynced local progress survives.
  */
-export async function syncActiveRunFromServer(playerId: string): Promise<RunProgress | null> {
-  let local = readRun(playerId);
+export async function syncActiveRunFromServer(
+  playerId: string,
+  clan?: string,
+): Promise<RunProgress | null> {
+  if (clan) writeActiveClan(playerId, clan);
+  const targetClan = clan ?? readActiveRun(playerId)?.clan ?? null;
+  let local = targetClan ? readRun(playerId, targetClan) : readActiveRun(playerId);
   if (!usingRealBackend) return local;
 
-  if (needsSync(local)) {
-    const synced = await flushPendingRun(playerId);
+  if (targetClan && needsSync(local)) {
+    const synced = await flushPendingRun(playerId, targetClan);
     if (needsSync(synced)) return synced;
     local = synced;
   }
 
   let serverRun: RunProgress | null;
   try {
+    const params = clan ? `?clan=${encodeURIComponent(clan)}` : '';
     const res = await apiFetch<{ run: RunProgress | null }>(
-      `/players/${encodeURIComponent(playerId)}/active-run`,
+      `/players/${encodeURIComponent(playerId)}/active-run${params}`,
     );
     serverRun = res.run;
   } catch (err) {
     console.warn('active-run sync failed', err);
     return local;
   }
-
   if (!serverRun) {
-    if (local) clearActiveRun(playerId);
-    return null;
+    return local;
   }
   if (!local || local.runId !== serverRun.runId) {
     writeRun(serverRun);
@@ -311,6 +417,12 @@ export async function syncActiveRunFromServer(playerId: string): Promise<RunProg
   const merged = mergeRunLevels(local, serverRun);
   writeRun(merged);
   return merged;
+}
+
+export async function getOrCreateRunForClan(playerId: string, clan: string): Promise<RunProgress> {
+  const existing = await syncActiveRunFromServer(playerId, clan);
+  if (existing) return existing;
+  return startRun(playerId, clan);
 }
 
 function mergeRunLevels(a: RunProgress, b: RunProgress): RunProgress {
@@ -339,12 +451,13 @@ function pickBetterLevel(prior: LevelClearRecord, next: LevelClearRecord): Level
 }
 
 /**
- * Clears the active run from localStorage so the next clan pick creates a
- * fresh run in D1. The previous (completed) run stays in `runs` — leaderboard
- * picks the highest-scoring run per player at read time.
+ * Clears only the currently-active clan run from localStorage.
  */
 export function clearActiveRun(playerId: string): void {
-  localStorage.removeItem(RUN_KEY(playerId));
+  const activeClan = readActiveClan(playerId);
+  if (!activeClan) return;
+  localStorage.removeItem(RUN_KEY(playerId, activeClan));
+  clearActiveClan(playerId);
   notifyRunChange(playerId, null);
 }
 
@@ -385,13 +498,13 @@ export async function recordLevelResult(
         }),
       });
       writeRun(synced);
-      clearRunRetry(run.playerId);
+      clearRunRetry(run.playerId, run.clan);
       return synced;
     } catch (err) {
-      const latest = readRun(run.playerId);
+      const latest = readRun(run.playerId, run.clan);
       const pending = markPendingSync(latest ?? next, err);
       writeRun(pending);
-      scheduleRunRetry(run.playerId);
+      scheduleRunRetry(run.playerId, run.clan);
       return pending;
     }
   }
@@ -413,13 +526,13 @@ export async function completeRun(run: RunProgress): Promise<RunProgress> {
         body: JSON.stringify({ totalScore: next.totalScore }),
       });
       writeRun(synced);
-      clearRunRetry(run.playerId);
+      clearRunRetry(run.playerId, run.clan);
       return synced;
     } catch (err) {
-      const latest = readRun(run.playerId);
+      const latest = readRun(run.playerId, run.clan);
       const pending = markPendingSync(latest ?? next, err);
       writeRun(pending);
-      scheduleRunRetry(run.playerId);
+      scheduleRunRetry(run.playerId, run.clan);
       return pending;
     }
   }

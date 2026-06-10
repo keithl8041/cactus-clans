@@ -5,7 +5,7 @@ import { clanByName } from '../data/clans';
 import { cardFor } from '../data/cards';
 import { assetUrl, resolveCharacterKey } from '../assets/manifest';
 import { levelMetaByNumber, MAX_LEVEL } from '../levels/meta';
-import { clearActiveRun, completeRun } from '../services/progress';
+import { completeRun } from '../services/progress';
 import { submitMockRun } from '../services/leaderboard';
 import { usingRealBackend } from '../services/api';
 
@@ -55,17 +55,6 @@ export function LevelMap() {
     navigate('/leaderboard');
   }
 
-  function startNewRun() {
-    if (!player) return;
-    const ok = window.confirm(
-      'Start a fresh run? Your completed run stays on the leaderboard.',
-    );
-    if (!ok) return;
-    clearActiveRun(player.id);
-    setRun(null);
-    navigate('/clans');
-  }
-
   return (
     <div className="screen">
       <h1>{run.clan}</h1>
@@ -110,11 +99,9 @@ export function LevelMap() {
 
       <div className="row">
         <button onClick={() => navigate('/game', { state: { pickPlayer: true } })}>Switch player</button>
+        <button onClick={() => navigate('/clans')}>Switch clan</button>
         {cleared >= MAX_LEVEL && !run.completedAt && (
           <button className="primary" onClick={finishRun}>Submit run</button>
-        )}
-        {run.completedAt && (
-          <button className="primary" onClick={startNewRun}>Start a new run</button>
         )}
         <button onClick={() => navigate('/leaderboard')}>Leaderboard</button>
       </div>
