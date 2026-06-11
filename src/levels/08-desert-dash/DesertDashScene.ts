@@ -52,6 +52,7 @@ export class DesertDashScene extends Phaser.Scene {
   private lives: number = CFG.startingLives;
   private bonusPoints = 0;
   private passed = false;
+  private passedAtMs = 0;
   private finished = false;
   private startedAt = 0;
   private hitPenaltyUntil = 0;
@@ -1029,6 +1030,7 @@ export class DesertDashScene extends Phaser.Scene {
     if (!this.boss) return;
     this.bossHp -= 1;
     this.bossIframesUntil = this.time.now + CFG.bossDamageIframesMs;
+    this.iframesUntil = this.time.now + CFG.stompPlayerIframesMs;
     // Bounce the player up off the stomp
     this.player.setVelocityY(CFG.jumpImpulse * 0.85);
     this.usedDoubleJump = false; // refresh the air-jump on a successful stomp
@@ -1101,6 +1103,7 @@ export class DesertDashScene extends Phaser.Scene {
   private defeatBoss(): void {
     this.phase = 'bossDefeated';
     this.passed = true;
+    this.passedAtMs = this.time.now - this.startedAt;
     sfx.unlock();
 
     // Boss death tween: fall + spin off-screen
@@ -1243,7 +1246,7 @@ export class DesertDashScene extends Phaser.Scene {
     if (this.finished) return;
     this.finished = true;
     this.phase = 'ended';
-    const elapsedMs = Math.min(CFG.courseTimeLimitMs, this.time.now - this.startedAt);
+    const elapsedMs = this.passed ? this.passedAtMs : Math.min(CFG.courseTimeLimitMs, this.time.now - this.startedAt);
     const miniGamePoints = Math.floor(this.distanceCovered / 100);
 
     const { width, height } = this.scale;
@@ -1283,7 +1286,7 @@ export class DesertDashScene extends Phaser.Scene {
         passed: this.passed,
         miniGamePoints,
         elapsedMs,
-        bonusPoints: this.bonusPoints,
+        bonusPoints: this.bonusPoints + this.lives * 30,
       });
     });
   }

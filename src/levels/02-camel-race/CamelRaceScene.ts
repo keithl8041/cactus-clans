@@ -631,7 +631,7 @@ export class CamelRaceScene extends Phaser.Scene {
         passed: this.passed,
         miniGamePoints,
         elapsedMs,
-        bonusPoints: this.bonusPoints,
+        bonusPoints: this.bonusPoints + this.livesRemaining * 30,
       });
     });
   }

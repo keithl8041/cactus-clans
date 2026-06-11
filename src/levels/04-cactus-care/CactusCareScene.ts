@@ -36,6 +36,7 @@ export class CactusCareScene extends Phaser.Scene {
   private centerSecondsBanked = 0;
   private bonusPoints = 0;
   private passed = false;
+  private passedAtMs = 0;
   private finished = false;
   private startedAt = 0;
 
@@ -439,6 +440,7 @@ export class CactusCareScene extends Phaser.Scene {
    */
   private markUnlocked(): void {
     this.passed = true;
+    this.passedAtMs = this.time.now - this.startedAt;
     sfx.unlock();
     this.happyText.setColor('#9efc9b');
 
@@ -491,7 +493,7 @@ export class CactusCareScene extends Phaser.Scene {
 
     if (reason !== 'survived' && !this.passed) sfx.pop();
 
-    const elapsedMs = Math.min(CFG.surviveMs, this.time.now - this.startedAt);
+    const elapsedMs = this.passed ? this.passedAtMs : Math.min(CFG.surviveMs, this.time.now - this.startedAt);
     const happySec = Math.floor(this.happyTimeMs / 1000);
     const { width, height } = this.scale;
 

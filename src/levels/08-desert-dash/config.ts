@@ -31,6 +31,7 @@ export const DESERT_DASH_CONFIG = {
 
   // Hit feedback
   hitIframesMs: 1000,                  // i-frames after losing a life
+  stompPlayerIframesMs: 2000,          // i-frames granted to the player after a successful boss stomp
 
   // Obstacles (running phase)
   obstacleWarmupPx: 900,               // grace period at start before first obstacle

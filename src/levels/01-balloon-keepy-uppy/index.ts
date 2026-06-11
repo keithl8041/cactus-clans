@@ -1,4 +1,4 @@
-import { scaledDefaultScoreFor, type LevelDefinition } from '../types';
+import { type LevelDefinition } from '../types';
 import { BalloonScene } from './BalloonScene';
 import { BALLOON_CONFIG } from './config';
 
@@ -22,5 +22,6 @@ export const balloonLevel: LevelDefinition = {
     ],
   },
   buildScene: (ctx) => new BalloonScene(ctx),
-  scoreFor: scaledDefaultScoreFor(2.3),
+  // Reward surviving longer — add elapsed seconds instead of subtracting
+  scoreFor: (r) => Math.max(0, Math.round((r.miniGamePoints * 10 + (r.bonusPoints ?? 0)) * 2.3) + Math.floor(r.elapsedMs / 1000)),
 };

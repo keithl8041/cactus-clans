@@ -32,6 +32,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   private strikes = 0;
   private misses = 0;
   private passed = false;
+  private passedAtMs = 0;
   private finished = false;
   private startedAt = 0;
 
@@ -53,6 +54,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   // Spawning
   private spawnTimer?: Phaser.Time.TimerEvent;
   private sessionTimer?: Phaser.Time.TimerEvent;
+  private swipeTimeoutTimer?: Phaser.Time.TimerEvent;
 
   // HUD
   private scoreText!: Phaser.GameObjects.Text;
@@ -242,6 +244,18 @@ export class CactusSlicingScene extends Phaser.Scene {
     this.trail.push({ x: p.x, y: p.y, t: this.time.now });
     this.lastSampleX = p.x;
     this.lastSampleY = p.y;
+    this.swipeTimeoutTimer = this.time.delayedCall(CFG.maxSwipeDurationMs, () => this.forceEndSwipe());
+  }
+
+  private forceEndSwipe(): void {
+    if (this.activePointerId == null) return;
+    this.activePointerId = null;
+    this.comboCount = 0;
+    // Brief red flash to signal the swipe was cut off
+    const { width, height } = this.scale;
+    const flash = this.add.rectangle(0, 0, width, height, 0xd24a3a).setOrigin(0).setAlpha(0.25).setDepth(30);
+    this.tweens.add({ targets: flash, alpha: 0, duration: 300, ease: 'Cubic.easeOut', onComplete: () => flash.destroy() });
+    this.spawnFloatingText(width / 2, height * 0.4, 'LIFT TO SLICE!', false);
   }
 
   private handlePointerMove(p: Phaser.Input.Pointer): void {
@@ -262,6 +276,8 @@ export class CactusSlicingScene extends Phaser.Scene {
   private handlePointerUp(p: Phaser.Input.Pointer): void {
     if (p.id !== this.activePointerId) return;
     this.activePointerId = null;
+    this.swipeTimeoutTimer?.remove();
+    this.swipeTimeoutTimer = undefined;
     // Combos require one continuous stroke — lifting always ends the combo.
     this.comboCount = 0;
     // Do NOT clear the trail — let samples age out so a flick-and-release still
@@ -575,7 +591,7 @@ export class CactusSlicingScene extends Phaser.Scene {
       onComplete: () => burst.destroy(),
     });
 
-    if (!this.passed && this.strikes >= CFG.strikeLimit) this.finish(false);
+    if (this.strikes >= CFG.strikeLimit) this.finish(this.passed);
   }
 
   // ----- HUD -----
@@ -613,6 +629,7 @@ export class CactusSlicingScene extends Phaser.Scene {
    */
   private markUnlocked(): void {
     this.passed = true;
+    this.passedAtMs = this.time.now - this.startedAt;
     sfx.unlock();
     this.scoreText.setColor('#9efc9b');
     this.updateScoreText();
@@ -672,7 +689,7 @@ export class CactusSlicingScene extends Phaser.Scene {
       this.unlockBanner = null;
     }
 
-    const elapsedMs = Math.min(CFG.sessionDurationMs, this.time.now - this.startedAt);
+    const elapsedMs = this.passed ? this.passedAtMs : Math.min(CFG.sessionDurationMs, this.time.now - this.startedAt);
 
     const { width, height } = this.scale;
     const failedByStrikes = this.strikes >= CFG.strikeLimit;

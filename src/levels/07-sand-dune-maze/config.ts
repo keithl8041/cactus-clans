@@ -33,7 +33,7 @@ export const DUNE_MAZE_CONFIG = {
 
   // Pickups + scoring
   artifactSize: 36,
-  artifactBonusPoints: 15,
+  artifactBonusPoints: 150,
   exitBaseReward: 30,
   timeBonusPerSecond: 2,
 

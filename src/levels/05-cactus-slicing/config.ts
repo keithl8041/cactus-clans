@@ -60,6 +60,7 @@ export const CACTUS_SLICING_CONFIG = {
   comboTierBonusStep: 5,            // +5 per additional slice
   comboMaxTier: 5,
   slicePointsBase: 5,
+  maxSwipeDurationMs: 10_000,       // force-end a swipe held longer than this
 
   // Clean cut (skill bonus)
   cleanCutFraction: 0.3,            // trail must pass within radius*frac of center
