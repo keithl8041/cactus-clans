@@ -53,6 +53,7 @@ export class BalloonScene extends Phaser.Scene {
   private jumpButtonHit!: Phaser.Geom.Circle;
 
   private lastHitAt = 0;
+  private music: Phaser.Sound.BaseSound | null = null;
   private windTimer?: Phaser.Time.TimerEvent;
   private windResetTimer?: Phaser.Time.TimerEvent;
   private timeoutTimer?: Phaser.Time.TimerEvent;
@@ -77,6 +78,7 @@ export class BalloonScene extends Phaser.Scene {
     loadAsset(this, 'game8.jumpButton', 'game8.jumpButton');
     loadAsset(this, 'game1.background', 'game1.background');
     loadAsset(this, 'game1.floor', 'game1.floor');
+    this.load.audio('music.level1', '/music/keepthatballoonup.mp3');
   }
 
   create(): void {
@@ -103,6 +105,9 @@ export class BalloonScene extends Phaser.Scene {
     this.setupInput();
     this.setupHud();
     this.setupJumpButton();
+
+    this.music = this.sound.add('music.level1', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
     this.scheduleWind();
@@ -595,6 +600,7 @@ export class BalloonScene extends Phaser.Scene {
   private finish(message: string, playPopSound: boolean): void {
     if (this.finished) return;
     this.finished = true;
+    this.music?.stop();
     this.cancelTimers();
     if (playPopSound) sfx.pop();
     const elapsedMs = this.time.now - this.startedAt;

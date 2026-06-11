@@ -62,6 +62,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   private strikeIcons: Phaser.GameObjects.Image[] = [];
   private missPips: Phaser.GameObjects.Image[] = [];
   private unlockBanner: Phaser.GameObjects.Text | null = null;
+  private music: Phaser.Sound.BaseSound | null = null;
 
   constructor(ctx: LevelContext) {
     super({ key: 'CactusSlicingScene' });
@@ -75,6 +76,7 @@ export class CactusSlicingScene extends Phaser.Scene {
     loadAsset(this, 'cactus.half.left', 'cactus.half.left');
     loadAsset(this, 'cactus.half.right', 'cactus.half.right');
     loadAsset(this, 'tarantula', 'tarantula');
+    this.load.audio('music.level5', '/music/whichclanareyou.mp3');
   }
 
   private ensureSparkTexture(): void {
@@ -100,6 +102,9 @@ export class CactusSlicingScene extends Phaser.Scene {
     this.trailGfx = this.add.graphics().setDepth(20);
     this.setupHud();
     this.setupInput();
+
+    this.music = this.sound.add('music.level5', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
     this.scheduleNextSpawn();
@@ -678,6 +683,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   private finish(passed: boolean): void {
     if (this.finished) return;
     this.finished = true;
+    this.music?.stop();
     this.passed = passed;
     this.spawnTimer?.remove();
     this.sessionTimer?.remove();

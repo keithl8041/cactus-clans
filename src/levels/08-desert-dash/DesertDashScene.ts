@@ -113,6 +113,8 @@ export class DesertDashScene extends Phaser.Scene {
   private unlockBanner: Phaser.GameObjects.Text | null = null;
   private starCount = 0;
 
+  private music: Phaser.Sound.BaseSound | null = null;
+
   // ----- Input -----
   private activePointers = new Map<number, ActivePointer>();
   private jumpButton!: Phaser.GameObjects.Image;
@@ -148,6 +150,7 @@ export class DesertDashScene extends Phaser.Scene {
     loadAsset(this, 'tarantula', 'game8.boss', { size: CFG.bossSize });
     loadAsset(this, 'game8.bossLair', 'game8.bossLair');
     loadAsset(this, 'boss.spike', 'cactus.spike');
+    this.load.audio('music.level8', '/music/watchourforrocks.mp3');
   }
 
   create(): void {
@@ -178,6 +181,9 @@ export class DesertDashScene extends Phaser.Scene {
 
     this.nextObstacleSpawnX = CFG.obstacleWarmupPx;
     this.nextStarSpawnX = CFG.starWarmupPx;
+
+    this.music = this.sound.add('music.level8', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
   }
@@ -1245,6 +1251,7 @@ export class DesertDashScene extends Phaser.Scene {
   private finishLevel(messageHint: string): void {
     if (this.finished) return;
     this.finished = true;
+    this.music?.stop();
     this.phase = 'ended';
     const elapsedMs = this.passed ? this.passedAtMs : Math.min(CFG.courseTimeLimitMs, this.time.now - this.startedAt);
     const miniGamePoints = Math.floor(this.distanceCovered / 100);

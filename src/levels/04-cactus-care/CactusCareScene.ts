@@ -77,6 +77,7 @@ export class CactusCareScene extends Phaser.Scene {
 
   // Keyboard (desktop) — Space pours. No aiming, so no cursor handling.
   private keySpace!: Phaser.Input.Keyboard.Key;
+  private music: Phaser.Sound.BaseSound | null = null;
 
   constructor(ctx: LevelContext) {
     super({ key: 'CactusCareScene' });
@@ -95,6 +96,7 @@ export class CactusCareScene extends Phaser.Scene {
     loadAsset(this, 'game4.background.sun', 'game4.background.sun');
     loadAsset(this, 'game4.background.rain', 'game4.background.rain');
     loadAsset(this, 'cactus.spike', 'cactus.spike');
+    this.load.audio('music.level4', '/music/cactusbreath.mp3');
   }
 
   create(): void {
@@ -123,6 +125,9 @@ export class CactusCareScene extends Phaser.Scene {
       this.barCornerRadius,
     );
     this.meterGfx.setMask(maskGfx.createGeometryMask());
+
+    this.music = this.sound.add('music.level4', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
     this.scheduleNextEvent(CFG.firstEventDelayMs);
@@ -484,6 +489,7 @@ export class CactusCareScene extends Phaser.Scene {
   private endRun(reason: 'survived' | 'wilted' | 'drowned'): void {
     if (this.finished) return;
     this.finished = true;
+    this.music?.stop();
     this.cancelTimers();
 
     if (this.unlockBanner) {

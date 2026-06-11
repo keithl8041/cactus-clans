@@ -82,6 +82,7 @@ export class CamelRaceScene extends Phaser.Scene {
   private flaskText!: Phaser.GameObjects.Text;
   private livesText!: Phaser.GameObjects.Text;
   private staminaFlashAlpha = 0;
+  private music: Phaser.Sound.BaseSound | null = null;
 
   constructor(ctx: LevelContext) {
     super({ key: 'CamelRaceScene' });
@@ -101,6 +102,7 @@ export class CamelRaceScene extends Phaser.Scene {
     loadAsset(this, 'desert.parallax.near', 'desert.parallax.near');
     loadAsset(this, 'game2.floor', 'game2.floor');
     loadAsset(this, 'finishBanner', 'finishBanner', { size: CFG.finishBannerSize });
+    this.load.audio('music.level2', '/music/ride-the-camel.mp3');
   }
 
   create(): void {
@@ -111,6 +113,9 @@ export class CamelRaceScene extends Phaser.Scene {
     this.setupCamel();
     this.setupHud();
     this.setupInput();
+
+    this.music = this.sound.add('music.level2', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
     this.nextObstacleSpawnX = 1500; // warmup buffer (no obstacles for first ~4s)
@@ -575,6 +580,7 @@ export class CamelRaceScene extends Phaser.Scene {
   private finishRace(timedOut: boolean, finishedLine: boolean): void {
     if (this.finished) return;
     this.finished = true;
+    this.music?.stop();
 
     // Passed if we crossed the finish OR timer expired with ≥ 85% of the course.
     const reachedLine = finishedLine || this.distanceCovered >= CFG.courseDistancePx;

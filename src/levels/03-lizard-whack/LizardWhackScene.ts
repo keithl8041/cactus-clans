@@ -41,6 +41,7 @@ export class LizardWhackScene extends Phaser.Scene {
 
   private spawnTimer?: Phaser.Time.TimerEvent;
   private unlockBanner: Phaser.GameObjects.Text | null = null;
+  private music: Phaser.Sound.BaseSound | null = null;
 
   constructor(ctx: LevelContext) {
     super({ key: 'LizardWhackScene' });
@@ -54,6 +55,7 @@ export class LizardWhackScene extends Phaser.Scene {
     loadAsset(this, 'lizard.down', 'game3.lizard.dark-green');
     loadAsset(this, 'lizard.bandit', 'game3.lizard.gold');
     loadAsset(this, 'hit.splat', 'game3.hit-splat');
+    this.load.audio('music.level3', '/music/cactustime.mp3');
   }
 
   create(): void {
@@ -66,6 +68,9 @@ export class LizardWhackScene extends Phaser.Scene {
     this.setupGrid();
     this.setupInput();
     this.setupHud();
+
+    this.music = this.sound.add('music.level3', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
     this.endsAt = this.startedAt + CFG.roundDurationMs;
@@ -430,6 +435,7 @@ export class LizardWhackScene extends Phaser.Scene {
   private finish(): void {
     if (this.finished) return;
     this.finished = true;
+    this.music?.stop();
     this.cancelTimers();
 
     // Banner overlap safety: clear any in-flight unlock banner before the finish banner.
