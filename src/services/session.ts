@@ -1,4 +1,5 @@
 import { apiFetch, usingRealBackend } from './api';
+import { containsProfanity } from '../assets/profanityList';
 
 const STORAGE_KEY = 'cc.session.v1';
 const ROSTER_KEY = 'cc.players.v1';
@@ -106,6 +107,7 @@ export async function checkNickname(nickname: string): Promise<NicknameCheck> {
   const cleaned = nickname.trim();
   if (!cleaned) throw new Error('Nickname cannot be empty');
   if (cleaned.length > 24) throw new Error('Nickname is too long (max 24)');
+  if (containsProfanity(cleaned)) throw new Error("You're better than that. Please choose another nickname.");
 
   if (usingRealBackend) {
     const params = new URLSearchParams({ nickname: cleaned });
@@ -135,6 +137,7 @@ export async function signInWithNickname(nickname: string, pin: string): Promise
   const cleaned = nickname.trim();
   if (!cleaned) throw new Error('Nickname cannot be empty');
   if (cleaned.length > 24) throw new Error('Nickname is too long (max 24)');
+  if (containsProfanity(cleaned)) throw new Error("You're better than that. Please choose another nickname.");
   if (!/^\d{4}$/.test(pin)) throw new Error('PIN must be 4 digits');
 
   let session: PlayerSession;

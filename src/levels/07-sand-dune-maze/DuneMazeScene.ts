@@ -53,6 +53,7 @@ export class DuneMazeScene extends Phaser.Scene {
   private lastQuicksandExitAt = 0;
   private idleSince = 0;
   private lastBreadcrumbAt = 0;
+  private facingLeft = false;
 
   // Touch: the player accelerates toward this world point while held.
   private touchTarget: TouchTarget | null = null;
@@ -133,6 +134,10 @@ export class DuneMazeScene extends Phaser.Scene {
     const intent = this.readIntent();
     const accel = CFG.playerAccel;
     const body = this.player.body as Phaser.Physics.Arcade.Body;
+    if (intent.x !== 0) {
+      this.facingLeft = intent.x < 0;
+      this.player.setFlipX(this.facingLeft);
+    }
     if (intent.x !== 0 || intent.y !== 0) {
       body.setAcceleration(intent.x * accel, intent.y * accel);
       this.idleSince = 0;

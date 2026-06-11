@@ -49,8 +49,7 @@ export class BalloonScene extends Phaser.Scene {
   // screen it's currently on — that steers the player in that direction.
   // Jumping is a separate on-screen button (see `setupJumpButton`).
   private activePointers = new Map<number, ActivePointer>();
-  private jumpButtonBg!: Phaser.GameObjects.Arc;
-  private jumpButtonLabel!: Phaser.GameObjects.Text;
+  private jumpButton!: Phaser.GameObjects.Image;
   private jumpButtonHit!: Phaser.Geom.Circle;
 
   private lastHitAt = 0;
@@ -74,7 +73,8 @@ export class BalloonScene extends Phaser.Scene {
       formNumber: this.ctx.formNumber,
       size: CFG.playerSize,
     });
-    loadAsset(this, 'star', 'star', { size: CFG.starSize });
+    loadAsset(this, 'star', 'game8.star');
+    loadAsset(this, 'game8.jumpButton', 'game8.jumpButton');
     loadAsset(this, 'game1.background', 'game1.background');
     loadAsset(this, 'game1.floor', 'game1.floor');
   }
@@ -246,19 +246,12 @@ export class BalloonScene extends Phaser.Scene {
     const cx = width - CFG.jumpButtonMargin - r;
     const cy = height - CFG.floorPadding - CFG.jumpButtonMargin - r;
 
-    this.jumpButtonBg = this.add.circle(cx, cy, r, 0xf7c948, 0.85)
-      .setStrokeStyle(3, 0x7a4d0c)
+    this.jumpButton = this.add.image(cx, cy, 'game8.jumpButton')
       .setScrollFactor(0)
       .setDepth(12);
-    this.jumpButtonLabel = this.add.text(cx, cy, '↑', {
-      fontFamily: 'system-ui, sans-serif',
-      fontSize: `${Math.round(r * 0.86)}px`,
-      color: '#3d2a07',
-      fontStyle: 'bold',
-    }).setOrigin(0.5).setScrollFactor(0).setDepth(13);
+    this.jumpButton.setDisplaySize(r * 2, r * 2);
 
-    // Hit area is slightly larger than the visible circle for forgiving taps.
-    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 12);
+    this.jumpButtonHit = new Phaser.Geom.Circle(cx, cy, r + 14);
   }
 
   // ----- Input handlers -----
@@ -302,13 +295,14 @@ export class BalloonScene extends Phaser.Scene {
   }
 
   private pressJumpButton(): void {
-    this.tweens.killTweensOf(this.jumpButtonBg);
-    this.tweens.killTweensOf(this.jumpButtonLabel);
-    this.jumpButtonBg.setScale(0.88);
-    this.jumpButtonLabel.setScale(0.88);
+    this.tweens.killTweensOf(this.jumpButton);
+    this.jumpButton.setScale(this.jumpButton.scaleX * 0.88, this.jumpButton.scaleY * 0.88);
+    const baseX = this.jumpButton.scaleX / 0.88;
+    const baseY = this.jumpButton.scaleY / 0.88;
     this.tweens.add({
-      targets: [this.jumpButtonBg, this.jumpButtonLabel],
-      scale: 1,
+      targets: this.jumpButton,
+      scaleX: baseX,
+      scaleY: baseY,
       duration: 140,
       ease: 'Back.easeOut',
     });

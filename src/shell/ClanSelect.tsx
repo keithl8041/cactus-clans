@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
-import { assetUrl, resolveCardKey } from '../assets/manifest';
+import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 import { useGameStore } from '../store/gameStore';
-import { startRun } from '../services/progress';
+import { getOrCreateRunForClan } from '../services/progress';
 import { consumeReturnTo } from './postAuthReturn';
 
 export function ClanSelect() {
@@ -30,7 +30,7 @@ export function ClanSelect() {
     if (!player || !selected) return;
     setBusy(true);
     try {
-      const run = await startRun(player.id, selected);
+      const run = await getOrCreateRunForClan(player.id, selected);
       setRun(run);
       navigate('/journey');
     } finally {
@@ -45,13 +45,13 @@ export function ClanSelect() {
       <div className="card-grid">
         {CLANS.map((clan) => {
           const form1 = cardsForClan(clan.name)[0];
-          const url = assetUrl(resolveCardKey(clan.name, 1), {
+          const url = assetUrl(resolveLandingCardKey(clan.name, 1), {
             clanName: clan.name,
             color: clan.color,
             formName: form1?.name ?? 'Form 1',
             formNumber: 1,
           });
-          const selectable = clan.name === 'Prickling Clan' || clan.name === 'Metal Clan';
+          const selectable = clan.name === 'Prickling Clan' || clan.name === 'Metal Clan' || clan.name === 'Tropica Clan' || clan.name === 'Hot Dog Clan' || clan.name === 'Camo Clan' || clan.name === 'Duskerns' || clan.name === 'Tumbleweed Clan' || clan.name === 'Oasis Clan' || clan.name === 'Crystalline Clan' || clan.name === 'Earth Clan' || clan.name === 'Wildfire Clan';
           return (
             <div
               key={clan.name}
@@ -61,6 +61,7 @@ export function ClanSelect() {
               onClick={selectable ? () => setSelected(clan.name) : undefined}
             >
               <img src={url} alt={clan.name} />
+              {!selectable && <div className="card-tile__locked-label">Coming soon</div>}
               <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
                 {clan.tagline}
               </div>

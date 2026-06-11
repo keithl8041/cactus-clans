@@ -165,21 +165,34 @@ async function route(
   const activeRunMatch = pathname.match(/^\/api\/players\/([^/]+)\/active-run$/);
   if (activeRunMatch && method === 'GET') {
     const playerId = activeRunMatch[1];
+    const clan = url.searchParams.get('clan')?.trim() || null;
     // Resume rule: prefer the latest in-progress run; if none, fall back to the
     // most recent run (completed or abandoned) so signing in on a fresh device
     // (or after a completed run) drops the player back on the level map with
     // their journey state instead of the new-starter clan-select flow.
-    const run = await env.DB
-      .prepare(
-        `SELECT id, player_id AS playerId, clan, started_at AS startedAt,
-                total_score AS totalScore, completed_at AS completedAt
-         FROM runs
-         WHERE player_id = ?
-         ORDER BY (completed_at IS NULL) DESC, started_at DESC
-         LIMIT 1`,
-      )
-      .bind(playerId)
-      .first<{ id: string; playerId: string; clan: string; startedAt: string; totalScore: number; completedAt: string | null }>();
+    const run = clan
+      ? await env.DB
+        .prepare(
+          `SELECT id, player_id AS playerId, clan, started_at AS startedAt,
+                  total_score AS totalScore, completed_at AS completedAt
+           FROM runs
+           WHERE player_id = ? AND clan = ?
+           ORDER BY (completed_at IS NULL) DESC, started_at DESC
+           LIMIT 1`,
+        )
+        .bind(playerId, clan)
+        .first<{ id: string; playerId: string; clan: string; startedAt: string; totalScore: number; completedAt: string | null }>()
+      : await env.DB
+        .prepare(
+          `SELECT id, player_id AS playerId, clan, started_at AS startedAt,
+                  total_score AS totalScore, completed_at AS completedAt
+           FROM runs
+           WHERE player_id = ?
+           ORDER BY (completed_at IS NULL) DESC, started_at DESC
+           LIMIT 1`,
+        )
+        .bind(playerId)
+        .first<{ id: string; playerId: string; clan: string; startedAt: string; totalScore: number; completedAt: string | null }>();
     if (!run) return json({ run: null });
 
     // One row per (run_id, level_number) — UPSERT on write keeps the best attempt
@@ -361,6 +374,41 @@ async function route(
         .all<TeamLeaderboardRow>();
       return json(result.results ?? []);
     });
+  }
+
+  if (pathname === '/api/demo-leaderboard' && method === 'GET') {
+    return withEdgeCache(url, ctx, async () => {
+      const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
+      const limit = Math.min(Math.max(requested, 1), 200);
+      const eventContext = url.searchParams.get('context') ?? 'jkps-summer-fair';
+      // One row per nickname — their highest score for this event context.
+      const result = await env.DB
+        .prepare(
+          `SELECT nickname, MAX(score) AS score
+           FROM demo_scores
+           WHERE context = ?
+           GROUP BY nickname
+           ORDER BY score DESC
+           LIMIT ?`,
+        )
+        .bind(eventContext, limit)
+        .all<{ nickname: string; score: number }>();
+      return json(result.results ?? []);
+    });
+  }
+
+  if (pathname === '/api/demo-scores' && method === 'POST') {
+    const body = await readJson<{ nickname?: string; score?: number; context?: string }>(request);
+    if (!body.nickname || typeof body.score !== 'number') {
+      return json({ error: 'nickname and score required' }, 400);
+    }
+    const id = crypto.randomUUID();
+    const eventContext = (body.context ?? 'jkps-summer-fair').slice(0, 64);
+    await env.DB
+      .prepare('INSERT INTO demo_scores (id, nickname, score, context) VALUES (?, ?, ?, ?)')
+      .bind(id, body.nickname.slice(0, 24), Math.round(body.score), eventContext)
+      .run();
+    return json({ ok: true });
   }
 
   return null;

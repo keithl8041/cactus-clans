@@ -59,6 +59,45 @@ Two non-obvious conventions inside this layer:
 3. Scene fires `ctx.onComplete(result)` → `GameContainer` calls `level.scoreFor(result)`, then `recordLevelResult(run, ...)` (writes localStorage + the Worker API if reachable), updates the store, shows the result overlay.
 4. On retry, the result overlay unmounts and the `attempt` counter bumps to force a fresh Phaser instance (the effect tears down the previous `game.destroy(true)` on cleanup).
 
+## Adding a playable clan
+
+To embed a new clan's art and make it selectable, drop the assets into `/_drop/` then run the `embed-clan-assets` workflow (`.claude/workflows/embed-clan-assets.js`), or follow the steps below manually.
+
+### Asset naming convention
+
+The `_drop/` zip should contain files named exactly like this (using "hotdog" as the clan slug):
+
+| File | Destination |
+|------|-------------|
+| `balloon-hotdog-clan.png` | `public/art/` |
+| `camel-hotdog-clan.png` | `public/art/` |
+| `card-hotdog-clan-form1.png` … `form8.png` | `public/art/` |
+| `<character-name>-hotdog-clan-form1.png` … `form8.png` | `public/art/` |
+
+The character files can have any name prefix (e.g. `diggidgy-dog-hotdog-clan-form1.png`). The important part is that the filename contains `-hotdog-clan-form<N>.png`.
+
+Also copy the form-1 card to `art/menu/` if it isn't already there — this is **required**: `ClanSelect` uses `resolveLandingCardKey` for all clan tiles, so without the menu card the tile falls back to the "art coming soon" SVG placeholder.
+
+### Clan slug convention
+
+`"Hot Dog Clan"` → slug `"hot-dog"` (lowercase, drop trailing ` Clan`, spaces → hyphens). This is what `clanAssetSlug()` in `manifest.ts` produces and is the prefix used in all manifest keys.
+
+### Files to update
+
+**`src/assets/manifest.ts`** — add entries under the appropriate comment groups:
+
+```ts
+'balloon.hot-dog':      { kind: 'image', src: '/art/balloon-hotdog-clan.png' },
+'camel.hot-dog':        { kind: 'image', src: '/art/camel-hotdog-clan.png' },
+'card.hot-dog.1' … .8:  { kind: 'image', src: '/art/card-hotdog-clan-form<N>.png' },
+'character.hot-dog.1':  { kind: 'image', src: '/art/<character-name>-hotdog-clan-form1.png' },
+… (one entry per form, 1–8)
+```
+
+**`src/shell/ClanSelect.tsx`** — add the clan name to the `selectable` boolean expression on line ~54.
+
+Run `npm run typecheck` after both edits.
+
 ## Deployment notes
 
 Deploy is `npm run worker:deploy` — `tsc && vite build`, then `wrangler deploy` ships the Worker plus `dist/` together. SPA deep-link fallback is configured in `wrangler.jsonc` via `assets.not_found_handling: "single-page-application"` — **not** via a `_redirects` file (a previous commit removed that approach). If you're tempted to add `public/_redirects`, update `wrangler.jsonc` instead.
