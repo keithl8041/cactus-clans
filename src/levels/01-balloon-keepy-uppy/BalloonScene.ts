@@ -73,7 +73,7 @@ export class BalloonScene extends Phaser.Scene {
       formNumber: this.ctx.formNumber,
       size: CFG.playerSize,
     });
-    loadAsset(this, 'star', 'star', { size: CFG.starSize });
+    loadAsset(this, 'star', 'game8.star');
     loadAsset(this, 'game8.jumpButton', 'game8.jumpButton');
     loadAsset(this, 'game1.background', 'game1.background');
     loadAsset(this, 'game1.floor', 'game1.floor');
