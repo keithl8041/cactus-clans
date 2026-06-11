@@ -34,6 +34,7 @@ export class CactusDartsScene extends Phaser.Scene {
   private dragPointerId: number | null = null;
 
   private boardBaseY = 0;
+  private music: Phaser.Sound.BaseSound | null = null;
 
   // Keyboard fallback (desktop). Aim angle in degrees from horizontal (negative = up).
   private keyboardAim = { angleDeg: -38, power: 0.7 };
@@ -53,6 +54,7 @@ export class CactusDartsScene extends Phaser.Scene {
     loadAsset(this, 'game6.background', 'game6.background');
     loadAsset(this, 'cactus.spike.game6', 'cactus.spike.game6');
     loadAsset(this, 'dartboard', 'dartboard', { size: CFG.boardSize });
+    this.load.audio('music.level6', '/music/bowandarrows.mp3');
   }
 
   create(): void {
@@ -68,6 +70,9 @@ export class CactusDartsScene extends Phaser.Scene {
     this.setupOverlays();
     this.setupInput();
     this.setupHud();
+
+    this.music = this.sound.add('music.level6', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
   }
@@ -481,6 +486,7 @@ export class CactusDartsScene extends Phaser.Scene {
     this.finished = true;
     this.trajectory.clear();
     this.slingLine.clear();
+    this.music?.stop();
     const elapsedMs = this.time.now - this.startedAt;
 
     const { width, height } = this.scale;
