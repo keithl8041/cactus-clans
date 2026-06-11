@@ -4,15 +4,30 @@
 // runtime dep just for this; the spreadsheet schema is tiny and stable.
 
 import { execFileSync } from 'node:child_process';
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const xlsxPath = resolve(__dirname, '../_docs/CactusClan_trading.xlsx');
 const outPath = resolve(__dirname, '../src/data/cards.json');
 
 function readMember(member) {
+  if (process.platform === 'win32') {
+    const tmp = resolve(tmpdir(), 'parse-cards-extract');
+    const dest = resolve(tmp, ...member.split('/'));
+    execFileSync('powershell', [
+      '-NoProfile', '-Command',
+      `Add-Type -Assembly System.IO.Compression.FileSystem; ` +
+      `$z=[IO.Compression.ZipFile]::OpenRead('${xlsxPath.replace(/\\/g, '\\\\')}'); ` +
+      `$e=$z.Entries|?{$_.FullName -eq '${member}'}|Select -First 1; ` +
+      `[IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName('${dest.replace(/\\/g, '\\\\')}'))|Out-Null; ` +
+      `[IO.Compression.ZipFileExtensions]::ExtractToFile($e,'${dest.replace(/\\/g, '\\\\')}', $true); ` +
+      `$z.Dispose()`,
+    ], { maxBuffer: 16 * 1024 * 1024 });
+    return readFileSync(dest, 'utf8');
+  }
   return execFileSync('unzip', ['-p', xlsxPath, member], { maxBuffer: 16 * 1024 * 1024 }).toString('utf8');
 }
 

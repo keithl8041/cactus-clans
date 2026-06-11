@@ -1094,7 +1094,7 @@
     "defence": 80,
     "speed": 40,
     "health": 80,
-    "overallScore": "1000-2499"
+    "overallScore": 220
   },
   {
     "clan": "Oasis Clan",
@@ -1115,7 +1115,7 @@
     "defence": 95,
     "speed": 30,
     "health": 100,
-    "overallScore": "2500+"
+    "overallScore": 250
   },
   {
     "clan": "Oasis Clan",
@@ -1157,7 +1157,7 @@
     "defence": 60,
     "speed": 35,
     "health": 70,
-    "overallScore": "1500-2499"
+    "overallScore": 400
   },
   {
     "clan": "Oasis Clan",
@@ -1687,22 +1687,169 @@
   {
     "clan": "Crystalline Clan",
     "form": 1,
-    "name": "Spiren",
-    "description": "A sprout of living crystal — small, sharp, and just beginning to shine.",
+    "name": "Shardling",
+    "description": "A tiny fragment of potential. Curious and eager to grow.",
     "strengths": [
-      "Hardened",
-      "Sharp edges",
-      "Light-bending"
+      "Curious",
+      "Eager to learn",
+      "Quick to grow"
     ],
     "weaknesses": [
-      "Brittle",
-      "Slow",
-      "Reflective"
+      "Fragile",
+      "Inexperienced",
+      "Easily scattered"
+    ],
+    "attack": 10,
+    "defence": 10,
+    "speed": 25,
+    "health": 20,
+    "overallScore": 45
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 2,
+    "name": "Gemling",
+    "description": "Cuts with precision. Learns quickly and adapts to any challenge.",
+    "strengths": [
+      "Quick learner",
+      "Adaptable",
+      "Precise"
+    ],
+    "weaknesses": [
+      "Lightly armored",
+      "Overconfident",
+      "Impulsive"
     ],
     "attack": 25,
-    "defence": 35,
+    "defence": 20,
+    "speed": 50,
+    "health": 35,
+    "overallScore": 120
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 3,
+    "name": "Crystalguard",
+    "description": "Strong and steadfast. Protects allies with unbreakable resolve.",
+    "strengths": [
+      "Strong defense",
+      "Loyal",
+      "Unbreakable resolve"
+    ],
+    "weaknesses": [
+      "Slow to change",
+      "Heavily armored",
+      "Not easily swayed"
+    ],
+    "attack": 45,
+    "defence": 70,
+    "speed": 30,
+    "health": 80,
+    "overallScore": 210
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 4,
+    "name": "Prismwarden",
+    "description": "Harnesses the power of light. Commands the battlefield with strategy.",
+    "strengths": [
+      "Power of light",
+      "Strategic mind",
+      "Inspires allies"
+    ],
+    "weaknesses": [
+      "High mana cost",
+      "Takes time to focus",
+      "Vulnerable while casting"
+    ],
+    "attack": 70,
+    "defence": 60,
     "speed": 40,
-    "health": 45,
-    "overallScore": 100
+    "health": 90,
+    "overallScore": 330
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 5,
+    "name": "Crystal Emperor",
+    "description": "An eternal sovereign. Unbreakable, brilliant, and ruler of all minerals.",
+    "strengths": [
+      "Unmatched power",
+      "Master of all minerals",
+      "Commands all"
+    ],
+    "weaknesses": [
+      "Very high mana cost",
+      "Few understand",
+      "Burden of leadership"
+    ],
+    "attack": 95,
+    "defence": 90,
+    "speed": 50,
+    "health": 120,
+    "overallScore": "500+"
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 6,
+    "name": "Prism Forge",
+    "description": "Shaper of glory, forger of might. Transforms crystals into legendary armaments.",
+    "strengths": [
+      "Master craftsman",
+      "Enhances equipment",
+      "Creates powerful gear"
+    ],
+    "weaknesses": [
+      "Requires rare materials",
+      "Vulnerable while forging",
+      "Defends poorly"
+    ],
+    "attack": 60,
+    "defence": 80,
+    "speed": 40,
+    "health": 100,
+    "overallScore": 260
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 7,
+    "name": "Ancient Prismlord",
+    "description": "A tyrant of thorns and stone. His reign is pain. His legacy, eternal.",
+    "strengths": [
+      "Unyielding durability",
+      "Thorned retaliation",
+      "Terrifies enemies"
+    ],
+    "weaknesses": [
+      "Slow and relentless",
+      "Low mobility",
+      "Magic disrupts crystals"
+    ],
+    "attack": 85,
+    "defence": 110,
+    "speed": 25,
+    "health": 130,
+    "overallScore": 350
+  },
+  {
+    "clan": "Crystalline Clan",
+    "form": 8,
+    "name": "Celestial Pricklord",
+    "description": "Born from stars, forged from void. He commands crystals, bends destinies, he is eternal.",
+    "strengths": [
+      "Cosmic power",
+      "Destroys all obstacles",
+      "Controls the battlefield"
+    ],
+    "weaknesses": [
+      "Arrogant and overconfident",
+      "Bound by ancient oaths",
+      "Vulnerable to pure light"
+    ],
+    "attack": 110,
+    "defence": 120,
+    "speed": 35,
+    "health": 140,
+    "overallScore": 450
   }
 ]
