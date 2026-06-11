@@ -17,6 +17,7 @@ import { EvolutionInterstitial } from './EvolutionInterstitial';
 import { Confetti } from './Confetti';
 import { enterFullscreen, exitFullscreen, isTouchDevice } from './fullscreen';
 import { MAX_LEVEL } from '../levels/meta';
+import { assetUrl, resolveCharacterKey } from '../assets/manifest';
 
 interface FinishedState {
   passed: boolean;
@@ -248,6 +249,13 @@ export function GameContainer() {
               <h1 className="victory-headline" style={{ fontSize: '2.6rem', textAlign: 'center' }}>
                 You beat Cactus Clans!
               </h1>
+              {clan && (
+                <img
+                  src={assetUrl(resolveCharacterKey(clan.name, MAX_LEVEL), { clanColor: clan.color, formNumber: MAX_LEVEL, size: 240 })}
+                  alt={`${clan.name} form ${MAX_LEVEL}`}
+                  style={{ width: 240, height: 240, objectFit: 'contain', margin: '0 auto' }}
+                />
+              )}
               <h2 style={{ color: 'var(--accent)', textAlign: 'center' }}>
                 The Desert Titan rises. Grand finale cleared.
               </h2>
