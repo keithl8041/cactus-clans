@@ -47,6 +47,7 @@ export class DuneMazeScene extends Phaser.Scene {
   private timerMs = CFG.timerSeconds * 1000;
   private finished = false;
   private passed = false;
+  private music: Phaser.Sound.BaseSound | null = null;
   private bonusPoints = 0;
   private artifactsCollected = 0;
   private currentlyOnQuicksand = false;
@@ -93,6 +94,7 @@ export class DuneMazeScene extends Phaser.Scene {
       formNumber: this.ctx.formNumber,
       size: CFG.playerSize,
     });
+    this.load.audio('music.level7', '/music/patternedpaper.mp3');
   }
 
   create(): void {
@@ -123,6 +125,9 @@ export class DuneMazeScene extends Phaser.Scene {
     this.setupCamera();
     this.setupInput();
     this.setupHud();
+
+    this.music = this.sound.add('music.level7', { loop: true, volume: 0.45 });
+    this.music.play();
 
     this.startedAt = this.time.now;
   }
@@ -444,6 +449,7 @@ export class DuneMazeScene extends Phaser.Scene {
   private finish(text: string): void {
     if (this.finished) return;
     this.finished = true;
+    this.music?.stop();
     const { width, height } = this.scale;
     const color = this.passed ? '#9efc9b' : '#d24a3a';
     const stroke = this.passed ? '#1f5a2d' : '#5a2d1f';
