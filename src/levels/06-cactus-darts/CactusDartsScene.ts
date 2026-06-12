@@ -148,7 +148,7 @@ export class CactusDartsScene extends Phaser.Scene {
   private setupPlayer(): void {
     const { width, height } = this.scale;
     const playerY = height - CFG.floorPadding - CFG.playerSize / 2;
-    this.player = this.physics.add.sprite(width * 0.1428, playerY, 'character');
+    this.player = this.physics.add.sprite(width * 0.1728, playerY, 'character');
     this.player.setScale(CFG.playerSize / this.player.height);
     this.player.setFlipX(false);
     const body = this.player.body as Phaser.Physics.Arcade.Body;
