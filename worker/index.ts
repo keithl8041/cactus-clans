@@ -114,7 +114,7 @@ async function route(
   }
 
   if (pathname === '/api/players/check' && method === 'GET') {
-    const nickname = (url.searchParams.get('nickname') ?? '').trim();
+    const nickname = (url.searchParams.get('nickname') ?? '').trim().toLowerCase();
     if (!nickname) return json({ error: 'nickname required' }, 400);
     if (nickname.length > 24) return json({ error: 'nickname too long' }, 400);
 
@@ -138,7 +138,7 @@ async function route(
 
   if (pathname === '/api/players' && method === 'POST') {
     const { nickname, pin } = await readJson<{ nickname?: string; pin?: string }>(request);
-    const cleaned = (nickname ?? '').trim();
+    const cleaned = (nickname ?? '').trim().toLowerCase();
     if (!cleaned) return json({ error: 'nickname required' }, 400);
     if (cleaned.length > 24) return json({ error: 'nickname too long' }, 400);
     if (!pin || !/^\d{4}$/.test(pin)) return json({ error: 'pin must be 4 digits' }, 400);

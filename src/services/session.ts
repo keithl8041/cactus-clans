@@ -104,7 +104,7 @@ export interface NicknameCheck {
  * In dev fallback mode the check runs against the per-device roster.
  */
 export async function checkNickname(nickname: string): Promise<NicknameCheck> {
-  const cleaned = nickname.trim();
+  const cleaned = nickname.trim().toLowerCase();
   if (!cleaned) throw new Error('Nickname cannot be empty');
   if (cleaned.length > 24) throw new Error('Nickname is too long (max 24)');
   if (containsProfanity(cleaned)) throw new Error("You're better than that. Please choose another nickname.");
@@ -134,7 +134,7 @@ function generateNicknameCandidates(nickname: string, count: number): string[] {
 }
 
 export async function signInWithNickname(nickname: string, pin: string): Promise<PlayerSession> {
-  const cleaned = nickname.trim();
+  const cleaned = nickname.trim().toLowerCase();
   if (!cleaned) throw new Error('Nickname cannot be empty');
   if (cleaned.length > 24) throw new Error('Nickname is too long (max 24)');
   if (containsProfanity(cleaned)) throw new Error("You're better than that. Please choose another nickname.");
