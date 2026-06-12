@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { checkNickname, signInWithNickname } from '../services/session';
 import type { PlayerSession } from '../services/session';
 import { CLANS } from '../data/clans';
+import type { Clan } from '../data/clans';
+import { cardsForClan } from '../data/cards';
+import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 import {
   fetchDemoLeaderboard,
   submitDemoScore,
@@ -11,22 +14,25 @@ import { DemoGame } from './DemoGame';
 import { enterFullscreen } from './fullscreen';
 import { IosInstallHint } from './IosInstallHint';
 
-/**
- * The clan used for all demo players. Named explicitly rather than relying on
- * CLANS[0] so this stays stable if the display order ever changes.
- */
-const DEMO_CLAN_NAME = 'Prickling Clan';
-const DEMO_CLAN = CLANS.find((c) => c.name === DEMO_CLAN_NAME) ?? CLANS[0];
 const DEMO_LEVEL_NUMBER = 6;
+
+const SELECTABLE_CLANS = CLANS.filter((c) =>
+  [
+    'Prickling Clan', 'Metal Clan', 'Tropica Clan', 'Hot Dog Clan', 'Camo Clan',
+    'Duskerns', 'Tumbleweed Clan', 'Oasis Clan', 'Crystalline Clan', 'Earth Clan',
+    'Wildfire Clan',
+  ].includes(c.name),
+);
 
 // ---------------------------------------------------------------------------
 // State machine
 // ---------------------------------------------------------------------------
 
 type DemoStep =
-  | { kind: 'register' }
-  | { kind: 'play'; player: PlayerSession }
-  | { kind: 'leaderboard'; player: PlayerSession; score: number };
+  | { kind: 'pickClan' }
+  | { kind: 'register'; clan: Clan }
+  | { kind: 'play'; player: PlayerSession; clan: Clan }
+  | { kind: 'leaderboard'; player: PlayerSession; clan: Clan; score: number };
 
 // ---------------------------------------------------------------------------
 // Main Demo component
@@ -35,15 +41,19 @@ type DemoStep =
 /**
  * Standalone demo experience at `/demo`.
  *
- * Loop: register (nickname + PIN) → play Level 6 once → JKPS Summer Fair
- * leaderboard → "Next player" resets to registration.
+ * Loop: pick clan → register (nickname + PIN) → play Level 6 once →
+ * JKPS Summer Fair leaderboard → "Next player" resets to clan selection.
  *
  * This component is lazy-loaded from App.tsx. It directly imports DemoGame
  * (which brings in Phaser), so both land in the same lazy chunk and Phaser
  * never enters the main bundle.
  */
 export function Demo() {
-  const [step, setStep] = useState<DemoStep>({ kind: 'register' });
+  const [step, setStep] = useState<DemoStep>({ kind: 'pickClan' });
+
+  useEffect(() => {
+    void enterFullscreen();
+  }, []);
 
   // Swap in the demo-specific PWA manifest so "Add to Home Screen" on iOS
   // launches the app full-screen directly at /demo, not /game.
@@ -60,31 +70,45 @@ export function Demo() {
     };
   }, []);
 
-  function handleRegistered(player: PlayerSession) {
-    setStep({ kind: 'play', player });
+  function handleClanPicked(clan: Clan) {
+    setStep({ kind: 'register', clan });
   }
 
-  function handleGameComplete(player: PlayerSession, score: number) {
+  function handleRegistered(player: PlayerSession, clan: Clan) {
+    setStep({ kind: 'play', player, clan });
+  }
+
+  function handleGameComplete(player: PlayerSession, clan: Clan, score: number) {
     void submitDemoScore({ nickname: player.nickname, score });
-    setStep({ kind: 'leaderboard', player, score });
+    setStep({ kind: 'leaderboard', player, clan, score });
   }
 
   function handleNextPlayer() {
-    setStep({ kind: 'register' });
+    setStep({ kind: 'pickClan' });
+  }
+
+  if (step.kind === 'pickClan') {
+    return <DemoClanPick onPick={handleClanPicked} />;
   }
 
   if (step.kind === 'register') {
-    return <DemoRegister onSuccess={handleRegistered} />;
+    return (
+      <DemoRegister
+        clan={step.clan}
+        onSuccess={(player) => handleRegistered(player, step.clan)}
+        onBack={() => setStep({ kind: 'pickClan' })}
+      />
+    );
   }
 
   if (step.kind === 'play') {
-    const { player } = step;
+    const { player, clan } = step;
     return (
       <DemoGame
         player={player}
-        clan={DEMO_CLAN}
+        clan={clan}
         levelNumber={DEMO_LEVEL_NUMBER}
-        onComplete={(score) => handleGameComplete(player, score)}
+        onComplete={(score) => handleGameComplete(player, clan, score)}
         onAbort={handleNextPlayer}
       />
     );
@@ -100,6 +124,41 @@ export function Demo() {
 }
 
 // ---------------------------------------------------------------------------
+// Clan picker sub-component
+// ---------------------------------------------------------------------------
+
+function DemoClanPick({ onPick }: { onPick: (clan: Clan) => void }) {
+  return (
+    <div className="screen">
+      <h1>🌵 JKPS Summer Fair</h1>
+      <h2 style={{ maxWidth: '28rem', textAlign: 'center', fontWeight: 'normal', opacity: 0.85 }}>
+        Choose your clan to play Cactus Dart Toss!
+      </h2>
+      <div className="card-grid">
+        {SELECTABLE_CLANS.map((clan) => {
+          const form1 = cardsForClan(clan.name)[0];
+          const url = assetUrl(resolveLandingCardKey(clan.name, 1), {
+            clanName: clan.name,
+            color: clan.color,
+            formName: form1?.name ?? 'Form 1',
+            formNumber: 1,
+          });
+          return (
+            <div
+              key={clan.name}
+              className="card-tile"
+              onClick={() => onPick(clan)}
+            >
+              <img src={url} alt={clan.name} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Registration sub-component
 // ---------------------------------------------------------------------------
 
@@ -108,7 +167,15 @@ type RegStep =
   | { kind: 'newPlayer'; nickname: string }
   | { kind: 'existingPlayer'; nickname: string; suggestions: string[] };
 
-function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => void }) {
+function DemoRegister({
+  clan,
+  onSuccess,
+  onBack,
+}: {
+  clan: Clan;
+  onSuccess: (player: PlayerSession) => void;
+  onBack: () => void;
+}) {
   const [nickname, setNickname] = useState('');
   const [pin, setPin] = useState('');
   const [regStep, setRegStep] = useState<RegStep>({ kind: 'enterName' });
@@ -137,7 +204,6 @@ function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => voi
 
   async function submitNickname(e: React.FormEvent) {
     e.preventDefault();
-    void enterFullscreen();
     await runNicknameCheck(nickname);
   }
 
@@ -149,7 +215,6 @@ function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => voi
   async function submitPin(e: React.FormEvent) {
     e.preventDefault();
     if (regStep.kind === 'enterName') return;
-    void enterFullscreen();
     setBusy(true);
     setError(null);
     try {
@@ -171,9 +236,9 @@ function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => voi
   if (regStep.kind === 'enterName') {
     return (
       <div className="screen">
-        <h1>🌵 JKPS Summer Fair</h1>
+        <h1>🌵 {clan.name}</h1>
         <h2 style={{ maxWidth: '28rem', textAlign: 'center', fontWeight: 'normal', opacity: 0.85 }}>
-          Pick a nickname to play Cactus Dart Toss and get on the leaderboard!
+          Pick a nickname to get on the leaderboard!
         </h2>
         <form onSubmit={submitNickname} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
           <input
@@ -185,9 +250,12 @@ function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => voi
             placeholder="Nickname (e.g. SpikyJoe)"
           />
           {error && <div style={{ color: 'var(--danger)' }}>{error}</div>}
-          <button className="primary" type="submit" disabled={busy || !nickname.trim()}>
-            {busy ? 'Checking…' : 'Continue'}
-          </button>
+          <div className="row">
+            <button type="button" onClick={onBack}>Back</button>
+            <button className="primary" type="submit" disabled={busy || !nickname.trim()}>
+              {busy ? 'Checking…' : 'Continue'}
+            </button>
+          </div>
         </form>
         <div style={{ marginTop: '1.5rem' }}>
           <IosInstallHint storageKey="cactus-clans:demo-ios-hint" />

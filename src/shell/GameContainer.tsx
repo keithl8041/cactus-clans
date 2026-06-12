@@ -75,6 +75,7 @@ export function GameContainer() {
       trackEvent('level_complete', {
         level_number: level.number,
         level_title: level.title,
+        clan: currentRun.clan,
         passed: result.passed,
         score,
         mini_game_points: result.miniGamePoints,
@@ -122,6 +123,7 @@ export function GameContainer() {
         trackEvent('level_quit', {
           level_number: level.number,
           level_title: level.title,
+          clan: currentRun.clan,
           attempt: attempt + 1,
           practice: !!currentRun.completedAt,
         });
@@ -232,6 +234,7 @@ export function GameContainer() {
             trackEvent('level_start', {
               level_number: level.number,
               level_title: level.title,
+              clan: run?.clan,
               practice: !!run?.completedAt,
             });
             // Hide mobile browser chrome (URL bar etc) while playing. Must run

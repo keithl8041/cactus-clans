@@ -7,7 +7,7 @@ import type { LevelResult } from '../levels/types';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
 import { InstructionsModal } from './InstructionsModal';
-import { enterFullscreen, exitFullscreen } from './fullscreen';
+import { enterFullscreen } from './fullscreen';
 import { trackEvent } from '../services/analytics';
 
 interface Props {
@@ -63,6 +63,7 @@ export function DemoGame({ player, clan, levelNumber, onComplete, onAbort }: Pro
       trackEvent('level_complete', {
         level_number: level.number,
         level_title: level.title,
+        clan: clan.name,
         passed: result.passed,
         score,
         mini_game_points: result.miniGamePoints,
@@ -125,9 +126,6 @@ export function DemoGame({ player, clan, levelNumber, onComplete, onAbort }: Pro
     }
   }, [needsRotate]);
 
-  useEffect(() => {
-    return () => { void exitFullscreen(); };
-  }, []);
 
   if (!level) return null;
 
@@ -150,6 +148,7 @@ export function DemoGame({ player, clan, levelNumber, onComplete, onAbort }: Pro
             trackEvent('level_start', {
               level_number: level.number,
               level_title: level.title,
+              clan: clan.name,
               practice: false,
             });
             void enterFullscreen();

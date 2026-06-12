@@ -6,6 +6,7 @@ import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 import { useGameStore } from '../store/gameStore';
 import { getOrCreateRunForClan } from '../services/progress';
 import { consumeReturnTo } from './postAuthReturn';
+import { trackEvent } from '../services/analytics';
 
 export function ClanSelect() {
   const [selected, setSelected] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export function ClanSelect() {
     try {
       const run = await getOrCreateRunForClan(player.id, selected);
       setRun(run);
+      trackEvent('clan_selected', { clan: selected });
       navigate('/journey');
     } finally {
       setBusy(false);
