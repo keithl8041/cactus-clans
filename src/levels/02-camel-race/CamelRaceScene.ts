@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
 import { resolveCamelKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
+import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
 import { CAMEL_RACE_CONFIG as CFG } from './config';
 
@@ -115,7 +116,7 @@ export class CamelRaceScene extends Phaser.Scene {
     this.setupInput();
 
     this.music = this.sound.add('music.level2', { loop: true, volume: 0.45 });
-    this.music.play();
+    if (isMusicEnabled()) this.music.play();
 
     this.startedAt = this.time.now;
     this.nextObstacleSpawnX = 1500; // warmup buffer (no obstacles for first ~4s)

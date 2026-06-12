@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGameStore, highestClearedLevel } from '../store/gameStore';
 import { clanByName } from '../data/clans';
@@ -6,6 +6,7 @@ import { cardFor } from '../data/cards';
 import { assetUrl, resolveCharacterKey } from '../assets/manifest';
 import { levelMetaByNumber, MAX_LEVEL } from '../levels/meta';
 import { completeRun } from '../services/progress';
+import { isMusicEnabled, setMusicEnabled } from '../assets/musicPrefs';
 import { submitMockRun } from '../services/leaderboard';
 import { usingRealBackend } from '../services/api';
 
@@ -24,6 +25,8 @@ export function LevelMap() {
 
   // Test convenience: on localhost, every level is playable regardless of
   // progress so we can jump straight to any mini-game. Real deploys are gated.
+  const [musicOn, setMusicOn] = useState(isMusicEnabled);
+
   const devUnlockAll =
     window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
@@ -104,6 +107,12 @@ export function LevelMap() {
           <button className="primary" onClick={finishRun}>Submit run</button>
         )}
         <button onClick={() => navigate('/leaderboard')}>Leaderboard</button>
+        <button
+          onClick={() => { const next = !musicOn; setMusicEnabled(next); setMusicOn(next); }}
+          title={musicOn ? 'Turn music off' : 'Turn music on'}
+        >
+          {musicOn ? '🎵 Music on' : '🔇 Music off'}
+        </button>
       </div>
     </div>
   );

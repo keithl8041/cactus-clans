@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
 import { resolvePetCactusKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
+import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
 import { CACTUS_CARE_CONFIG as CFG } from './config';
 
@@ -127,7 +128,7 @@ export class CactusCareScene extends Phaser.Scene {
     this.meterGfx.setMask(maskGfx.createGeometryMask());
 
     this.music = this.sound.add('music.level4', { loop: true, volume: 0.45 });
-    this.music.play();
+    if (isMusicEnabled()) this.music.play();
 
     this.startedAt = this.time.now;
     this.scheduleNextEvent(CFG.firstEventDelayMs);

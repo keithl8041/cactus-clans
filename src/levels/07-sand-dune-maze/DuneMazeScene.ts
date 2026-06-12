@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
 import { resolveCharacterKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
+import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
 import { DUNE_MAZE_CONFIG as CFG } from './config';
 import { generateMap, type ParsedMap } from './maze';
@@ -127,7 +128,7 @@ export class DuneMazeScene extends Phaser.Scene {
     this.setupHud();
 
     this.music = this.sound.add('music.level7', { loop: true, volume: 0.45 });
-    this.music.play();
+    if (isMusicEnabled()) this.music.play();
 
     this.startedAt = this.time.now;
   }

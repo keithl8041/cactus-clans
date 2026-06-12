@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
 import { resolveCharacterKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
+import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
 import { CACTUS_DARTS_CONFIG as CFG } from './config';
 
@@ -37,7 +38,7 @@ export class CactusDartsScene extends Phaser.Scene {
   private music: Phaser.Sound.BaseSound | null = null;
 
   // Keyboard fallback (desktop). Aim angle in degrees from horizontal (negative = up).
-  private keyboardAim = { angleDeg: -38, power: 0.7 };
+  private keyboardAim = { angleDeg: -35, power: 0.7 };
   private keyboardCharging = false;
 
   constructor(ctx: LevelContext) {
@@ -72,7 +73,7 @@ export class CactusDartsScene extends Phaser.Scene {
     this.setupHud();
 
     this.music = this.sound.add('music.level6', { loop: true, volume: 0.45 });
-    this.music.play();
+    if (isMusicEnabled()) this.music.play();
 
     this.startedAt = this.time.now;
   }
@@ -147,7 +148,7 @@ export class CactusDartsScene extends Phaser.Scene {
   private setupPlayer(): void {
     const { width, height } = this.scale;
     const playerY = height - CFG.floorPadding - CFG.playerSize / 2;
-    this.player = this.physics.add.sprite(width * 0.22, playerY, 'character');
+    this.player = this.physics.add.sprite(width * 0.14, playerY, 'character');
     this.player.setScale(CFG.playerSize / this.player.height);
     this.player.setFlipX(false);
     const body = this.player.body as Phaser.Physics.Arcade.Body;

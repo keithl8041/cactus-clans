@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { loadAsset } from '../../assets/loader';
 import { sfx } from '../../assets/sfx';
+import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
 import { LIZARD_WHACK_CONFIG as CFG } from './config';
 
@@ -70,7 +71,7 @@ export class LizardWhackScene extends Phaser.Scene {
     this.setupHud();
 
     this.music = this.sound.add('music.level3', { loop: true, volume: 0.45 });
-    this.music.play();
+    if (isMusicEnabled()) this.music.play();
 
     this.startedAt = this.time.now;
     this.endsAt = this.startedAt + CFG.roundDurationMs;
