@@ -445,6 +445,8 @@ export class CactusDartsScene extends Phaser.Scene {
     this.scoreText.setColor('#9efc9b');
     this.updateScoreText();
 
+    if (this.ctx.demo) return;
+
     const { width, height } = this.scale;
     const banner = this.add.text(width / 2, height / 2, 'Level Unlocked!\nKeep firing for bonus points', {
       fontFamily: 'system-ui, sans-serif',

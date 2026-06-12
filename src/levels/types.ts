@@ -14,6 +14,8 @@ export interface LevelContext {
   formNumber: number;
   onComplete: (result: LevelResult) => void;
   onAbort: () => void;
+  /** Suppress mid-game UI that doesn't make sense in the demo flow (e.g. "level unlocked" banners). */
+  demo?: boolean;
 }
 
 export interface LevelResult {

@@ -87,6 +87,7 @@ export function DemoGame({ player, clan, levelNumber, onComplete, onAbort }: Pro
       formNumber: level.number,
       onComplete: handleResult,
       onAbort: () => onAbortRef.current(),
+      demo: true,
     });
 
     const game = new Phaser.Game({
