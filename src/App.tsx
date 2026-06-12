@@ -9,6 +9,7 @@ import { Leaderboard } from './shell/Leaderboard';
 import { StorePage } from './shell/StorePage';
 import { PrivacyPolicy } from './shell/PrivacyPolicy';
 import { Footer } from './shell/Footer';
+import { DemoBoard } from './shell/DemoBoard';
 import { useGameStore } from './store/gameStore';
 import {
   DEFAULT_PENDING_SYNC_MESSAGE,
@@ -37,7 +38,7 @@ export function App() {
   const run = useGameStore((s) => s.run);
   const setRun = useGameStore((s) => s.setRun);
   // Hide the footer in-game so it doesn't overlap Phaser scenes.
-  const inGame = location.pathname.startsWith('/play/') || location.pathname === '/demo';
+  const inGame = location.pathname.startsWith('/play/') || location.pathname === '/demo' || location.pathname === '/demo-board';
 
   useEffect(() => {
     trackPageView(location.pathname);
@@ -75,6 +76,7 @@ export function App() {
           }
         />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/demo-board" element={<DemoBoard />} />
         <Route path="/shop" element={<StorePage />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route
