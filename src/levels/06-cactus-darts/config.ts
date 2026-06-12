@@ -60,4 +60,7 @@ export const CACTUS_DARTS_CONFIG = {
 
   // Advance tween (how the board moves to the next distance)
   advanceTweenMs: 380,
+
+  // Round duration — if pass threshold not reached by 0, the attempt fails
+  roundDurationMs: 90_000,
 } as const;

@@ -6,15 +6,19 @@ import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
 import { CACTUS_DARTS_CONFIG as CFG } from './config';
 
+interface SpikeState {
+  sprite: Phaser.Physics.Arcade.Sprite;
+  insideBoard: boolean;
+  minDist: number;
+  minPoint: Phaser.Math.Vector2;
+}
+
 export class CactusDartsScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
 
   private player!: Phaser.Physics.Arcade.Sprite;
   private board!: Phaser.Physics.Arcade.Sprite;
-  private spike: Phaser.Physics.Arcade.Sprite | null = null;
-  private spikeInsideBoard = false;
-  private spikeMinDist = Infinity;
-  private readonly spikeMinPoint = new Phaser.Math.Vector2();
+  private spikes: SpikeState[] = [];
   private trajectory!: Phaser.GameObjects.Graphics;
   private slingLine!: Phaser.GameObjects.Graphics;
 
@@ -35,6 +39,7 @@ export class CactusDartsScene extends Phaser.Scene {
   private dragPointerId: number | null = null;
 
   private boardBaseY = 0;
+  private boardDriftPhase = 0;
   private music: Phaser.Sound.BaseSound | null = null;
 
   // Keyboard fallback (desktop). Aim angle in degrees from horizontal (negative = up).
@@ -78,18 +83,27 @@ export class CactusDartsScene extends Phaser.Scene {
     this.startedAt = this.time.now;
   }
 
-  update(time: number, _delta: number): void {
+  update(_time: number, delta: number): void {
     if (this.finished) return;
 
     const { width, height } = this.scale;
-    const elapsedMs = time - this.startedAt;
-    this.timeText.setText(`Time: ${(elapsedMs / 1000).toFixed(1)}s`);
+    const elapsedMs = this.time.now - this.startedAt;
+    const remainingMs = Math.max(0, CFG.roundDurationMs - elapsedMs);
+    const remainingSec = (remainingMs / 1000).toFixed(1);
+    this.timeText.setText(`${remainingSec}s`);
+    if (remainingMs <= 10_000) this.timeText.setColor('#d24a3a');
+    else if (remainingMs <= 20_000) this.timeText.setColor('#f7c948');
+
+    if (remainingMs <= 0 && !this.finished) {
+      this.finish();
+      return;
+    }
 
     if (this.hitCount >= CFG.boardDriftStartHit) {
       const extra = this.hitCount - CFG.boardDriftStartHit;
       const period = CFG.boardDriftPeriodMs * Math.pow(CFG.boardDriftPeriodMultPerHit, extra);
-      const phase = (time / period) * Math.PI * 2;
-      this.board.y = this.boardBaseY + Math.sin(phase) * CFG.boardDriftAmplitudePx;
+      this.boardDriftPhase += (delta / period) * Math.PI * 2;
+      this.board.y = this.boardBaseY + Math.sin(this.boardDriftPhase) * CFG.boardDriftAmplitudePx;
     }
 
     this.trajectory.clear();
@@ -103,8 +117,12 @@ export class CactusDartsScene extends Phaser.Scene {
       this.drawTrajectoryPreview(this.player.x, this.player.y, vx, vy);
     }
 
-    if (this.spike) {
-      const s = this.spike;
+    const boardRadius = this.board.displayHeight / 2;
+    const outerR = boardRadius * CFG.ringRadii.outer;
+
+    for (const ss of [...this.spikes]) {
+      const s = ss.sprite;
+      if (!s.active) continue;
       const body = s.body as Phaser.Physics.Arcade.Body;
       if (body.velocity.x !== 0 || body.velocity.y !== 0) {
         // The spike SVG points up; offset by +π/2 so it flies tip-first.
@@ -117,26 +135,24 @@ export class CactusDartsScene extends Phaser.Scene {
       const dx = s.x - this.board.x;
       const dy = s.y - this.board.y;
       const dist = Math.hypot(dx, dy);
-      const boardRadius = this.board.displayHeight / 2;
-      const outerR = boardRadius * CFG.ringRadii.outer;
       if (dist <= outerR) {
-        if (!this.spikeInsideBoard) {
-          this.spikeInsideBoard = true;
-          this.spikeMinDist = dist;
-          this.spikeMinPoint.set(s.x, s.y);
-        } else if (dist <= this.spikeMinDist) {
-          this.spikeMinDist = dist;
-          this.spikeMinPoint.set(s.x, s.y);
+        if (!ss.insideBoard) {
+          ss.insideBoard = true;
+          ss.minDist = dist;
+          ss.minPoint.set(s.x, s.y);
+        } else if (dist <= ss.minDist) {
+          ss.minDist = dist;
+          ss.minPoint.set(s.x, s.y);
         } else {
           // Distance increasing → we just passed the closest point. Score now.
-          this.scoreHit(this.spikeMinDist / boardRadius);
-          return;
+          this.scoreHit(ss);
         }
+        continue;
       }
 
       if (s.x < -60 || s.x > width + 60 || s.y > height + 60) {
         s.destroy();
-        this.spike = null;
+        this.spikes = this.spikes.filter(x => x !== ss);
         sfx.miss();
         this.tryFinishOnEmpty();
       }
@@ -209,7 +225,7 @@ export class CactusDartsScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(10);
 
-    this.timeText = this.add.text(width - 16, 16, 'Time: 0.0s', {
+    this.timeText = this.add.text(width - 16, 16, `${CFG.roundDurationMs / 1000}.0s`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '24px',
       color: '#f3efe0',
@@ -229,7 +245,7 @@ export class CactusDartsScene extends Phaser.Scene {
   // ----- Input handlers -----
 
   private handlePointerDown(p: Phaser.Input.Pointer): void {
-    if (this.finished || this.spike || this.dragging || this.quiverRemaining <= 0) return;
+    if (this.finished || this.dragging || this.quiverRemaining <= 0) return;
     this.dragging = true;
     this.dragPointerId = p.id;
     // Anchor the draw at the touch point — pulling back from here fires the
@@ -259,7 +275,7 @@ export class CactusDartsScene extends Phaser.Scene {
   }
 
   private handleKeyboardCharge(): void {
-    if (this.finished || this.spike || this.keyboardCharging || this.quiverRemaining <= 0) return;
+    if (this.finished || this.keyboardCharging || this.quiverRemaining <= 0) return;
     this.keyboardCharging = true;
   }
 
@@ -305,7 +321,7 @@ export class CactusDartsScene extends Phaser.Scene {
     this.slingLine.clear();
     this.slingLine.lineStyle(3, 0xfff5b7, 0.6);
     this.slingLine.lineBetween(fromX, fromY, toX, toY);
-    // Origin dot so the player sees where the swipe started.
+    // Origin dot so the player sees where the swipe began.
     this.slingLine.fillStyle(0xfff5b7, 0.7);
     this.slingLine.fillCircle(fromX, fromY, 5);
   }
@@ -331,7 +347,7 @@ export class CactusDartsScene extends Phaser.Scene {
   // ----- Gameplay -----
 
   private throwSpike(vx: number, vy: number): void {
-    if (this.spike || this.finished || this.quiverRemaining <= 0) return;
+    if (this.finished || this.quiverRemaining <= 0) return;
     this.quiverRemaining -= 1;
     this.updateQuiverText();
     sfx.throw();
@@ -343,14 +359,14 @@ export class CactusDartsScene extends Phaser.Scene {
     const body = s.body as Phaser.Physics.Arcade.Body;
     body.setAllowGravity(true);
     s.setVelocity(vx, vy);
-    this.spike = s;
-    this.spikeInsideBoard = false;
-    this.spikeMinDist = Infinity;
+    this.spikes.push({ sprite: s, insideBoard: false, minDist: Infinity, minPoint: new Phaser.Math.Vector2() });
   }
 
-  private scoreHit(ratio: number): void {
-    if (!this.spike || this.finished) return;
-    const s = this.spike;
+  private scoreHit(ss: SpikeState): void {
+    if (this.finished) return;
+    const s = ss.sprite;
+    const boardRadius = this.board.displayHeight / 2;
+    const ratio = ss.minDist / boardRadius;
 
     let points: number = CFG.ringPoints.outer;
     let isBullseye = false;
@@ -362,11 +378,11 @@ export class CactusDartsScene extends Phaser.Scene {
     }
 
     // Snap to the deepest-penetration point so the spike visually lands there.
-    s.x = this.spikeMinPoint.x;
-    s.y = this.spikeMinPoint.y;
+    s.x = ss.minPoint.x;
+    s.y = ss.minPoint.y;
     s.setVelocity(0, 0);
     (s.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
-    this.spike = null;
+    this.spikes = this.spikes.filter(x => x !== ss);
 
     this.score += points;
     this.hitCount += 1;
@@ -391,6 +407,8 @@ export class CactusDartsScene extends Phaser.Scene {
     const targetX = width * CFG.boardDistances[idx];
     const scale = Math.max(CFG.boardMinScale, Math.pow(CFG.boardShrinkPerHit, this.hitCount));
     this.boardBaseY = height * CFG.boardYFraction;
+    // Kill any running advance tween so rapid hits don't stack conflicting tweens.
+    this.tweens.killTweensOf(this.board);
     this.tweens.add({
       targets: this.board,
       x: targetX,
@@ -480,7 +498,7 @@ export class CactusDartsScene extends Phaser.Scene {
   private tryFinishOnEmpty(): void {
     if (this.finished) return;
     if (this.quiverRemaining > 0) return;
-    if (this.spike !== null) return; // wait for the last spike to resolve
+    if (this.spikes.length > 0) return; // wait for all in-flight spikes to resolve
     this.finish();
   }
 
@@ -493,9 +511,12 @@ export class CactusDartsScene extends Phaser.Scene {
     const elapsedMs = this.time.now - this.startedAt;
 
     const { width, height } = this.scale;
+    const timedOut = elapsedMs >= CFG.roundDurationMs;
     const text = this.passed
       ? `Cleared!\nFinal: ${this.score} pts`
-      : `Out of cacti!\nScore: ${this.score}`;
+      : timedOut
+        ? `Time's up!\nScore: ${this.score}`
+        : `Out of cacti!\nScore: ${this.score}`;
     const color = this.passed ? '#9efc9b' : '#f7c948';
     const stroke = this.passed ? '#1f5a2d' : '#5a2d1f';
     if (!this.passed) sfx.pop();
