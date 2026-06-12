@@ -158,16 +158,37 @@ export function DemoGame({ player, clan, levelNumber, onComplete, onAbort }: Pro
         />
       )}
       {finished && (
-        <div className="screen" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)' }}>
+        <div className="screen" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)' }}>
           <h1 style={{ color: finished.passed ? 'var(--accent)' : 'var(--danger)' }}>
             {finished.passed ? 'Cleared!' : 'Nice try!'}
           </h1>
-          <h2>
+          <div style={{
+            fontSize: '3rem',
+            fontWeight: 900,
+            color: 'var(--accent)',
+            lineHeight: 1,
+            margin: '0.25rem 0 0.1rem',
+          }}>
+            {finished.score}
+          </div>
+          <div style={{ color: 'var(--text-dim)', fontSize: '0.9rem', marginBottom: '1rem' }}>
             {finished.miniGamePoints} hits
-            {finished.bonusPoints > 0 && ` · ★ +${finished.bonusPoints}`}
-            {' · '}
-            {(finished.elapsedMs / 1000).toFixed(1)}s · score {finished.score}
-          </h2>
+            {finished.bonusPoints > 0 && ` · ★ +${finished.bonusPoints} bonus`}
+            {' · '}{(finished.elapsedMs / 1000).toFixed(1)}s
+          </div>
+          <p style={{ margin: '0 0 0.25rem', fontWeight: 600 }}>
+            Watch the leaderboard screen to see where you rank!
+          </p>
+          <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.15)', margin: '1rem 0' }} />
+          <p style={{ margin: '0 0 0.15rem', fontSize: '0.9rem', color: 'var(--text-dim)' }}>
+            This is just one level — the full game has <strong style={{ color: 'var(--fg)' }}>8 levels</strong> to play for free at
+          </p>
+          <p style={{ margin: '0 0 0.15rem', fontWeight: 700, fontSize: '1rem', color: 'var(--accent)' }}>
+            www.cactusclans.co.uk
+          </p>
+          <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+            Plus check out the amazing Cactus Clans trading cards!
+          </p>
           <button className="primary" onClick={() => onCompleteRef.current(finished.score)} autoFocus>
             See the leaderboard →
           </button>
