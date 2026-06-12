@@ -7,7 +7,7 @@ import type { LevelResult } from '../levels/types';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
 import { InstructionsModal } from './InstructionsModal';
-import { enterFullscreen, exitFullscreen, isTouchDevice } from './fullscreen';
+import { enterFullscreen, exitFullscreen } from './fullscreen';
 import { trackEvent } from '../services/analytics';
 
 interface Props {
@@ -151,7 +151,7 @@ export function DemoGame({ player, clan, levelNumber, onComplete, onAbort }: Pro
               level_title: level.title,
               practice: false,
             });
-            if (isTouchDevice()) void enterFullscreen();
+            void enterFullscreen();
           }}
           onCancel={() => onAbortRef.current()}
           cancelLabel="Cancel"

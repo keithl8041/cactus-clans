@@ -1,0 +1,14 @@
+{
+  "name": "Cactus Clans Demo",
+  "short_name": "CC Demo",
+  "description": "Play Cactus Dart Toss — Summer Fair edition!",
+  "start_url": "/demo",
+  "scope": "/demo",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0f1d12",
+  "theme_color": "#1f6f3f",
+  "icons": [
+    { "src": "/logo.png", "type": "image/png", "sizes": "any", "purpose": "any" }
+  ]
+}

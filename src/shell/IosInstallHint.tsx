@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 // (the Fullscreen API is video-only there). Dismissal is persisted so we don't
 // nag repeat visitors.
 
-const DISMISS_KEY = 'cactus-clans:hide-ios-install-hint';
+const DEFAULT_DISMISS_KEY = 'cactus-clans:hide-ios-install-hint';
 
 function isIos(): boolean {
   if (typeof navigator === 'undefined') return false;
@@ -23,20 +23,20 @@ function isStandalone(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches;
 }
 
-export function IosInstallHint() {
+export function IosInstallHint({ storageKey = DEFAULT_DISMISS_KEY }: { storageKey?: string } = {}) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (!isIos() || isStandalone()) return;
-    if (localStorage.getItem(DISMISS_KEY) === '1') return;
+    if (localStorage.getItem(storageKey) === '1') return;
     setVisible(true);
-  }, []);
+  }, [storageKey]);
 
   if (!visible) return null;
 
   function dismiss() {
     try {
-      localStorage.setItem(DISMISS_KEY, '1');
+      localStorage.setItem(storageKey, '1');
     } catch {
       // private mode etc — fine, the banner just comes back next visit
     }

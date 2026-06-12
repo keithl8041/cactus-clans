@@ -8,6 +8,8 @@ import {
   type DemoLeaderboardEntry,
 } from '../services/leaderboard';
 import { DemoGame } from './DemoGame';
+import { enterFullscreen } from './fullscreen';
+import { IosInstallHint } from './IosInstallHint';
 
 /**
  * The clan used for all demo players. Named explicitly rather than relying on
@@ -42,6 +44,21 @@ type DemoStep =
  */
 export function Demo() {
   const [step, setStep] = useState<DemoStep>({ kind: 'register' });
+
+  // Swap in the demo-specific PWA manifest so "Add to Home Screen" on iOS
+  // launches the app full-screen directly at /demo, not /game.
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const titleMeta = document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-title"]');
+    const prevHref = link?.href ?? null;
+    const prevTitle = titleMeta?.content ?? null;
+    if (link) link.href = '/manifest-demo.webmanifest';
+    if (titleMeta) titleMeta.content = 'Cactus Clans Demo';
+    return () => {
+      if (link && prevHref) link.href = prevHref;
+      if (titleMeta && prevTitle) titleMeta.content = prevTitle;
+    };
+  }, []);
 
   function handleRegistered(player: PlayerSession) {
     setStep({ kind: 'play', player });
@@ -120,6 +137,7 @@ function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => voi
 
   async function submitNickname(e: React.FormEvent) {
     e.preventDefault();
+    void enterFullscreen();
     await runNicknameCheck(nickname);
   }
 
@@ -131,6 +149,7 @@ function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => voi
   async function submitPin(e: React.FormEvent) {
     e.preventDefault();
     if (regStep.kind === 'enterName') return;
+    void enterFullscreen();
     setBusy(true);
     setError(null);
     try {
@@ -170,6 +189,9 @@ function DemoRegister({ onSuccess }: { onSuccess: (player: PlayerSession) => voi
             {busy ? 'Checking…' : 'Continue'}
           </button>
         </form>
+        <div style={{ marginTop: '1.5rem' }}>
+          <IosInstallHint storageKey="cactus-clans:demo-ios-hint" />
+        </div>
       </div>
     );
   }
