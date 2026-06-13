@@ -129,7 +129,13 @@ function writeMockDemo(rows: MockDemoRow[]): void {
 /** Fetch the JKPS Summer Fair demo leaderboard (best score per nickname). */
 export async function fetchDemoLeaderboard(limit = 50): Promise<DemoLeaderboardEntry[]> {
   if (usingRealBackend) {
-    const rows = await apiFetch<DemoLeaderboardEntry[]>(`/demo-leaderboard?limit=${limit}`);
+    // Bust both the Cloudflare edge cache (keyed on full URL) and the browser
+    // HTTP cache so the summer-fair display board (/demo-board) shows live
+    // scores instead of a 30s-stale snapshot from withEdgeCache in the Worker.
+    const rows = await apiFetch<DemoLeaderboardEntry[]>(
+      `/demo-leaderboard?limit=${limit}&_t=${Date.now()}`,
+      { cache: 'no-store' },
+    );
     return rows;
   }
 
