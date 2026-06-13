@@ -22,6 +22,63 @@ export function isTouchDevice(): boolean {
   return window.matchMedia('(pointer: coarse)').matches;
 }
 
+export function isFullscreenActive(): boolean {
+  if (typeof document === 'undefined') return false;
+  const doc = document as FullscreenDocument;
+  return Boolean(doc.fullscreenElement ?? doc.webkitFullscreenElement);
+}
+
+/**
+ * On touch devices in landscape, request fullscreen on the next user gesture.
+ * The Fullscreen API rejects non-gesture calls, so we listen for the next
+ * pointerdown/keydown after landscape is detected and request it then. The
+ * listener cleans itself up after firing or when orientation changes back.
+ *
+ * Call once during app startup. Returns a cleanup function.
+ */
+export function autoFullscreenInLandscape(): () => void {
+  if (typeof window === 'undefined') return () => {};
+  if (!isTouchDevice()) return () => {};
+
+  const landscape = window.matchMedia('(orientation: landscape)');
+  let gestureCleanup: (() => void) | null = null;
+
+  function armGestureListener() {
+    if (gestureCleanup) return;
+    const handler = () => {
+      gestureCleanup?.();
+      gestureCleanup = null;
+      if (landscape.matches && !isFullscreenActive()) {
+        void enterFullscreen();
+      }
+    };
+    window.addEventListener('pointerdown', handler, { once: true, capture: true });
+    window.addEventListener('keydown', handler, { once: true, capture: true });
+    gestureCleanup = () => {
+      window.removeEventListener('pointerdown', handler, true);
+      window.removeEventListener('keydown', handler, true);
+    };
+  }
+
+  function onOrientationChange() {
+    if (landscape.matches) {
+      if (!isFullscreenActive()) armGestureListener();
+    } else {
+      gestureCleanup?.();
+      gestureCleanup = null;
+    }
+  }
+
+  if (landscape.matches) armGestureListener();
+  landscape.addEventListener('change', onOrientationChange);
+
+  return () => {
+    landscape.removeEventListener('change', onOrientationChange);
+    gestureCleanup?.();
+    gestureCleanup = null;
+  };
+}
+
 export async function enterFullscreen(): Promise<void> {
   if (typeof document === 'undefined') return;
   const el = document.documentElement as FullscreenElement;

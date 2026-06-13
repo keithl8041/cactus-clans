@@ -17,6 +17,7 @@ import {
   type RunChangeDetail,
 } from './services/progress';
 import { trackPageView } from './services/analytics';
+import { autoFullscreenInLandscape } from './shell/fullscreen';
 
 // Phaser is heavy — only load it when the player actually opens a level.
 const GameContainer = lazy(() =>
@@ -43,6 +44,8 @@ export function App() {
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
+
+  useEffect(() => autoFullscreenInLandscape(), []);
 
   useEffect(() => {
     function onRunChange(event: Event) {
