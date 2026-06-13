@@ -560,6 +560,7 @@ input[type='text']:focus {
 .game-canvas-wrap {
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   background: #000;
   display: flex;
   align-items: center;
