@@ -55,6 +55,10 @@ export function Demo() {
     void enterFullscreen();
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step.kind]);
+
   // Swap in the demo-specific PWA manifest so "Add to Home Screen" on iOS
   // launches the app full-screen directly at /demo, not /game.
   useEffect(() => {
@@ -181,6 +185,10 @@ function DemoRegister({
   const [regStep, setRegStep] = useState<RegStep>({ kind: 'enterName' });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [regStep.kind]);
 
   const pinValid = /^\d{4}$/.test(pin);
 

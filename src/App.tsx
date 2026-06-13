@@ -43,6 +43,7 @@ export function App() {
 
   useEffect(() => {
     trackPageView(location.pathname);
+    window.scrollTo(0, 0);
   }, [location.pathname]);
 
   useEffect(() => autoFullscreenInLandscape(), []);
