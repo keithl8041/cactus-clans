@@ -4,7 +4,7 @@ import type { PlayerSession } from '../services/session';
 import { CLANS } from '../data/clans';
 import type { Clan } from '../data/clans';
 import { cardsForClan } from '../data/cards';
-import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
+import { assetUrl, resolveCharacterKey, resolveLandingCardKey } from '../assets/manifest';
 import {
   fetchDemoLeaderboard,
   submitDemoScore,
@@ -53,6 +53,28 @@ export function Demo() {
 
   useEffect(() => {
     void enterFullscreen();
+  }, []);
+
+  // Warm the service worker / HTTP cache as soon as anyone lands on /demo.
+  // The summer-fair venue has patchy Wi-Fi, so we want every asset the demo
+  // can reach to be sitting in the cache before the player picks a clan —
+  // not lazily fetched per-screen as the network drops in and out.
+  useEffect(() => {
+    const urls = new Set<string>([
+      assetUrl('game6.background'),
+      assetUrl('cactus.spike.game6'),
+      assetUrl('dartboard'),
+      '/music/bowandarrows.mp3',
+    ]);
+    for (const clan of SELECTABLE_CLANS) {
+      urls.add(assetUrl(resolveLandingCardKey(clan.name, 1)));
+      urls.add(assetUrl(resolveCharacterKey(clan.name, DEMO_LEVEL_NUMBER)));
+    }
+    for (const url of urls) {
+      // data: URLs (procedural placeholders) don't hit the network — skip.
+      if (!url.startsWith('/') && !url.startsWith('http')) continue;
+      fetch(url, { cache: 'force-cache' }).catch(() => {});
+    }
   }, []);
 
   useEffect(() => {
