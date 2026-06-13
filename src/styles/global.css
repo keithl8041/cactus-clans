@@ -180,7 +180,10 @@ input[type='text']:focus {
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 200px));
+  /* Floor at 2 columns: the min track size never exceeds half the row width
+     (minus one gap), so tiles always pack at least two abreast on narrow
+     viewports instead of falling back to a single oversized column. */
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, calc(50% - 0.625rem)), 1fr));
   gap: 1.25rem;
   width: 100%;
   max-width: 960px;
