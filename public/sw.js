@@ -10,7 +10,7 @@
 // Bump CACHE_VERSION whenever the precache list or any precached file changes
 // so old caches are purged on activate.
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const STATIC_CACHE = `cactus-clans-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `cactus-clans-runtime-${CACHE_VERSION}`;
 
@@ -87,8 +87,24 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-function isRuntimeCacheable(url) {
+// Only intercept browser-initiated asset loads (img/script/style/audio/font/
+// manifest). Plain fetch()/XHR has destination '' or 'empty' — those MUST
+// pass straight through to the network so the leaderboard and other API-ish
+// reads from app code are never served from cache.
+const ASSET_DESTINATIONS = new Set([
+  'script',
+  'style',
+  'image',
+  'audio',
+  'video',
+  'font',
+  'manifest',
+  'worker',
+]);
+
+function isRuntimeCacheable(req, url) {
   if (url.origin !== self.location.origin) return false;
+  if (!ASSET_DESTINATIONS.has(req.destination)) return false;
   return (
     url.pathname.startsWith('/assets/') ||
     url.pathname.startsWith('/art/') ||
@@ -137,7 +153,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (!isRuntimeCacheable(url)) return;
+  if (!isRuntimeCacheable(req, url)) return;
 
   // Stale-while-revalidate: hit the cache fast, refresh in the background.
   event.respondWith(

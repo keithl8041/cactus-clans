@@ -70,11 +70,30 @@ export function Demo() {
       urls.add(assetUrl(resolveLandingCardKey(clan.name, 1)));
       urls.add(assetUrl(resolveCharacterKey(clan.name, DEMO_LEVEL_NUMBER)));
     }
+    const preloadLinks: HTMLLinkElement[] = [];
     for (const url of urls) {
       // data: URLs (procedural placeholders) don't hit the network — skip.
       if (!url.startsWith('/') && !url.startsWith('http')) continue;
-      fetch(url, { cache: 'force-cache' }).catch(() => {});
+      if (url.endsWith('.mp3') || url.endsWith('.ogg') || url.endsWith('.wav')) {
+        // Audio preload via <link> — request destination is 'audio', which
+        // the service worker recognises as a cacheable asset request.
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'audio';
+        link.href = url;
+        document.head.appendChild(link);
+        preloadLinks.push(link);
+      } else {
+        // Images: use the Image() constructor so the request destination is
+        // 'image' rather than '' (plain fetch). The SW only caches asset-
+        // destination requests now, so this matters for runtime caching.
+        const img = new Image();
+        img.src = url;
+      }
     }
+    return () => {
+      preloadLinks.forEach((link) => link.remove());
+    };
   }, []);
 
   useEffect(() => {
