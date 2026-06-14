@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Phaser from 'phaser';
 import { useGameStore, highestClearedLevel } from '../store/gameStore';
@@ -153,6 +153,7 @@ export function VersusLobby() {
       </div>
       <div ref={hostRef} style={{ width: '100%', height: '100%' }} />
       <RotateOverlay active={needsRotate} />
+      {state?.practise && <WaitingBanner code={cleanedCode} />}
       <VersusSidebar state={state} youId={youId} />
     </div>
   );
@@ -202,6 +203,67 @@ function VersusSidebar({ state, youId }: { state: VersusState | null; youId: str
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function WaitingBanner({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [code]);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 24,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(15, 26, 16, 0.92)',
+        border: '2px solid #f7c948',
+        borderRadius: 12,
+        padding: '14px 24px',
+        fontFamily: 'system-ui, sans-serif',
+        color: '#fff5b7',
+        textAlign: 'center',
+        pointerEvents: 'auto',
+        animation: 'versus-pulse 2s ease-in-out infinite',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <style>{`
+        @keyframes versus-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(247, 201, 72, 0.0); }
+          50% { box-shadow: 0 0 0 8px rgba(247, 201, 72, 0.25); }
+        }
+      `}</style>
+      <div style={{ fontSize: 13, color: '#a3d977', marginBottom: 6 }}>
+        Waiting for a friend to join…
+      </div>
+      <div style={{ fontSize: 13, marginBottom: 8 }}>Share this lobby code:</div>
+      <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: '0.18em', color: '#f7c948', marginBottom: 10 }}>
+        {code}
+      </div>
+      <button
+        onClick={copy}
+        style={{
+          background: copied ? '#3a7a2c' : '#f7c948',
+          color: copied ? '#fff5b7' : '#1f2a14',
+          border: 'none',
+          borderRadius: 6,
+          padding: '6px 18px',
+          fontWeight: 700,
+          fontSize: 13,
+          cursor: 'pointer',
+          transition: 'background 0.2s',
+        }}
+      >
+        {copied ? 'Copied!' : 'Copy code'}
+      </button>
     </div>
   );
 }

@@ -287,8 +287,8 @@ export class VersusBalloonScene extends Phaser.Scene {
     } else {
       this.teamBestText.setVisible(false);
     }
-    if (s.phase === 'waiting') {
-      this.phaseText.setText(s.practise ? 'Practise — keep it up!' : 'Waiting for a friend…');
+    if (s.phase === 'waiting' && !s.practise) {
+      this.phaseText.setText('Waiting for a friend…');
     } else {
       this.phaseText.setText('');
     }
