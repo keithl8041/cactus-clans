@@ -6,13 +6,8 @@ import { resolveBalloonKey, resolveCharacterKey } from '../assets/manifest';
 import { trackEvent } from '../services/analytics';
 import type { VersusClient, VersusState, VersusPlayer, VersusSpike } from '../services/versus';
 
-// Versus mode is locked to Prickling Clan art for now — the other clans
-// don't have shipped balloon/character PNGs yet. The server uses whatever
-// the client sends in `hello`, so this also matches what VersusLobby tells
-// the DO. Seat 1 gets a warm tint applied client-side to keep two
-// Pricklings visually distinct in play.
-const FORCED_CLAN = 'Prickling Clan';
-const FORCED_FORM = 1;
+// Seat 1 gets a warm tint applied client-side to keep two characters
+// visually distinct when both players happen to share the same art.
 const SEAT1_TINT = 0xff9a5c;
 
 const WORLD_W = 1280;
@@ -25,6 +20,8 @@ const CACTUS_DISPLAY = 80;
 
 interface VersusSceneCtx {
   client: VersusClient;
+  clan: string;
+  form: number;
 }
 
 interface ActivePointer {
@@ -55,6 +52,8 @@ interface PlayerVisuals {
 
 export class VersusBalloonScene extends Phaser.Scene {
   private readonly client: VersusClient;
+  private readonly clanName: string;
+  private readonly formNumber: number;
 
   private balloon!: Phaser.GameObjects.Image;
   private balloonTargetX = WORLD_W / 2;
@@ -86,19 +85,20 @@ export class VersusBalloonScene extends Phaser.Scene {
   constructor(ctx: VersusSceneCtx) {
     super({ key: 'VersusBalloonScene' });
     this.client = ctx.client;
+    this.clanName = ctx.clan;
+    this.formNumber = ctx.form;
   }
 
   preload(): void {
-    // Real Prickling art for everyone; background + floor reuse single-player.
-    const clan = clanByName(FORCED_CLAN);
-    loadAsset(this, 'balloon', resolveBalloonKey(FORCED_CLAN), {
+    const clan = clanByName(this.clanName);
+    loadAsset(this, 'balloon', resolveBalloonKey(this.clanName), {
       color: clan?.color,
       size: BALLOON_DISPLAY,
     });
     loadAsset(this, 'cactus.spike', 'cactus.spike');
-    loadAsset(this, 'character', resolveCharacterKey(FORCED_CLAN, FORCED_FORM), {
+    loadAsset(this, 'character', resolveCharacterKey(this.clanName, this.formNumber), {
       clanColor: clan?.color,
-      formNumber: FORCED_FORM,
+      formNumber: this.formNumber,
       size: PLAYER_DISPLAY,
     });
     loadAsset(this, 'game1.background', 'game1.background');
@@ -240,7 +240,7 @@ export class VersusBalloonScene extends Phaser.Scene {
       vis.targetY = sp.y;
       vis.facingLeft = sp.f;
       vis.sprite.setFlipX(!sp.f); // sprite faces left by default; flip when facing right
-      // Distinguish identical Pricklings by seat: seat 0 natural, seat 1 warm tint.
+      // Distinguish players by seat: seat 0 natural, seat 1 warm tint.
       const seatIdx = s.seats.indexOf(sp.id);
       if (seatIdx !== vis.lastSeatIdx) {
         vis.lastSeatIdx = seatIdx;

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Phaser from 'phaser';
-import { useGameStore } from '../store/gameStore';
+import { useGameStore, highestClearedLevel } from '../store/gameStore';
+import { MAX_LEVEL } from '../levels/meta';
 import { usingRealBackend } from '../services/api';
 import { getCurrentSession } from '../services/session';
 import { VersusClient, type VersusRosterEntry, type VersusState } from '../services/versus';
@@ -35,11 +36,10 @@ export function VersusLobby() {
   const [connected, setConnected] = useState(false);
 
   const cleanedCode = (code ?? '').trim().toUpperCase();
-  // Versus uses Prickling Clan assets only for now — other clans don't have
-  // their balloon/character art shipped yet, so we'd fall back to procedural
-  // placeholders and look inconsistent. Force it here.
-  const clanName = 'Prickling Clan';
-  void run;
+  // Use the player's active clan and current form. Falls back to Prickling form 1
+  // when there's no run (resolveCharacterKey handles the clan→prickling fallback).
+  const clanName = run?.clan ?? 'Prickling Clan';
+  const formNumber = Math.min(highestClearedLevel(run) + 1, MAX_LEVEL);
 
   useEffect(() => {
     // Dev mode: the "Needs the Worker" render guard handles UX — skip the
@@ -81,7 +81,7 @@ export function VersusLobby() {
 
     // Mount Phaser only after we've kicked off the connection. The scene
     // wires its own subscription to state updates via the shared client.
-    const scene = new VersusBalloonScene({ client });
+    const scene = new VersusBalloonScene({ client, clan: clanName, form: formNumber });
     const game = new Phaser.Game({
       type: Phaser.AUTO,
       parent: hostRef.current!,
