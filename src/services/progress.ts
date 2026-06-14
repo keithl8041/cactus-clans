@@ -98,6 +98,10 @@ function readRun(playerId: string, clan: string): RunProgress | null {
   }
 }
 
+export function getAllRunsForPlayer(playerId: string): RunProgress[] {
+  return readRunsForPlayer(playerId);
+}
+
 function readRunsForPlayer(playerId: string): RunProgress[] {
   migrateLegacyRun(playerId);
   const runs: RunProgress[] = [];

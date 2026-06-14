@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Phaser from 'phaser';
 import { useGameStore } from '../store/gameStore';
 import { usingRealBackend } from '../services/api';
+import { getCurrentSession } from '../services/session';
 import { VersusClient, type VersusRosterEntry, type VersusState } from '../services/versus';
 import { trackEvent } from '../services/analytics';
 import { VersusBalloonScene } from '../multiplayer/VersusBalloonScene';
@@ -21,6 +22,7 @@ export function VersusLobby() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const player = useGameStore((s) => s.player);
+  const setPlayer = useGameStore((s) => s.setPlayer);
   const run = useGameStore((s) => s.run);
   const needsRotate = useNeedsRotate();
 
@@ -40,10 +42,18 @@ export function VersusLobby() {
   void run;
 
   useEffect(() => {
+    // Dev mode: the "Needs the Worker" render guard handles UX — skip the
+    // redirect so the message is visible instead of bouncing to the homepage.
+    if (!usingRealBackend) return;
     if (!player) {
-      // Stash the lobby URL so the splash/nickname/clan-select flow can
-      // resume the user here once they've signed in, instead of dropping
-      // them on /journey.
+      // Zustand store is in-memory — a direct navigation or page refresh clears
+      // it. Try to restore the session from localStorage before giving up.
+      const saved = getCurrentSession();
+      if (saved) {
+        setPlayer(saved);
+        return; // effect re-runs with player set
+      }
+      // No saved session — stash the lobby URL and send them to sign in.
       setReturnTo(`/versus/${cleanedCode}`);
       navigate('/');
       return;

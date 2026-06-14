@@ -1,4 +1,5 @@
 import { apiFetch, usingRealBackend } from './api';
+import { getAllRunsForPlayer } from './progress';
 
 export interface LeaderboardEntry {
   nickname: string;
@@ -6,6 +7,15 @@ export interface LeaderboardEntry {
   totalScore: number;
   completedAt?: string;
   currentLevel?: number;
+  allClansCompleted?: boolean;
+}
+
+export interface PlayerRunSummary {
+  clan: string;
+  totalScore: number;
+  completedAt?: string;
+  currentLevel: number;
+  startedAt: string;
 }
 
 const MOCK_BOARD_KEY = 'cc.leaderboard.mock.v1';
@@ -35,6 +45,7 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
       totalScore: number;
       completedAt: string | null;
       currentLevel: number | null;
+      allClansCompleted: number;
     }
     const rows = await apiFetch<ApiRow[]>(`/leaderboard?limit=${limit}`);
     return rows.map((r) => ({
@@ -43,6 +54,7 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
       totalScore: r.totalScore,
       completedAt: r.completedAt ?? undefined,
       currentLevel: r.currentLevel ?? undefined,
+      allClansCompleted: r.allClansCompleted === 1,
     }));
   }
 
@@ -96,6 +108,35 @@ export function submitMockRun(entry: MockRow): void {
   const all = readMock().filter((r) => r.playerId !== entry.playerId);
   all.push(entry);
   writeMock(all);
+}
+
+export async function fetchPlayerRuns(playerId: string): Promise<PlayerRunSummary[]> {
+  if (usingRealBackend) {
+    interface ApiRow {
+      clan: string;
+      totalScore: number;
+      completedAt: string | null;
+      currentLevel: number;
+      startedAt: string;
+    }
+    const rows = await apiFetch<ApiRow[]>(`/players/${encodeURIComponent(playerId)}/runs`);
+    return rows.map((r) => ({
+      clan: r.clan,
+      totalScore: r.totalScore,
+      completedAt: r.completedAt ?? undefined,
+      currentLevel: r.currentLevel,
+      startedAt: r.startedAt,
+    }));
+  }
+
+  // Offline fallback: read from localStorage directly.
+  return getAllRunsForPlayer(playerId).map((r) => ({
+    clan: r.clan,
+    totalScore: r.totalScore,
+    completedAt: r.completedAt,
+    currentLevel: r.levels.reduce((max, l) => Math.max(max, l.levelNumber), 1),
+    startedAt: r.startedAt,
+  }));
 }
 
 // ---------------------------------------------------------------------------

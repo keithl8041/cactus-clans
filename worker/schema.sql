@@ -5,7 +5,10 @@ CREATE TABLE IF NOT EXISTS players (
   id TEXT PRIMARY KEY,
   nickname TEXT UNIQUE NOT NULL,
   pin_hash TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  -- Set to 1 once the player has completed a run for every available clan.
+  -- Written once by the complete-run handler; never decremented.
+  all_clans_completed INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS runs (

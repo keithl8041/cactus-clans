@@ -22,6 +22,7 @@ interface LeaderboardRow {
   totalScore: number;
   completedAt: string | null;
   currentLevel: number | null;
+  allClansCompleted: number;
 }
 
 interface TeamLeaderboardRow {
@@ -237,6 +238,22 @@ async function route(
     });
   }
 
+  const playerRunsMatch = pathname.match(/^\/api\/players\/([^/]+)\/runs$/);
+  if (playerRunsMatch && method === 'GET') {
+    const playerId = playerRunsMatch[1];
+    const result = await env.DB
+      .prepare(
+        `SELECT clan, total_score AS totalScore, completed_at AS completedAt,
+                current_level AS currentLevel, started_at AS startedAt
+         FROM runs
+         WHERE player_id = ?
+         ORDER BY started_at DESC`,
+      )
+      .bind(playerId)
+      .all<{ clan: string; totalScore: number; completedAt: string | null; currentLevel: number; startedAt: string }>();
+    return json(result.results ?? []);
+  }
+
   if (pathname === '/api/runs' && method === 'POST') {
     const { playerId, clan } = await readJson<{ playerId?: string; clan?: string }>(request);
     if (!playerId || !clan) return json({ error: 'playerId + clan required' }, 400);
@@ -306,6 +323,23 @@ async function route(
       .prepare('UPDATE runs SET completed_at = ?, total_score = ? WHERE id = ?')
       .bind(completedAt, totalScore, runId)
       .run();
+    // One-time check: has this player now completed all 11 clans? If so, set the
+    // flag on their player row so the leaderboard can show the 🏆 badge cheaply.
+    const checkRow = await env.DB
+      .prepare(
+        `SELECT r.player_id,
+                (SELECT COUNT(*) FROM runs r2
+                 WHERE r2.player_id = r.player_id AND r2.completed_at IS NOT NULL) AS n
+         FROM runs r WHERE r.id = ?`,
+      )
+      .bind(runId)
+      .first<{ player_id: string; n: number }>();
+    if (checkRow && Number(checkRow.n) >= 11) {
+      await env.DB
+        .prepare('UPDATE players SET all_clans_completed = 1 WHERE id = ?')
+        .bind(checkRow.player_id)
+        .run();
+    }
     return json({ completedAt });
   }
 
@@ -334,7 +368,8 @@ async function route(
                   CASE
                     WHEN ranked.completed_at IS NULL THEN ranked.current_level
                     ELSE NULL
-                  END AS currentLevel
+                  END AS currentLevel,
+                  p.all_clans_completed AS allClansCompleted
            FROM ranked
            INNER JOIN players p ON p.id = ranked.player_id
            WHERE ranked.rn = 1
