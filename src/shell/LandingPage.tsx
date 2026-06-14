@@ -84,6 +84,7 @@ const STORY_TABS = [
             View the code on GitHub →
           </a>
         </p>
+        <p>For instructions on how to get started and contribute to the project, read the <a href="https://github.com/keithl8041/cactus-clans/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">contributing guide</a>.</p>
       </>
     ),
   },
