@@ -210,7 +210,8 @@ function VersusSidebar({ state, youId }: { state: VersusState | null; youId: str
 function WaitingBanner({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
   const copy = useCallback(() => {
-    navigator.clipboard.writeText(code).then(() => {
+    const url = `${window.location.origin}/versus/${code}`;
+    navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -256,7 +257,7 @@ function WaitingBanner({ code }: { code: string }) {
           transition: 'background 0.2s',
         }}
       >
-        {copied ? 'Copied!' : 'Copy code'}
+        {copied ? 'Copied!' : 'Copy link'}
       </button>
     </div>
   );
