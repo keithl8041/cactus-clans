@@ -220,32 +220,26 @@ function WaitingBanner({ code }: { code: string }) {
     <div
       style={{
         position: 'absolute',
-        bottom: 24,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: 'rgba(15, 26, 16, 0.92)',
-        border: '2px solid #f7c948',
-        borderRadius: 12,
-        padding: '14px 24px',
+        top: 64,
+        left: 16,
+        background: 'rgba(15, 26, 16, 0.88)',
+        border: '1.5px solid #f7c948',
+        borderRadius: 8,
+        padding: '8px 12px',
         fontFamily: 'system-ui, sans-serif',
         color: '#fff5b7',
-        textAlign: 'center',
         pointerEvents: 'auto',
         animation: 'versus-pulse 2s ease-in-out infinite',
-        whiteSpace: 'nowrap',
       }}
     >
       <style>{`
         @keyframes versus-pulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(247, 201, 72, 0.0); }
-          50% { box-shadow: 0 0 0 8px rgba(247, 201, 72, 0.25); }
+          50% { box-shadow: 0 0 0 6px rgba(247, 201, 72, 0.22); }
         }
       `}</style>
-      <div style={{ fontSize: 13, color: '#a3d977', marginBottom: 6 }}>
-        Waiting for a friend to join…
-      </div>
-      <div style={{ fontSize: 13, marginBottom: 8 }}>Share this lobby code:</div>
-      <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: '0.18em', color: '#f7c948', marginBottom: 10 }}>
+      <div style={{ fontSize: 11, color: '#a3d977', marginBottom: 2 }}>Waiting for a friend…</div>
+      <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: '0.16em', color: '#f7c948', marginBottom: 6 }}>
         {code}
       </div>
       <button
@@ -254,10 +248,10 @@ function WaitingBanner({ code }: { code: string }) {
           background: copied ? '#3a7a2c' : '#f7c948',
           color: copied ? '#fff5b7' : '#1f2a14',
           border: 'none',
-          borderRadius: 6,
-          padding: '6px 18px',
+          borderRadius: 5,
+          padding: '4px 12px',
           fontWeight: 700,
-          fontSize: 13,
+          fontSize: 11,
           cursor: 'pointer',
           transition: 'background 0.2s',
         }}
