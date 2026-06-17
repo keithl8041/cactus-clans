@@ -1,7 +1,15 @@
 import { useNavigate } from 'react-router-dom';
+import { useSeoMeta } from './useSeoMeta';
 
 export function PrivacyPolicy() {
   const navigate = useNavigate();
+
+  useSeoMeta({
+    title: 'Privacy Policy',
+    description:
+      'Cactus Clans is a family game. We collect no personal data — just an anonymous nickname and PIN so you can save your progress.',
+    path: '/privacy',
+  });
 
   return (
     <div className="screen privacy-page">

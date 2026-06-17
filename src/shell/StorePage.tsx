@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSeoMeta } from './useSeoMeta';
 
 // In-app store page. Instead of linking out to payhip.com, we embed the Payhip
 // product container here via their embed-page.js loader. The script scans the
@@ -22,6 +23,13 @@ declare global {
 
 export function StorePage() {
   const navigate = useNavigate();
+
+  useSeoMeta({
+    title: 'Get the Printable Card Set',
+    description:
+      'Download the full Cactus Clans trading card collection — all eleven clans, ready to print and play at home. A perfect activity for kids and families.',
+    path: '/shop',
+  });
 
   useEffect(() => {
     const script = document.createElement('script');

@@ -39,6 +39,37 @@ const COMING_SOON_LAUNCH_AT_MS = Date.parse('2026-06-13T00:00:00+01:00');
 // host is replaced with the coming-soon HTML.
 const COMING_SOON_ALLOWED_PATHS = new Set(['/logo.png', '/favicon.ico']);
 
+// Per-route metadata injected server-side so that social/link-preview bots and
+// SEO crawlers that don't execute JavaScript see the correct tags. The landing
+// page (/) already ships the right values in index.html; only routes that differ
+// from those defaults need an entry here.
+const SITE_NAME = 'Cactus Clans';
+const BASE_URL = 'https://www.cactusclans.co.uk';
+const DEFAULT_OG_IMAGE = `${BASE_URL}/logo.png`;
+
+interface RouteMeta {
+  title: string;
+  description: string;
+}
+
+const ROUTE_META: Record<string, RouteMeta> = {
+  '/shop': {
+    title: 'Get the Printable Card Set',
+    description:
+      'Download the full Cactus Clans trading card collection — all eleven clans, ready to print and play at home. A perfect activity for kids and families.',
+  },
+  '/leaderboard': {
+    title: 'Leaderboard',
+    description:
+      'See the top Cactus Clans players and teams. Who has completed the most clans and scored the highest across all eight mini-games?',
+  },
+  '/privacy': {
+    title: 'Privacy Policy',
+    description:
+      'Cactus Clans is a family game. We collect no personal data — just an anonymous nickname and PIN so you can save your progress.',
+  },
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -71,6 +102,13 @@ export default {
     }
     if (!url.pathname.startsWith('/api/')) {
       const assetRes = await env.ASSETS.fetch(request);
+      // Rewrite per-route meta tags in HTML responses so that social/link-preview
+      // bots and SEO crawlers that don't execute JavaScript see the correct
+      // title, description, canonical, OG, and Twitter tags for each URL.
+      const meta = ROUTE_META[url.pathname];
+      if (meta && (assetRes.headers.get('content-type') ?? '').includes('text/html')) {
+        return withHsts(injectSeoMeta(assetRes, url.pathname, meta));
+      }
       return withHsts(assetRes);
     }
     try {
@@ -90,6 +128,66 @@ function withHsts(res: Response): Response {
     headers.set('strict-transport-security', 'max-age=63072000; includeSubDomains');
   }
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+/** Rewrites OG/Twitter/canonical tags in an HTML response for the given path. */
+function injectSeoMeta(res: Response, pathname: string, meta: RouteMeta): Response {
+  const fullTitle = `${meta.title} | ${SITE_NAME}`;
+  const normalizedPath = pathname.replace(/\/$/, '');
+  const canonicalUrl = normalizedPath ? `${BASE_URL}${normalizedPath}` : BASE_URL;
+
+  return new HTMLRewriter()
+    .on('title', {
+      element(el) {
+        el.setInnerContent(fullTitle);
+      },
+    })
+    .on('meta[name="description"]', {
+      element(el) {
+        el.setAttribute('content', meta.description);
+      },
+    })
+    .on('link[rel="canonical"]', {
+      element(el) {
+        el.setAttribute('href', canonicalUrl);
+      },
+    })
+    .on('meta[property="og:title"]', {
+      element(el) {
+        el.setAttribute('content', fullTitle);
+      },
+    })
+    .on('meta[property="og:description"]', {
+      element(el) {
+        el.setAttribute('content', meta.description);
+      },
+    })
+    .on('meta[property="og:url"]', {
+      element(el) {
+        el.setAttribute('content', canonicalUrl);
+      },
+    })
+    .on('meta[property="og:image"]', {
+      element(el) {
+        el.setAttribute('content', DEFAULT_OG_IMAGE);
+      },
+    })
+    .on('meta[name="twitter:title"]', {
+      element(el) {
+        el.setAttribute('content', fullTitle);
+      },
+    })
+    .on('meta[name="twitter:description"]', {
+      element(el) {
+        el.setAttribute('content', meta.description);
+      },
+    })
+    .on('meta[name="twitter:image"]', {
+      element(el) {
+        el.setAttribute('content', DEFAULT_OG_IMAGE);
+      },
+    })
+    .transform(res);
 }
 
 async function route(
