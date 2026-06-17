@@ -11,6 +11,7 @@ import {
 import { useGameStore } from '../store/gameStore';
 import { usingRealBackend } from '../services/api';
 import { MAX_LEVEL } from '../levels/meta';
+import { useSeoMeta } from './useSeoMeta';
 
 const ALL_CLANS = 11;
 const PAGE_SIZE = 10;
@@ -27,6 +28,13 @@ export function Leaderboard() {
   const [teamsPage, setTeamsPage] = useState(0);
   const navigate = useNavigate();
   const player = useGameStore((s) => s.player);
+
+  useSeoMeta({
+    title: 'Leaderboard',
+    description:
+      'See the top Cactus Clans players and teams. Who has completed the most clans and scored the highest across all eight mini-games?',
+    path: '/leaderboard',
+  });
 
   useEffect(() => {
     void (async () => {

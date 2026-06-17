@@ -1,2 +1,17 @@
 User-agent: *
 Allow: /
+Allow: /shop
+Allow: /privacy
+Allow: /leaderboard
+
+# Authenticated and in-game routes — not useful in search results
+Disallow: /game
+Disallow: /nickname
+Disallow: /clans
+Disallow: /journey
+Disallow: /play/
+Disallow: /demo
+Disallow: /demo-board
+Disallow: /versus/
+
+Sitemap: https://www.cactusclans.co.uk/sitemap.xml

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
 import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
+import { useSeoMeta } from './useSeoMeta';
 
 // The creators' intro — the first thing a web visitor sees at `/`. It tells the
 // origin story of the game (who made it, how, and why) and showcases the cards,
@@ -94,6 +95,13 @@ export function LandingPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<(typeof STORY_TABS)[number]['id']>(STORY_TABS[0].id);
   const active = STORY_TABS.find((t) => t.id === activeTab) ?? STORY_TABS[0];
+
+  useSeoMeta({
+    title: 'An Adventure Through the Prickly Wilds',
+    description:
+      'Cactus Clans is a free browser game and printable trading card set made by school friends. Pick a clan, clear eight mini-games, and race the leaderboard!',
+    path: '/',
+  });
 
   return (
     <div className="landing">
