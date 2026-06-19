@@ -12,6 +12,7 @@ import { useGameStore } from '../store/gameStore';
 import { usingRealBackend } from '../services/api';
 import { MAX_LEVEL } from '../levels/meta';
 import { useSeoMeta } from './useSeoMeta';
+import { SharePanel } from './SharePanel';
 
 const ALL_CLANS = 11;
 const PAGE_SIZE = 10;
@@ -28,6 +29,7 @@ export function Leaderboard() {
   const [teamsPage, setTeamsPage] = useState(0);
   const navigate = useNavigate();
   const player = useGameStore((s) => s.player);
+  const run = useGameStore((s) => s.run);
 
   useSeoMeta({
     title: 'Leaderboard',
@@ -259,6 +261,13 @@ export function Leaderboard() {
           </div>
         )
       )}
+      <SharePanel
+        text={
+          run
+            ? `I scored ${run.totalScore} pts with the ${run.clan} on Cactus Clans! 🌵 Can you beat me?`
+            : `Can you beat Cactus Clans? 🌵 Free clan card game!`
+        }
+      />
       <div className="row">
         <button onClick={() => navigate('/')}>Home</button>
       </div>

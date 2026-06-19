@@ -15,6 +15,7 @@ import { useNeedsRotate } from './useNeedsRotate';
 import { InstructionsModal } from './InstructionsModal';
 import { EvolutionInterstitial } from './EvolutionInterstitial';
 import { Confetti } from './Confetti';
+import { SharePanel } from './SharePanel';
 import { enterFullscreen, exitFullscreen, isTouchDevice } from './fullscreen';
 import { MAX_LEVEL } from '../levels/meta';
 import { assetUrl, resolveCharacterKey } from '../assets/manifest';
@@ -268,6 +269,9 @@ export function GameContainer() {
                 {' · '}
                 {(finished.elapsedMs / 1000).toFixed(1)}s · score {finished.score}
               </h2>
+              <SharePanel
+                text={`I just beat Cactus Clans with the ${run?.clan ?? 'Cactus Clan'}! 🌵🏆 Can you?`}
+              />
             </>
           ) : (
             <>

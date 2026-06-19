@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Phaser from 'phaser';
 import { useGameStore, highestClearedLevel } from '../store/gameStore';
@@ -11,6 +11,7 @@ import { VersusBalloonScene } from '../multiplayer/VersusBalloonScene';
 import { RotateOverlay } from './RotateOverlay';
 import { useNeedsRotate } from './useNeedsRotate';
 import { setReturnTo } from './postAuthReturn';
+import { SharePanel } from './SharePanel';
 
 /**
  * Easter-egg multiplayer lobby. Two players bop a shared balloon; the rest
@@ -208,15 +209,7 @@ function VersusSidebar({ state, youId }: { state: VersusState | null; youId: str
 }
 
 function WaitingBanner({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = useCallback(() => {
-    const url = `${window.location.origin}/versus/${code}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }, [code]);
-
+  const lobbyUrl = `${window.location.origin}/versus/${code}`;
   return (
     <div
       style={{
@@ -231,6 +224,7 @@ function WaitingBanner({ code }: { code: string }) {
         color: '#fff5b7',
         pointerEvents: 'auto',
         animation: 'versus-pulse 2s ease-in-out infinite',
+        maxWidth: 260,
       }}
     >
       <style>{`
@@ -240,25 +234,14 @@ function WaitingBanner({ code }: { code: string }) {
         }
       `}</style>
       <div style={{ fontSize: 11, color: '#a3d977', marginBottom: 2 }}>Waiting for a friend…</div>
-      <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: '0.16em', color: '#f7c948', marginBottom: 6 }}>
+      <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: '0.16em', color: '#f7c948', marginBottom: 4 }}>
         {code}
       </div>
-      <button
-        onClick={copy}
-        style={{
-          background: copied ? '#3a7a2c' : '#f7c948',
-          color: copied ? '#fff5b7' : '#1f2a14',
-          border: 'none',
-          borderRadius: 5,
-          padding: '4px 12px',
-          fontWeight: 700,
-          fontSize: 11,
-          cursor: 'pointer',
-          transition: 'background 0.2s',
-        }}
-      >
-        {copied ? 'Copied!' : 'Copy link'}
-      </button>
+      <SharePanel
+        text={`Come play Cactus Clans with me! 🌵 Join my lobby:`}
+        url={lobbyUrl}
+        title="Join my Cactus Clans lobby"
+      />
     </div>
   );
 }
