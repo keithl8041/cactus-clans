@@ -25,7 +25,6 @@ export function SharePanel({ text, url: urlProp, title }: SharePanelProps) {
     }).catch(() => {});
   }, [url]);
 
-  const fullMessage = `${text} ${url}`;
   const canNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   return (
@@ -38,22 +37,6 @@ export function SharePanel({ text, url: urlProp, title }: SharePanelProps) {
           Share
         </button>
       )}
-      <a
-        href={`https://wa.me/?text=${encodeURIComponent(fullMessage)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={pill('#25d366', '#fff')}
-      >
-        WhatsApp
-      </a>
-      <a
-        href={`https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={pill('#1d9bf0', '#fff')}
-      >
-        Post on X
-      </a>
       <button onClick={handleCopy} style={pill(copied ? '#3a7a2c' : '#f7c948', copied ? '#fff5b7' : '#1f2a14')}>
         {copied ? 'Copied!' : 'Copy link'}
       </button>
