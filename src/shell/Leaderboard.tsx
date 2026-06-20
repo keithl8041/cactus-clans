@@ -269,7 +269,7 @@ export function Leaderboard() {
         }
       />
       <div className="row">
-        <button onClick={() => navigate('/')}>Home</button>
+        <button onClick={() => navigate('/game')}>Play</button>
       </div>
     </div>
   );

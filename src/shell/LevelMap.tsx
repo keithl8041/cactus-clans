@@ -36,7 +36,7 @@ function VersusPanel() {
     }}>
       <div style={{ fontWeight: 700, marginBottom: 4 }}>🎈 Versus Mode unlocked!</div>
       <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginBottom: 14 }}>
-        Play co-op balloon bop with a friend.
+        Two-player real-time balloon bop. Create a private lobby, share the 6-letter code with a friend, and race to pop the most balloons.
       </div>
       <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
         <button className="primary" onClick={createLobby}>Create lobby</button>

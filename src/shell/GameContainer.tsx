@@ -5,7 +5,7 @@ import { levelByNumber } from '../levels/registry';
 // importing registry here is fine — GameContainer itself is lazy-loaded.
 import { useGameStore } from '../store/gameStore';
 import { clanByName } from '../data/clans';
-import { recordLevelResult } from '../services/progress';
+import { recordLevelResult, completeRun } from '../services/progress';
 import { submitMockRun } from '../services/leaderboard';
 import { usingRealBackend } from '../services/api';
 import { trackEvent } from '../services/analytics';
@@ -26,6 +26,7 @@ interface FinishedState {
   elapsedMs: number;
   bonusPoints: number;
   score: number;
+  runTotalScore: number;
 }
 
 export function GameContainer() {
@@ -84,13 +85,18 @@ export function GameContainer() {
         attempt: attempt + 1,
         practice: !!currentRun.completedAt,
       });
-      const next = await recordLevelResult(currentRun, {
+      const levelRun = await recordLevelResult(currentRun, {
         levelNumber: level.number,
         passed: result.passed,
         miniGamePoints: result.miniGamePoints,
         elapsedMs: result.elapsedMs,
         score,
       });
+      // Auto-submit the run when the final level is cleared for the first time.
+      const next =
+        result.passed && level.number === MAX_LEVEL && !levelRun.completedAt
+          ? await completeRun(levelRun)
+          : levelRun;
       if (!usingRealBackend && player) {
         // Keep the local leaderboard in sync after every attempt — pass or fail.
         submitMockRun({
@@ -110,6 +116,7 @@ export function GameContainer() {
           elapsedMs: result.elapsedMs,
           bonusPoints: result.bonusPoints ?? 0,
           score,
+          runTotalScore: next.totalScore,
         });
         setRun(next);
       }
@@ -267,7 +274,10 @@ export function GameContainer() {
                 {finished.miniGamePoints} pts
                 {finished.bonusPoints > 0 && ` · ★ +${finished.bonusPoints}`}
                 {' · '}
-                {(finished.elapsedMs / 1000).toFixed(1)}s · score {finished.score}
+                {(finished.elapsedMs / 1000).toFixed(1)}s
+              </h2>
+              <h2 style={{ color: 'var(--accent)' }}>
+                Total run score: {finished.runTotalScore}
               </h2>
               <SharePanel
                 text={`I just beat Cactus Clans with the ${run?.clan ?? 'Cactus Clan'}! 🌵🏆 Can you?`}
