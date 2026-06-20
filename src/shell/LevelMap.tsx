@@ -12,19 +12,6 @@ import { usingRealBackend } from '../services/api';
 
 function VersusPanel() {
   const navigate = useNavigate();
-  const [joinCode, setJoinCode] = useState('');
-
-  function createLobby() {
-    const code = Math.random().toString(36).slice(2, 8).toUpperCase();
-    navigate(`/versus/${code}`);
-  }
-
-  function joinLobby() {
-    const code = joinCode.trim().toUpperCase();
-    if (!/^[A-Z0-9-]{1,32}$/.test(code)) return;
-    navigate(`/versus/${code}`);
-  }
-
   return (
     <div style={{
       marginTop: 24,
@@ -36,24 +23,9 @@ function VersusPanel() {
     }}>
       <div style={{ fontWeight: 700, marginBottom: 4 }}>🎈 Versus Mode unlocked!</div>
       <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem', marginBottom: 14 }}>
-        Two-player real-time balloon bop. Create a private lobby, share the 6-letter code with a friend, and race to pop the most balloons.
+        Two-player real-time balloon bop. Jump in and share the link with a friend!
       </div>
-      <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-        <button className="primary" onClick={createLobby}>Create lobby</button>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <input
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            placeholder="Join code"
-            maxLength={32}
-            style={{ width: 100, textTransform: 'uppercase' }}
-            onKeyDown={(e) => e.key === 'Enter' && joinLobby()}
-          />
-          <button onClick={joinLobby} disabled={!/^[A-Z0-9-]{1,32}$/.test(joinCode.trim())}>
-            Join
-          </button>
-        </div>
-      </div>
+      <button className="primary" onClick={() => navigate('/versus/play')}>Play Versus</button>
     </div>
   );
 }
@@ -145,7 +117,7 @@ export function LevelMap() {
 
       <div style={{ color: 'var(--text-dim)', maxWidth: 480 }}>
         Total run score: <strong style={{ color: 'var(--accent)' }}>{run.totalScore}</strong>
-        {run.completedAt && <> · Completed. Replays are practice only.</>}
+        {run.completedAt && <> · Run completed. Replays are practice only. Switch clans to complete them all.</>}
       </div>
 
       <div className="row">

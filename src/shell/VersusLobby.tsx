@@ -146,7 +146,7 @@ export function VersusLobby() {
   return (
     <div className="game-canvas-wrap">
       <div className="hud">
-        <span className="pill">Lobby {cleanedCode}</span>
+        <span className="pill">Versus</span>
         <span className="pill">
           {state?.practise ? 'practise' : state?.phase ?? (connected ? 'connecting…' : '…')}
         </span>
@@ -233,14 +233,11 @@ function WaitingBanner({ code }: { code: string }) {
           50% { box-shadow: 0 0 0 6px rgba(247, 201, 72, 0.22); }
         }
       `}</style>
-      <div style={{ fontSize: 11, color: '#a3d977', marginBottom: 2 }}>Waiting for a friend…</div>
-      <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: '0.16em', color: '#f7c948', marginBottom: 4 }}>
-        {code}
-      </div>
+      <div style={{ fontSize: 13, color: '#a3d977', marginBottom: 8 }}>Waiting for a friend…</div>
       <SharePanel
-        text={`Come play Cactus Clans with me! 🌵 Join my lobby:`}
+        text={`Come play Cactus Clans with me! 🌵 Jump in:`}
         url={lobbyUrl}
-        title="Join my Cactus Clans lobby"
+        title="Play Cactus Clans Versus"
       />
     </div>
   );
