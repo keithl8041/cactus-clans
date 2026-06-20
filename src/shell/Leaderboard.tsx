@@ -266,6 +266,9 @@ export function Leaderboard() {
           </div>
         )
       )}
+      <div className="row">
+        <button onClick={() => navigate('/game')}>Play</button>
+      </div>
       <SharePanel
         text={
           run
@@ -273,9 +276,6 @@ export function Leaderboard() {
             : `Can you beat Cactus Clans? 🌵 Free clan card game!`
         }
       />
-      <div className="row">
-        <button onClick={() => navigate('/game')}>Play</button>
-      </div>
     </div>
   );
 }
