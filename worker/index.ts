@@ -443,15 +443,17 @@ async function route(
 
   if (pathname === '/api/leaderboard' && method === 'GET') {
     return withEdgeCache(url, ctx, async () => {
-      const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
-      const limit = Math.min(Math.max(requested, 1), 200);
+      const PAGE_SIZE = 25;
+      const page = Math.max(0, Number(url.searchParams.get('page') ?? '0') || 0);
+      const offset = page * PAGE_SIZE;
       // One row per player — their highest-scoring run (in-progress runs still
       // count so kids see effort tracked). Ties broken by most recent completion.
       // current_level is read straight off runs (denormalized), so the board
       // never touches level_results. The window scans runs in player/score order
       // via runs_player_score_idx.
-      const result = await env.DB
-        .prepare(
+      const [countRow, pageResult] = await Promise.all([
+        env.DB.prepare('SELECT COUNT(DISTINCT player_id) AS total FROM runs').first<{ total: number }>(),
+        env.DB.prepare(
           `WITH ranked AS (
              SELECT r.id AS run_id, r.player_id, r.clan, r.total_score, r.completed_at,
                     r.current_level,
@@ -472,23 +474,24 @@ async function route(
            INNER JOIN players p ON p.id = ranked.player_id
            WHERE ranked.rn = 1
            ORDER BY totalScore DESC
-           LIMIT ?`,
-        )
-        .bind(limit)
-        .all<LeaderboardRow>();
-      return json(result.results ?? []);
+           LIMIT ? OFFSET ?`,
+        ).bind(PAGE_SIZE, offset).all<LeaderboardRow>(),
+      ]);
+      return json({ results: pageResult.results ?? [], total: countRow?.total ?? 0 });
     });
   }
 
   if (pathname === '/api/team-leaderboard' && method === 'GET') {
     return withEdgeCache(url, ctx, async () => {
-      const requested = Number(url.searchParams.get('limit') ?? '50') || 50;
-      const limit = Math.min(Math.max(requested, 1), 200);
+      const PAGE_SIZE = 25;
+      const page = Math.max(0, Number(url.searchParams.get('page') ?? '0') || 0);
+      const offset = page * PAGE_SIZE;
       // One row per team (a sorted nickname pair) — their best co-op round.
       // Mirrors the solo board: ties broken by most recent. team_scores is only
       // written for genuine two-player rounds, so practise runs never appear.
-      const result = await env.DB
-        .prepare(
+      const [countRow, pageResult] = await Promise.all([
+        env.DB.prepare('SELECT COUNT(DISTINCT team_key) AS total FROM team_scores').first<{ total: number }>(),
+        env.DB.prepare(
           `WITH ranked AS (
              SELECT team_label, score, recorded_at,
                     ROW_NUMBER() OVER (
@@ -501,11 +504,10 @@ async function route(
            FROM ranked
            WHERE rn = 1
            ORDER BY score DESC
-           LIMIT ?`,
-        )
-        .bind(limit)
-        .all<TeamLeaderboardRow>();
-      return json(result.results ?? []);
+           LIMIT ? OFFSET ?`,
+        ).bind(PAGE_SIZE, offset).all<TeamLeaderboardRow>(),
+      ]);
+      return json({ results: pageResult.results ?? [], total: countRow?.total ?? 0 });
     });
   }
 

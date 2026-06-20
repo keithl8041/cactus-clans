@@ -37,7 +37,14 @@ function writeMock(rows: MockRow[]): void {
   localStorage.setItem(MOCK_BOARD_KEY, JSON.stringify(rows));
 }
 
-export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> {
+const PAGE_SIZE = 25;
+
+export interface LeaderboardPage {
+  entries: LeaderboardEntry[];
+  total: number;
+}
+
+export async function fetchLeaderboard(page = 0): Promise<LeaderboardPage> {
   if (usingRealBackend) {
     interface ApiRow {
       nickname: string;
@@ -47,15 +54,18 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
       currentLevel: number | null;
       allClansCompleted: number;
     }
-    const rows = await apiFetch<ApiRow[]>(`/leaderboard?limit=${limit}`);
-    return rows.map((r) => ({
-      nickname: r.nickname,
-      clan: r.clan,
-      totalScore: r.totalScore,
-      completedAt: r.completedAt ?? undefined,
-      currentLevel: r.currentLevel ?? undefined,
-      allClansCompleted: r.allClansCompleted === 1,
-    }));
+    const data = await apiFetch<{ results: ApiRow[]; total: number }>(`/leaderboard?page=${page}`);
+    return {
+      entries: data.results.map((r) => ({
+        nickname: r.nickname,
+        clan: r.clan,
+        totalScore: r.totalScore,
+        completedAt: r.completedAt ?? undefined,
+        currentLevel: r.currentLevel ?? undefined,
+        allClansCompleted: r.allClansCompleted === 1,
+      })),
+      total: data.total,
+    };
   }
 
   // Dedup by nickname (highest score wins) to mirror the worker's SQL.
@@ -64,9 +74,11 @@ export async function fetchLeaderboard(limit = 50): Promise<LeaderboardEntry[]> 
     const prior = byName.get(row.nickname);
     if (!prior || row.totalScore > prior.totalScore) byName.set(row.nickname, row);
   }
-  return [...byName.values()]
-    .sort((a, b) => b.totalScore - a.totalScore)
-    .slice(0, limit);
+  const all = [...byName.values()].sort((a, b) => b.totalScore - a.totalScore);
+  return {
+    entries: all.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE),
+    total: all.length,
+  };
 }
 
 export interface TeamLeaderboardEntry {
@@ -82,19 +94,27 @@ export interface TeamLeaderboardEntry {
  * in dev (`usingRealBackend === false`) there's no multiplayer and we return
  * an empty board.
  */
-export async function fetchTeamLeaderboard(limit = 50): Promise<TeamLeaderboardEntry[]> {
-  if (!usingRealBackend) return [];
+export interface TeamLeaderboardPage {
+  entries: TeamLeaderboardEntry[];
+  total: number;
+}
+
+export async function fetchTeamLeaderboard(page = 0): Promise<TeamLeaderboardPage> {
+  if (!usingRealBackend) return { entries: [], total: 0 };
   interface ApiRow {
     teamLabel: string;
     score: number;
     recordedAt: string | null;
   }
-  const rows = await apiFetch<ApiRow[]>(`/team-leaderboard?limit=${limit}`);
-  return rows.map((r) => ({
-    teamLabel: r.teamLabel,
-    score: r.score,
-    recordedAt: r.recordedAt ?? undefined,
-  }));
+  const data = await apiFetch<{ results: ApiRow[]; total: number }>(`/team-leaderboard?page=${page}`);
+  return {
+    entries: data.results.map((r) => ({
+      teamLabel: r.teamLabel,
+      score: r.score,
+      recordedAt: r.recordedAt ?? undefined,
+    })),
+    total: data.total,
+  };
 }
 
 /**

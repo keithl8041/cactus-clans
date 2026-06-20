@@ -8,6 +8,8 @@ import {
   type TeamLeaderboardEntry,
   type PlayerRunSummary,
 } from '../services/leaderboard';
+
+const PAGE_SIZE = 25;
 import { useGameStore } from '../store/gameStore';
 import { usingRealBackend } from '../services/api';
 import { MAX_LEVEL } from '../levels/meta';
@@ -15,14 +17,15 @@ import { useSeoMeta } from './useSeoMeta';
 import { SharePanel } from './SharePanel';
 
 const ALL_CLANS = 11;
-const PAGE_SIZE = 10;
 
 type Tab = 'solo' | 'teams' | 'mine';
 
 export function Leaderboard() {
   const [tab, setTab] = useState<Tab>('solo');
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
+  const [soloTotal, setSoloTotal] = useState(0);
   const [teams, setTeams] = useState<TeamLeaderboardEntry[] | null>(null);
+  const [teamsTotal, setTeamsTotal] = useState(0);
   const [myRuns, setMyRuns] = useState<PlayerRunSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [soloPage, setSoloPage] = useState(0);
@@ -39,28 +42,32 @@ export function Leaderboard() {
   });
 
   useEffect(() => {
+    setEntries(null);
     void (async () => {
       try {
-        const rows = await fetchLeaderboard();
-        setEntries(rows);
+        const page = await fetchLeaderboard(soloPage);
+        setEntries(page.entries);
+        setSoloTotal(page.total);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load leaderboard');
       }
     })();
-  }, []);
+  }, [soloPage]);
 
-  // Lazy-load the team board the first time the Teams tab is opened.
+  // Load the team board when the Teams tab is opened, and re-fetch on page change.
   useEffect(() => {
-    if (tab !== 'teams' || teams != null) return;
+    if (tab !== 'teams') return;
+    setTeams(null);
     void (async () => {
       try {
-        const rows = await fetchTeamLeaderboard();
-        setTeams(rows);
+        const page = await fetchTeamLeaderboard(teamsPage);
+        setTeams(page.entries);
+        setTeamsTotal(page.total);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load team leaderboard');
       }
     })();
-  }, [tab, teams]);
+  }, [tab, teamsPage]);
 
   // Load personal runs the first time the My Progress tab is opened.
   useEffect(() => {
@@ -116,12 +123,11 @@ export function Leaderboard() {
         ) : entries.length === 0 ? (
           <div style={{ color: 'var(--text-dim)' }}>No runs yet. Be the first!</div>
         ) : (() => {
-          const totalPages = Math.ceil(entries.length / PAGE_SIZE);
-          const pageEntries = entries.slice(soloPage * PAGE_SIZE, (soloPage + 1) * PAGE_SIZE);
+          const totalPages = Math.ceil(soloTotal / PAGE_SIZE);
           return (
             <>
               <div className="leaderboard-list">
-                {pageEntries.map((e, i) => {
+                {entries.map((e, i) => {
                   const rank = soloPage * PAGE_SIZE + i + 1;
                   return (
                     <div
@@ -171,12 +177,11 @@ export function Leaderboard() {
             No teams yet. Bop a balloon together in versus mode to set a high score!
           </div>
         ) : (() => {
-          const totalPages = Math.ceil(teams.length / PAGE_SIZE);
-          const pageTeams = teams.slice(teamsPage * PAGE_SIZE, (teamsPage + 1) * PAGE_SIZE);
+          const totalPages = Math.ceil(teamsTotal / PAGE_SIZE);
           return (
             <>
               <div className="leaderboard-list">
-                {pageTeams.map((t, i) => {
+                {teams.map((t, i) => {
                   const rank = teamsPage * PAGE_SIZE + i + 1;
                   return (
                     <div
