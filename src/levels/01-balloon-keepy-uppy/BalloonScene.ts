@@ -134,12 +134,15 @@ export class BalloonScene extends Phaser.Scene {
     }
     const left = pointerLeft || this.cursors.left?.isDown || this.keyA.isDown;
     const right = pointerRight || this.cursors.right?.isDown || this.keyD.isDown;
+    // Forms 6 and 8 face right in the asset; all others face left.
+    // setFlipX mirrors the sprite, so right-facing assets need flipping to face left and vice versa.
+    const assetFacesRight = this.ctx.formNumber === 6 || this.ctx.formNumber === 8;
     if (left && !right) {
       this.player.setVelocityX(-CFG.playerMaxSpeed);
-      this.player.setFlipX(false);
+      this.player.setFlipX(assetFacesRight);
     } else if (right && !left) {
       this.player.setVelocityX(CFG.playerMaxSpeed);
-      this.player.setFlipX(true);
+      this.player.setFlipX(!assetFacesRight);
     }
     // No active input: ground drag (set on the body) decelerates the player naturally.
   }
@@ -154,6 +157,8 @@ export class BalloonScene extends Phaser.Scene {
     // procedural SVG is already sized to fit, so this is ~no-op for the
     // fallback; the static-art PNGs (280×280) get downscaled to 96px tall.
     this.player.setScale(CFG.playerSize / this.player.height);
+    // Forms 6 and 8 face right in the asset; flip them so the character starts facing left.
+    this.player.setFlipX(this.ctx.formNumber === 6 || this.ctx.formNumber === 8);
     this.player.setCollideWorldBounds(true);
     this.player.setMaxVelocity(CFG.playerMaxSpeed, CFG.playerMaxFallSpeed);
     this.player.setDragX(CFG.playerGroundDrag);

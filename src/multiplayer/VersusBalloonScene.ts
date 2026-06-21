@@ -239,7 +239,9 @@ export class VersusBalloonScene extends Phaser.Scene {
       vis.targetX = sp.x;
       vis.targetY = sp.y;
       vis.facingLeft = sp.f;
-      vis.sprite.setFlipX(!sp.f); // sprite faces left by default; flip when facing right
+      // Forms 6 and 8 face right in the asset; sp.f=true means facing left.
+      const assetFacesRight = this.formNumber === 6 || this.formNumber === 8;
+      vis.sprite.setFlipX(assetFacesRight ? sp.f : !sp.f);
       // Distinguish players by seat: seat 0 natural, seat 1 warm tint.
       const seatIdx = s.seats.indexOf(sp.id);
       if (seatIdx !== vis.lastSeatIdx) {

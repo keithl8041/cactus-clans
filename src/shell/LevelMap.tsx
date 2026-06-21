@@ -117,7 +117,7 @@ export function LevelMap() {
 
       <div style={{ color: 'var(--text-dim)', maxWidth: 480 }}>
         Total run score: <strong style={{ color: 'var(--accent)' }}>{run.totalScore}</strong>
-        {run.completedAt && <> · Run completed. Replays are practice only. Switch clans to complete them all.</>}
+        {run.completedAt && <> · Run completed. Switch clans to complete them all.</>}
       </div>
 
       <div className="row">
