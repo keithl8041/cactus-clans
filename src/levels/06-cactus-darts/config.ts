@@ -64,3 +64,15 @@ export const CACTUS_DARTS_CONFIG = {
   // Round duration — if pass threshold not reached by 0, the attempt fails
   roundDurationMs: 90_000,
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  const lerpF = (a: number, b: number) => parseFloat((a + (b - a) * t).toFixed(3));
+  return {
+    ...CACTUS_DARTS_CONFIG,
+    passThreshold: lerp(90, 96),
+    boardDriftAmplitudePx: lerp(170, 280),
+    boardDriftPeriodMultPerHit: lerpF(0.93, 0.88),
+  };
+}

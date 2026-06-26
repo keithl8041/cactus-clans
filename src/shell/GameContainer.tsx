@@ -5,7 +5,7 @@ import { levelByNumber } from '../levels/registry';
 // importing registry here is fine — GameContainer itself is lazy-loaded.
 import { useGameStore } from '../store/gameStore';
 import { clanByName } from '../data/clans';
-import { recordLevelResult, completeRun } from '../services/progress';
+import { recordLevelResult, completeRun, getCompletedRunCount } from '../services/progress';
 import { submitMockRun } from '../services/leaderboard';
 import { usingRealBackend } from '../services/api';
 import { trackEvent } from '../services/analytics';
@@ -43,6 +43,7 @@ export function GameContainer() {
   const [attempt, setAttempt] = useState(0);
   const [started, setStarted] = useState(false);
   const [showEvolution, setShowEvolution] = useState(false);
+  const [completedRuns, setCompletedRuns] = useState(0);
   const needsRotate = useNeedsRotate();
 
   const n = Number(levelNumber);
@@ -51,6 +52,12 @@ export function GameContainer() {
   useEffect(() => {
     runRef.current = run;
   }, [run]);
+
+  const playerId = player?.id;
+  useEffect(() => {
+    if (!playerId) return;
+    getCompletedRunCount(playerId).then((n) => setCompletedRuns(Math.min(n, 10)));
+  }, [playerId]);
 
   useEffect(() => {
     const currentRun = runRef.current;
@@ -126,6 +133,7 @@ export function GameContainer() {
       player,
       clan,
       formNumber: level.number,
+      completedRuns,
       onComplete: handleResult,
       onAbort: () => {
         trackEvent('level_quit', {
@@ -166,7 +174,7 @@ export function GameContainer() {
       game.destroy(true);
       gameRef.current = null;
     };
-  }, [player, level, navigate, setRun, finished, attempt, started]);
+  }, [player, level, navigate, setRun, finished, attempt, started, completedRuns]);
 
   useEffect(() => {
     const game = gameRef.current;

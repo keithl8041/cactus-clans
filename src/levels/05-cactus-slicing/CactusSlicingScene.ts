@@ -3,7 +3,7 @@ import { loadAsset } from '../../assets/loader';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { CACTUS_SLICING_CONFIG as CFG } from './config';
+import { CACTUS_SLICING_CONFIG as CFG, scaledConfig } from './config';
 
 type ProjectileKind = 'cactus' | 'tarantula';
 
@@ -28,6 +28,7 @@ interface TrailSample {
 
 export class CactusSlicingScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   private score = 0;
   private strikes = 0;
@@ -68,6 +69,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'CactusSlicingScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
   }
 
   preload(): void {
@@ -211,8 +213,8 @@ export class CactusSlicingScene extends Phaser.Scene {
 
     // Strike icons (tarantulas across the top center)
     const iconY = CFG.hudPaddingPx + 14;
-    for (let i = 0; i < CFG.strikeLimit; i++) {
-      const x = width / 2 - ((CFG.strikeLimit - 1) / 2) * (CFG.strikeIconSize + 8) + i * (CFG.strikeIconSize + 8);
+    for (let i = 0; i < this.cfg.strikeLimit; i++) {
+      const x = width / 2 - ((this.cfg.strikeLimit - 1) / 2) * (CFG.strikeIconSize + 8) + i * (CFG.strikeIconSize + 8);
       const icon = this.add.image(x, iconY, 'tarantula').setDepth(15).setScrollFactor(0);
       icon.setScale(CFG.strikeIconSize / icon.height);
       icon.setAlpha(0.35);
@@ -299,7 +301,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   private currentSpawnIntervalMs(): number {
     return Math.max(
       CFG.spawnIntervalMinMs,
-      CFG.spawnIntervalStartMs - this.elapsedSec() * CFG.spawnRampPerSecond,
+      this.cfg.spawnIntervalStartMs - this.elapsedSec() * CFG.spawnRampPerSecond,
     );
   }
 
@@ -310,7 +312,7 @@ export class CactusSlicingScene extends Phaser.Scene {
   private currentTarantulaChance(): number {
     return Math.min(
       CFG.tarantulaChanceMax,
-      CFG.tarantulaChanceStart + (this.elapsedSec() / CFG.tarantulaRampSeconds) * (CFG.tarantulaChanceMax - CFG.tarantulaChanceStart),
+      this.cfg.tarantulaChanceStart + (this.elapsedSec() / CFG.tarantulaRampSeconds) * (CFG.tarantulaChanceMax - this.cfg.tarantulaChanceStart),
     );
   }
 
@@ -597,7 +599,7 @@ export class CactusSlicingScene extends Phaser.Scene {
       onComplete: () => burst.destroy(),
     });
 
-    if (this.strikes >= CFG.strikeLimit) this.finish(this.passed);
+    if (this.strikes >= this.cfg.strikeLimit) this.finish(this.passed);
   }
 
   // ----- HUD -----
@@ -699,7 +701,7 @@ export class CactusSlicingScene extends Phaser.Scene {
     const elapsedMs = this.passed ? this.passedAtMs : Math.min(CFG.sessionDurationMs, this.time.now - this.startedAt);
 
     const { width, height } = this.scale;
-    const failedByStrikes = this.strikes >= CFG.strikeLimit;
+    const failedByStrikes = this.strikes >= this.cfg.strikeLimit;
     const failedByDrops = this.misses >= CFG.missTolerance;
     let text: string;
     let color: string;

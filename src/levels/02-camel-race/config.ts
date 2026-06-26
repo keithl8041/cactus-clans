@@ -76,3 +76,15 @@ export const CAMEL_RACE_CONFIG = {
   backgroundColor: 0x3a4a78,           // dusk-sky blue, lighter than L1's nighttime green
   groundColor: 0xb37a4a,               // warm sand
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return {
+    ...CAMEL_RACE_CONFIG,
+    baseSpeed: lerp(380, 460),
+    baseSpeedFinal: lerp(540, 660),
+    obstacleBaseGapPx: lerp(720, 460),
+    livesStart: Math.max(1, lerp(3, 2)),
+  };
+}

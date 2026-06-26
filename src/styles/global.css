@@ -283,6 +283,21 @@ input[type='text']:focus {
   transform: none;
 }
 
+.card-tile__completed-badge {
+  position: absolute;
+  top: 43px;
+  right: 8px;
+  background: var(--accent);
+  color: #1a1a1a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
 .card-tile__locked-label {
   position: absolute;
   top: 50%;

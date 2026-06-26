@@ -57,3 +57,15 @@ export const BALLOON_CONFIG = {
   starLifetimeMs: 11000,        // star disappears on its own after this long
   starTopOffset: 36,            // distance from top of canvas where star sits
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return {
+    ...BALLOON_CONFIG,
+    timeLimitMs: lerp(60_000, 45_000),
+    passThreshold: lerp(10, 18),
+    firstWallSpikeAt: lerp(5, 2),
+    spikeRampEvery: Math.max(1, lerp(3, 1)),
+  };
+}

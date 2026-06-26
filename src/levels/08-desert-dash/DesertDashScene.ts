@@ -4,7 +4,7 @@ import { resolveCharacterKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { DESERT_DASH_CONFIG as CFG } from './config';
+import { DESERT_DASH_CONFIG as CFG, scaledConfig } from './config';
 
 type ObstacleKind = 'rock' | 'cactus';
 
@@ -46,11 +46,12 @@ interface ActivePointer {
 
 export class DesertDashScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   // ----- Phase / world state -----
   private phase: Phase = 'running';
   private distanceCovered = 0;
-  private lives: number = CFG.startingLives;
+  private lives = 0;
   private bonusPoints = 0;
   private passed = false;
   private passedAtMs = 0;
@@ -89,7 +90,7 @@ export class DesertDashScene extends Phaser.Scene {
   // ----- Boss -----
   private boss: Phaser.GameObjects.Image | null = null;
   private bossLair: Phaser.GameObjects.Image | null = null;
-  private bossHp: number = CFG.bossHp;
+  private bossHp = 0;
   private bossSubstate: BossSubstate = 'idle';
   private bossSubstateUntil = 0;
   private bossAttackCount = 0;          // for alternating leap/spit
@@ -127,6 +128,9 @@ export class DesertDashScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'DesertDashScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
+    this.lives = this.cfg.startingLives;
+    this.bossHp = this.cfg.bossHp;
   }
 
   preload(): void {
@@ -195,7 +199,7 @@ export class DesertDashScene extends Phaser.Scene {
     const elapsed = this.time.now - this.startedAt;
 
     // Hard timeout (shouldn't normally trigger — boss phase is the long pole)
-    if (elapsed >= CFG.courseTimeLimitMs && this.phase !== 'ended') {
+    if (elapsed >= this.cfg.courseTimeLimitMs && this.phase !== 'ended') {
       this.finishLevel('Time\'s up.');
       return;
     }
@@ -241,7 +245,7 @@ export class DesertDashScene extends Phaser.Scene {
     }
 
     // HUD common updates
-    this.timeText.setText(`Time: ${((CFG.courseTimeLimitMs - elapsed) / 1000).toFixed(1)}s`);
+    this.timeText.setText(`Time: ${((this.cfg.courseTimeLimitMs - elapsed) / 1000).toFixed(1)}s`);
   }
 
   // ----- Setup -----
@@ -322,7 +326,7 @@ export class DesertDashScene extends Phaser.Scene {
     }).setOrigin(1, 0).setScrollFactor(0).setDepth(15);
 
     // Hearts row in top-left so they don't overlap the boss health bar
-    for (let i = 0; i < CFG.startingLives; i++) {
+    for (let i = 0; i < this.cfg.startingLives; i++) {
       const heart = this.add.text(16 + i * 28, 46, '♥', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '26px',
@@ -469,12 +473,12 @@ export class DesertDashScene extends Phaser.Scene {
     const camelX = width * CFG.playerXFraction;
 
     // Compute speed (slows briefly after a hit)
-    const progress = this.distanceCovered / CFG.runningDistancePx;
-    const baseSpeed = Phaser.Math.Linear(CFG.baseSpeed, CFG.baseSpeedFinal, Math.min(1, progress));
+    const progress = this.distanceCovered / this.cfg.runningDistancePx;
+    const baseSpeed = Phaser.Math.Linear(this.cfg.baseSpeed, this.cfg.baseSpeedFinal, Math.min(1, progress));
     const hitActive = this.time.now < this.hitPenaltyUntil;
     const speed = baseSpeed * (hitActive ? CFG.hitSpeedMult : 1);
     const advance = speed * dt;
-    this.distanceCovered = Math.min(CFG.runningDistancePx, this.distanceCovered + advance);
+    this.distanceCovered = Math.min(this.cfg.runningDistancePx, this.distanceCovered + advance);
 
     // Parallax scroll
     this.parallaxFar.tilePositionX += advance * CFG.parallaxFarMult;
@@ -535,14 +539,14 @@ export class DesertDashScene extends Phaser.Scene {
     this.distText.setText(`Distance: ${Math.floor(this.distanceCovered / 100)}`);
 
     // Transition: end of running phase → boss arena
-    if (this.distanceCovered >= CFG.runningDistancePx) {
+    if (this.distanceCovered >= this.cfg.runningDistancePx) {
       this.startBossIntro();
     }
   }
 
   private currentObstacleGap(): number {
-    const progress = this.distanceCovered / CFG.runningDistancePx;
-    return Phaser.Math.Linear(CFG.obstacleBaseGapPx, CFG.obstacleEndGapPx, Math.min(1, progress));
+    const progress = this.distanceCovered / this.cfg.runningDistancePx;
+    return Phaser.Math.Linear(this.cfg.obstacleBaseGapPx, CFG.obstacleEndGapPx, Math.min(1, progress));
   }
 
   private spawnObstacleAt(worldX: number): void {
@@ -1082,7 +1086,7 @@ export class DesertDashScene extends Phaser.Scene {
     // Rightmost segment depletes first; segLefts/segRights are ordered right-to-left.
     const segRights = [CFG.bossHealthBarSegX3, CFG.bossHealthBarSegX2, CFG.bossHealthBarSegX1];
     const segLefts  = [CFG.bossHealthBarSegX2, CFG.bossHealthBarSegX1, CFG.bossHealthBarSegX0];
-    const depleted = CFG.bossHp - this.bossHp;
+    const depleted = this.cfg.bossHp - this.bossHp;
 
     const g = this.bossHealthBar;
     g.clear();
@@ -1201,7 +1205,7 @@ export class DesertDashScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const camelX = width * CFG.playerXFraction;
 
-    const advance = CFG.baseSpeedFinal * dt;
+    const advance = this.cfg.baseSpeedFinal * dt;
     this.distanceCovered += advance;
 
     this.parallaxFar.tilePositionX += advance * CFG.parallaxFarMult;
@@ -1254,7 +1258,7 @@ export class DesertDashScene extends Phaser.Scene {
     this.finished = true;
     this.music?.stop();
     this.phase = 'ended';
-    const elapsedMs = this.passed ? this.passedAtMs : Math.min(CFG.courseTimeLimitMs, this.time.now - this.startedAt);
+    const elapsedMs = this.passed ? this.passedAtMs : Math.min(this.cfg.courseTimeLimitMs, this.time.now - this.startedAt);
     const miniGamePoints = Math.floor(this.distanceCovered / 100);
 
     const { width, height } = this.scale;

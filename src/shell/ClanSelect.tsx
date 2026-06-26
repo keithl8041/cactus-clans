@@ -4,13 +4,14 @@ import { CLANS } from '../data/clans';
 import { cardsForClan } from '../data/cards';
 import { assetUrl, resolveLandingCardKey } from '../assets/manifest';
 import { useGameStore } from '../store/gameStore';
-import { getOrCreateRunForClan } from '../services/progress';
+import { getOrCreateRunForClan, getAllRunsForPlayer } from '../services/progress';
 import { consumeReturnTo } from './postAuthReturn';
 import { trackEvent } from '../services/analytics';
 
 export function ClanSelect() {
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [completedClans, setCompletedClans] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const player = useGameStore((s) => s.player);
   const setRun = useGameStore((s) => s.setRun);
@@ -25,6 +26,9 @@ export function ClanSelect() {
     // honor that intent — versus mode doesn't need a clan-tied run.
     const returnTo = consumeReturnTo();
     if (returnTo) navigate(returnTo, { replace: true });
+
+    const runs = getAllRunsForPlayer(player.id);
+    setCompletedClans(new Set(runs.filter((r) => r.completedAt).map((r) => r.clan)));
   }, [player, navigate]);
 
   async function confirm() {
@@ -54,16 +58,19 @@ export function ClanSelect() {
             formNumber: 1,
           });
           const selectable = clan.name === 'Prickling Clan' || clan.name === 'Metal Clan' || clan.name === 'Tropica Clan' || clan.name === 'Hot Dog Clan' || clan.name === 'Camo Clan' || clan.name === 'Duskerns' || clan.name === 'Tumbleweed Clan' || clan.name === 'Oasis Clan' || clan.name === 'Crystalline Clan' || clan.name === 'Earth Clan' || clan.name === 'Wildfire Clan';
+          const completed = completedClans.has(clan.name);
           return (
             <div
               key={clan.name}
               className={`card-tile${selected === clan.name ? ' selected' : ''}${
                 selectable ? '' : ' card-tile--locked'
               }`}
+              style={{ position: 'relative' }}
               onClick={selectable ? () => setSelected(clan.name) : undefined}
             >
               <img src={url} alt={clan.name} />
               {!selectable && <div className="card-tile__locked-label">Coming soon</div>}
+              {completed && <div className="card-tile__completed-badge">Completed</div>}
               <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-dim)' }}>
                 {clan.tagline}
               </div>

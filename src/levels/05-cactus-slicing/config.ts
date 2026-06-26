@@ -96,3 +96,15 @@ export const CACTUS_SLICING_CONFIG = {
 
   // Input
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  const lerpF = (a: number, b: number) => parseFloat((a + (b - a) * t).toFixed(3));
+  return {
+    ...CACTUS_SLICING_CONFIG,
+    spawnIntervalStartMs: lerp(1000, 650),
+    tarantulaChanceStart: lerpF(0.18, 0.36),
+    strikeLimit: Math.max(1, lerp(2, 1)),
+  };
+}

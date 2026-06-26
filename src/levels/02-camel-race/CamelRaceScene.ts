@@ -4,7 +4,7 @@ import { resolveCamelKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { CAMEL_RACE_CONFIG as CFG } from './config';
+import { CAMEL_RACE_CONFIG as CFG, scaledConfig } from './config';
 
 type ObstacleKind = 'rock' | 'cactus';
 
@@ -34,6 +34,7 @@ interface PickupEntity {
 
 export class CamelRaceScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   private distanceCovered = 0;
   private lane = 1;
@@ -51,7 +52,7 @@ export class CamelRaceScene extends Phaser.Scene {
   private passed = false;
   private finished = false;
   private startedAt = 0;
-  private livesRemaining: number = CFG.livesStart;
+  private livesRemaining = 0;
   private livesOut = false;
 
   private camel!: Phaser.GameObjects.Image;
@@ -88,6 +89,8 @@ export class CamelRaceScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'CamelRaceScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
+    this.livesRemaining = this.cfg.livesStart;
   }
 
   preload(): void {
@@ -138,8 +141,8 @@ export class CamelRaceScene extends Phaser.Scene {
 
     // Compute speed
     const progress = this.distanceCovered / CFG.courseDistancePx;
-    const baseSpeed = Phaser.Math.Linear(CFG.baseSpeed, CFG.baseSpeedFinal, Math.min(1, progress));
-    const lowMult = this.staminaDisabled ? CFG.baseSpeedLow / CFG.baseSpeed : 1;
+    const baseSpeed = Phaser.Math.Linear(this.cfg.baseSpeed, this.cfg.baseSpeedFinal, Math.min(1, progress));
+    const lowMult = this.staminaDisabled ? CFG.baseSpeedLow / this.cfg.baseSpeed : 1;
     const hitActive = this.time.now < this.hitPenaltyUntil;
     const hitMult = hitActive ? CFG.hitSpeedMult : 1;
     const dashMult = dashing ? CFG.dashMult : 1;
@@ -162,7 +165,7 @@ export class CamelRaceScene extends Phaser.Scene {
     // world scrolls faster, so the gait visibly ramps with dash and slows when
     // stamina-stalled. No rotation: the bottom-anchored origin made tilt
     // visually shrink the camel.
-    const speedRatio = speed / CFG.baseSpeed;
+    const speedRatio = speed / this.cfg.baseSpeed;
     const gaitScale = Phaser.Math.Clamp(speedRatio, 0.4, 1.6);
     this.camelBobPhase += dt * Math.PI * 2 * CFG.camelBobHz * gaitScale;
     const bobY = Math.sin(this.camelBobPhase) * CFG.camelBobAmplitudePx * Math.min(1, speedRatio);
@@ -436,7 +439,7 @@ export class CamelRaceScene extends Phaser.Scene {
 
   private currentObstacleGap(): number {
     const progress = this.distanceCovered / CFG.courseDistancePx;
-    return Phaser.Math.Linear(CFG.obstacleBaseGapPx, CFG.obstacleEndGapPx, Math.min(1, progress));
+    return Phaser.Math.Linear(this.cfg.obstacleBaseGapPx, CFG.obstacleEndGapPx, Math.min(1, progress));
   }
 
   private spawnObstacleRow(worldX: number): void {

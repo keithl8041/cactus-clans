@@ -4,7 +4,7 @@ import { resolveCharacterKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { DUNE_MAZE_CONFIG as CFG } from './config';
+import { DUNE_MAZE_CONFIG as CFG, scaledConfig } from './config';
 import { generateMap, type ParsedMap } from './maze';
 
 interface QuicksandPatch {
@@ -36,6 +36,7 @@ interface TouchTarget {
 
 export class DuneMazeScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   private map!: ParsedMap;
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -45,7 +46,7 @@ export class DuneMazeScene extends Phaser.Scene {
   private artifacts: ArtifactEntity[] = [];
 
   private startedAt = 0;
-  private timerMs = CFG.timerSeconds * 1000;
+  private timerMs = 0;
   private finished = false;
   private passed = false;
   private music: Phaser.Sound.BaseSound | null = null;
@@ -77,6 +78,8 @@ export class DuneMazeScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'DuneMazeScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
+    this.timerMs = this.cfg.timerSeconds * 1000;
   }
 
   preload(): void {
@@ -99,7 +102,7 @@ export class DuneMazeScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.map = generateMap();
+    this.map = generateMap(this.cfg);
 
     this.add.rectangle(0, 0, this.map.worldWidthPx, this.map.worldHeightPx, CFG.backgroundColor)
       .setOrigin(0)
@@ -185,7 +188,7 @@ export class DuneMazeScene extends Phaser.Scene {
       const dx = this.player.x - trap.x;
       const dy = this.player.y - trap.y;
       const d = Math.hypot(dx, dy);
-      if (!trap.revealed && !trap.revealing && d < CFG.trapRevealRadius) {
+      if (!trap.revealed && !trap.revealing && d < this.cfg.trapRevealRadius) {
         trap.revealing = true;
         this.tweens.add({
           targets: trap.sprite,
@@ -374,7 +377,7 @@ export class DuneMazeScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(20);
 
-    this.timerText = this.add.text(width - 16, 16, `Time: ${CFG.timerSeconds.toFixed(1)}s`, {
+    this.timerText = this.add.text(width - 16, 16, `Time: ${this.cfg.timerSeconds.toFixed(1)}s`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '20px',
       color: '#f3efe0',
@@ -473,7 +476,7 @@ export class DuneMazeScene extends Phaser.Scene {
       ease: 'Back.easeOut',
     });
 
-    const elapsedMs = Math.min(CFG.timerSeconds * 1000, this.time.now - this.startedAt);
+    const elapsedMs = Math.min(this.cfg.timerSeconds * 1000, this.time.now - this.startedAt);
     this.time.delayedCall(1400, () => {
       this.ctx.onComplete({
         passed: this.passed,

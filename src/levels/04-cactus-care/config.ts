@@ -61,3 +61,14 @@ export const CACTUS_CARE_CONFIG = {
   // Background
   backgroundColor: 0xe5b97f,        // warm tan — distinct from L1 sky and L2 dusk
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => parseFloat((a + (b - a) * t).toFixed(3));
+  return {
+    ...CACTUS_CARE_CONFIG,
+    passThreshold: Math.round(24 + (32 - 24) * t),
+    decayMultLate: lerp(1.55, 2.1),
+    eventDelayMultMid: lerp(0.8, 0.55),
+  };
+}

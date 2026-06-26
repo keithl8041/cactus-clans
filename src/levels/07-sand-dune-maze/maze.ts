@@ -9,7 +9,9 @@
 // Walls are coalesced into horizontal rectangle runs to keep the physics body
 // count low (≤ ~30 instead of the ~150+ individual wall tiles).
 
-import { DUNE_MAZE_CONFIG as CFG } from './config';
+import { DUNE_MAZE_CONFIG as CFG, scaledConfig } from './config';
+
+type MazeCounts = Pick<ReturnType<typeof scaledConfig>, 'artifactCount' | 'trapCount' | 'quicksandCount'>;
 
 export type Tile = '#' | '.' | 'S' | 'E' | 'Q' | 'T' | 'A';
 
@@ -38,7 +40,7 @@ export interface ParsedMap {
   worldHeightPx: number;
 }
 
-export function generateMap(): ParsedMap {
+export function generateMap(counts: MazeCounts = CFG): ParsedMap {
   const cols = CFG.mapCols;
   const rows = CFG.mapRows;
   const grid: Tile[][] = Array.from({ length: rows }, () => Array(cols).fill('#' as Tile));
@@ -120,7 +122,7 @@ export function generateMap(): ParsedMap {
   }
   shuffle(deadEnds);
   const artifacts: CellPos[] = [];
-  for (let i = 0; i < Math.min(CFG.artifactCount, deadEnds.length); i++) {
+  for (let i = 0; i < Math.min(counts.artifactCount, deadEnds.length); i++) {
     const cell = deadEnds[i];
     grid[cell.row][cell.col] = 'A';
     artifacts.push(cell);
@@ -144,7 +146,7 @@ export function generateMap(): ParsedMap {
   // placement, BFS from spawn (treating traps as impassable) and verify the
   // exit is still reachable; revert if not.
   const traps: CellPos[] = [];
-  while (traps.length < CFG.trapCount && placeable.length > 0) {
+  while (traps.length < counts.trapCount && placeable.length > 0) {
     const cell = placeable.pop();
     if (!cell) break;
     grid[cell.row][cell.col] = 'T';
@@ -155,7 +157,7 @@ export function generateMap(): ParsedMap {
     traps.push(cell);
   }
   const quicksand: CellPos[] = [];
-  for (let i = 0; i < Math.min(CFG.quicksandCount, placeable.length); i++) {
+  for (let i = 0; i < Math.min(counts.quicksandCount, placeable.length); i++) {
     const cell = placeable.pop();
     if (!cell) break;
     grid[cell.row][cell.col] = 'Q';

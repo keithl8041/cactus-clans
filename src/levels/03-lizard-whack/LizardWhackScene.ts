@@ -3,7 +3,7 @@ import { loadAsset } from '../../assets/loader';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { LIZARD_WHACK_CONFIG as CFG } from './config';
+import { LIZARD_WHACK_CONFIG as CFG, scaledConfig } from './config';
 
 type PotState = 'idle' | 'rising' | 'up' | 'falling' | 'cooldown';
 
@@ -26,6 +26,7 @@ interface PotSlot {
 
 export class LizardWhackScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   private pots: PotSlot[] = [];
   private score = 0;
@@ -47,6 +48,7 @@ export class LizardWhackScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'LizardWhackScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
   }
 
   preload(): void {
@@ -164,7 +166,7 @@ export class LizardWhackScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(10);
 
-    this.missText = this.add.text(16, 46, `Misses: 0 / ${CFG.missTolerance}`, {
+    this.missText = this.add.text(16, 46, `Misses: 0 / ${this.cfg.missTolerance}`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '18px',
       color: '#fff5b7',
@@ -197,7 +199,7 @@ export class LizardWhackScene extends Phaser.Scene {
       return;
     }
     const elapsed = this.time.now - this.startedAt;
-    const allowDoubles = elapsed >= CFG.doublesStartAtMs;
+    const allowDoubles = elapsed >= this.cfg.doublesStartAtMs;
     const popN = (allowDoubles && Math.random() < CFG.doublesProbability) ? 2 : 1;
     const count = Math.min(popN, idle.length);
     Phaser.Utils.Array.Shuffle(idle);
@@ -211,7 +213,7 @@ export class LizardWhackScene extends Phaser.Scene {
 
   private currentWindowMs(): number {
     const frac = Math.min(1, (this.time.now - this.startedAt) / CFG.roundDurationMs);
-    return Phaser.Math.Linear(CFG.windowMs, CFG.windowMinMs, frac);
+    return Phaser.Math.Linear(this.cfg.windowMs, this.cfg.windowMinMs, frac);
   }
 
   private popUp(pot: PotSlot, isBandit: boolean): void {
@@ -278,7 +280,7 @@ export class LizardWhackScene extends Phaser.Scene {
         pot.cooldownTimer = this.time.delayedCall(CFG.cooldownMs, () => {
           if (pot.state === 'cooldown') pot.state = 'idle';
         });
-        if (this.misses >= CFG.missTolerance) this.finish();
+        if (this.misses >= this.cfg.missTolerance) this.finish();
       },
     });
   }
@@ -344,8 +346,8 @@ export class LizardWhackScene extends Phaser.Scene {
   }
 
   private updateMissText(): void {
-    this.missText.setText(`Misses: ${this.misses} / ${CFG.missTolerance}`);
-    if (this.misses >= CFG.missTolerance - 2) {
+    this.missText.setText(`Misses: ${this.misses} / ${this.cfg.missTolerance}`);
+    if (this.misses >= this.cfg.missTolerance - 2) {
       this.missText.setColor('#d24a3a');
     }
   }

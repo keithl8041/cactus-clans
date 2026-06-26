@@ -12,6 +12,8 @@ export interface LevelContext {
   clan: Clan;
   /** The form the player is fighting to become (1..8 == this level number). */
   formNumber: number;
+  /** Number of fully-completed clan runs before this one (0 = first run). Capped at 10. */
+  completedRuns: number;
   onComplete: (result: LevelResult) => void;
   onAbort: () => void;
   /** Suppress mid-game UI that doesn't make sense in the demo flow (e.g. "level unlocked" banners). */

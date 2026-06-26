@@ -86,6 +86,7 @@ export function DemoGame({ player, clan, levelNumber, onComplete, onAbort }: Pro
       player,
       clan,
       formNumber: level.number,
+      completedRuns: 0,
       onComplete: handleResult,
       onAbort: () => onAbortRef.current(),
       demo: true,

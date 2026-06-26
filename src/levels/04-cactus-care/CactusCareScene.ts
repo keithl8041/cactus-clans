@@ -4,7 +4,7 @@ import { resolvePetCactusKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { CACTUS_CARE_CONFIG as CFG } from './config';
+import { CACTUS_CARE_CONFIG as CFG, scaledConfig } from './config';
 
 type EventKind = 'sun' | 'rain';
 
@@ -25,6 +25,7 @@ const GAUGE_INTERIOR = {
 
 export class CactusCareScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   private cactus!: Phaser.GameObjects.Image;
   private can!: Phaser.GameObjects.Image;
@@ -83,6 +84,7 @@ export class CactusCareScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'CactusCareScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
   }
 
   preload(): void {
@@ -156,7 +158,7 @@ export class CactusCareScene extends Phaser.Scene {
     // Apply meter delta.
     const phase = this.currentPhase(elapsed);
     const decayMult =
-      phase === 'late' ? CFG.decayMultLate : phase === 'mid' ? CFG.decayMultMid : 1;
+      phase === 'late' ? this.cfg.decayMultLate : phase === 'mid' ? CFG.decayMultMid : 1;
     let meterDelta = watering ? CFG.waterRatePerSec : -CFG.baseDecayPerSec * decayMult;
     if (this.currentEvent?.kind === 'sun') meterDelta -= CFG.sunBlastDecayPerSec;
     if (this.currentEvent?.kind === 'rain') meterDelta += CFG.rainRisePerSec;
@@ -206,7 +208,7 @@ export class CactusCareScene extends Phaser.Scene {
 
     // Pass check
     const happySec = Math.floor(this.happyTimeMs / 1000);
-    if (!this.passed && happySec >= CFG.passThreshold) this.markUnlocked();
+    if (!this.passed && happySec >= this.cfg.passThreshold) this.markUnlocked();
 
     // End of survive window
     if (elapsed >= CFG.surviveMs) {
@@ -227,7 +229,7 @@ export class CactusCareScene extends Phaser.Scene {
     this.happyText.setText(
       this.passed
         ? `Happy: ${happySec}s ✓`
-        : `Happy: ${happySec}s / ${CFG.passThreshold}s`,
+        : `Happy: ${happySec}s / ${this.cfg.passThreshold}s`,
     );
   }
 
@@ -278,7 +280,7 @@ export class CactusCareScene extends Phaser.Scene {
   private setupHud(): void {
     const { width } = this.scale;
 
-    this.happyText = this.add.text(16, 16, `Happy: 0s / ${CFG.passThreshold}s`, {
+    this.happyText = this.add.text(16, 16, `Happy: 0s / ${this.cfg.passThreshold}s`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '24px',
       color: '#f7c948',
@@ -360,7 +362,7 @@ export class CactusCareScene extends Phaser.Scene {
     if (this.finished) return;
     const phase = this.currentPhase(this.time.now - this.startedAt);
     const mult =
-      phase === 'late' ? CFG.eventDelayMultLate : phase === 'mid' ? CFG.eventDelayMultMid : 1;
+      phase === 'late' ? CFG.eventDelayMultLate : phase === 'mid' ? this.cfg.eventDelayMultMid : 1;
     const delay = delayMs ?? Phaser.Math.Between(CFG.eventMinDelayMs, CFG.eventMaxDelayMs) * mult;
     this.nextEventTimer = this.time.delayedCall(delay, () => this.startEvent());
   }
@@ -520,7 +522,7 @@ export class CactusCareScene extends Phaser.Scene {
       color = '#4aa9d2';
       stroke = '#243a5a';
     } else {
-      text = `Keep trying.\nHappy: ${happySec}s / ${CFG.passThreshold}s`;
+      text = `Keep trying.\nHappy: ${happySec}s / ${this.cfg.passThreshold}s`;
       color = '#f7c948';
       stroke = '#5a2d1f';
     }

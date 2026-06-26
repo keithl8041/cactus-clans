@@ -138,3 +138,21 @@ export const DESERT_DASH_CONFIG = {
   bossHealthBarSegX3: 546,
   bossHealthBarYPx: 16,
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  const runningDistancePx = lerp(9_600, 13_000);
+  return {
+    ...DESERT_DASH_CONFIG,
+    baseSpeed: lerp(260, 340),
+    baseSpeedFinal: lerp(360, 460),
+    obstacleBaseGapPx: lerp(480, 300),
+    courseTimeLimitMs: lerp(110_000, 80_000),
+    runningDistancePx,
+    passThreshold: lerp(100, 130),
+    startingLives: Math.max(1, lerp(3, 2)),
+    bossHp: lerp(3, 5),
+    totalDistancePx: runningDistancePx + DESERT_DASH_CONFIG.bossOutroDistancePx,
+  };
+}

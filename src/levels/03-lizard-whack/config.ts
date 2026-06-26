@@ -46,3 +46,15 @@ export const LIZARD_WHACK_CONFIG = {
   // Input
   tapPadding: 8,                    // extra px around each pot's tap rectangle
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return {
+    ...LIZARD_WHACK_CONFIG,
+    missTolerance: Math.max(2, lerp(8, 4)),
+    windowMs: lerp(1100, 750),
+    windowMinMs: lerp(550, 280),
+    doublesStartAtMs: lerp(8_000, 4_000),
+  };
+}

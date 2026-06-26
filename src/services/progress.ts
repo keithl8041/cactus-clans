@@ -1,5 +1,21 @@
 import { apiFetch, usingRealBackend } from './api';
 
+const COMPLETED_COUNT_KEY = (playerId: string) => `cc.completed.count.${playerId}`;
+
+export async function getCompletedRunCount(playerId: string): Promise<number> {
+  if (usingRealBackend) {
+    try {
+      const res = await apiFetch<{ count: number }>(
+        `/players/${encodeURIComponent(playerId)}/completed-runs`,
+      );
+      return res.count;
+    } catch {
+      // fall through to localStorage
+    }
+  }
+  return parseInt(localStorage.getItem(COMPLETED_COUNT_KEY(playerId)) ?? '0', 10);
+}
+
 export interface LevelClearRecord {
   levelNumber: number;
   passed: boolean;
@@ -531,6 +547,8 @@ export async function completeRun(run: RunProgress): Promise<RunProgress> {
   const completedAt = new Date().toISOString();
   const next: RunProgress = { ...run, completedAt };
   writeRun(next);
+  const cKey = COMPLETED_COUNT_KEY(run.playerId);
+  localStorage.setItem(cKey, String(parseInt(localStorage.getItem(cKey) ?? '0', 10) + 1));
   if (usingRealBackend) {
     try {
       if (next.pendingSync || isLocalRunId(next.runId)) {

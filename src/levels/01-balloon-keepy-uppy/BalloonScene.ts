@@ -4,7 +4,7 @@ import { resolveBalloonKey, resolveCharacterKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { BALLOON_CONFIG as CFG } from './config';
+import { BALLOON_CONFIG as CFG, scaledConfig } from './config';
 
 type SpikeOrientation = 'up' | 'down' | 'left' | 'right';
 
@@ -20,6 +20,7 @@ interface ActivePointer {
 
 export class BalloonScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   private balloon!: Phaser.Physics.Arcade.Sprite;
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -62,6 +63,7 @@ export class BalloonScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'BalloonScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
   }
 
   preload(): void {
@@ -113,14 +115,14 @@ export class BalloonScene extends Phaser.Scene {
     this.startedAt = this.time.now;
     this.scheduleWind();
     this.scheduleStar(CFG.starFirstDelayMs);
-    this.timeoutTimer = this.time.delayedCall(CFG.timeLimitMs, () => this.handleTimeout());
+    this.timeoutTimer = this.time.delayedCall(this.cfg.timeLimitMs, () => this.handleTimeout());
   }
 
   update(): void {
     if (this.finished) return;
 
     const elapsedMs = this.time.now - this.startedAt;
-    const remainingMs = Math.max(0, CFG.timeLimitMs - elapsedMs);
+    const remainingMs = Math.max(0, this.cfg.timeLimitMs - elapsedMs);
     this.timeText.setText(`Time: ${(remainingMs / 1000).toFixed(1)}s`);
 
     // Movement: hold-zone touches and keyboard arrows feed the same left/right
@@ -229,7 +231,7 @@ export class BalloonScene extends Phaser.Scene {
 
   private setupHud(): void {
     const { width } = this.scale;
-    this.hitText = this.add.text(16, 16, `Hits: 0 / ${CFG.passThreshold}`, {
+    this.hitText = this.add.text(16, 16, `Hits: 0 / ${this.cfg.passThreshold}`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '24px',
       color: '#f7c948',
@@ -243,7 +245,7 @@ export class BalloonScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setScrollFactor(0).setDepth(10);
 
-    this.timeText = this.add.text(width - 16, 16, `Time: ${(CFG.timeLimitMs / 1000).toFixed(1)}s`, {
+    this.timeText = this.add.text(width - 16, 16, `Time: ${(this.cfg.timeLimitMs / 1000).toFixed(1)}s`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '24px',
       color: '#f3efe0',
@@ -359,7 +361,7 @@ export class BalloonScene extends Phaser.Scene {
 
     this.spawnDifficultySpikes();
 
-    if (!this.passed && this.hitCount >= CFG.passThreshold) {
+    if (!this.passed && this.hitCount >= this.cfg.passThreshold) {
       this.markUnlocked();
     }
   }
@@ -368,7 +370,7 @@ export class BalloonScene extends Phaser.Scene {
     if (this.passed) {
       this.hitText.setText(`Hits: ${this.hitCount} ✓`);
     } else {
-      this.hitText.setText(`Hits: ${this.hitCount} / ${CFG.passThreshold}`);
+      this.hitText.setText(`Hits: ${this.hitCount} / ${this.cfg.passThreshold}`);
     }
   }
 
@@ -421,11 +423,11 @@ export class BalloonScene extends Phaser.Scene {
     // Wall spikes sit in the lower half so the player can still jump high
     // enough to bat the balloon over them — at y < ~0.65*height the spikes are
     // above the player's peak jump and effectively unavoidable.
-    if (this.hitCount === CFG.firstWallSpikeAt) {
+    if (this.hitCount === this.cfg.firstWallSpikeAt) {
       this.spawnCactus(this.hazardSpikeGroup, CFG.wallPadding, height * 0.72, 'right');
       this.spawnCactus(this.hazardSpikeGroup, width - CFG.wallPadding, height * 0.72, 'left');
     }
-    if (this.hitCount > CFG.firstWallSpikeAt && (this.hitCount - CFG.firstWallSpikeAt) % CFG.spikeRampEvery === 0) {
+    if (this.hitCount > this.cfg.firstWallSpikeAt && (this.hitCount - this.cfg.firstWallSpikeAt) % this.cfg.spikeRampEvery === 0) {
       const sideLeft = this.hitCount % 2 === 0;
       const x = sideLeft ? CFG.wallPadding : width - CFG.wallPadding;
       const y = Phaser.Math.Between(Math.floor(height * 0.68), Math.floor(height * 0.82));

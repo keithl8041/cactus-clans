@@ -4,7 +4,7 @@ import { resolveCharacterKey } from '../../assets/manifest';
 import { sfx } from '../../assets/sfx';
 import { isMusicEnabled } from '../../assets/musicPrefs';
 import type { LevelContext } from '../types';
-import { CACTUS_DARTS_CONFIG as CFG } from './config';
+import { CACTUS_DARTS_CONFIG as CFG, scaledConfig } from './config';
 
 interface SpikeState {
   sprite: Phaser.Physics.Arcade.Sprite;
@@ -15,6 +15,7 @@ interface SpikeState {
 
 export class CactusDartsScene extends Phaser.Scene {
   private readonly ctx: LevelContext;
+  private readonly cfg: ReturnType<typeof scaledConfig>;
 
   private player!: Phaser.Physics.Arcade.Sprite;
   private board!: Phaser.Physics.Arcade.Sprite;
@@ -49,6 +50,7 @@ export class CactusDartsScene extends Phaser.Scene {
   constructor(ctx: LevelContext) {
     super({ key: 'CactusDartsScene' });
     this.ctx = ctx;
+    this.cfg = scaledConfig(ctx.completedRuns);
   }
 
   preload(): void {
@@ -101,9 +103,9 @@ export class CactusDartsScene extends Phaser.Scene {
 
     if (this.hitCount >= CFG.boardDriftStartHit) {
       const extra = this.hitCount - CFG.boardDriftStartHit;
-      const period = CFG.boardDriftPeriodMs * Math.pow(CFG.boardDriftPeriodMultPerHit, extra);
+      const period = CFG.boardDriftPeriodMs * Math.pow(this.cfg.boardDriftPeriodMultPerHit, extra);
       this.boardDriftPhase += (delta / period) * Math.PI * 2;
-      this.board.y = this.boardBaseY + Math.sin(this.boardDriftPhase) * CFG.boardDriftAmplitudePx;
+      this.board.y = this.boardBaseY + Math.sin(this.boardDriftPhase) * this.cfg.boardDriftAmplitudePx;
     }
 
     this.trajectory.clear();
@@ -211,7 +213,7 @@ export class CactusDartsScene extends Phaser.Scene {
 
   private setupHud(): void {
     const { width } = this.scale;
-    this.scoreText = this.add.text(16, 16, `Score: 0 / ${CFG.passThreshold}`, {
+    this.scoreText = this.add.text(16, 16, `Score: 0 / ${this.cfg.passThreshold}`, {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '24px',
       color: '#f7c948',
@@ -422,7 +424,7 @@ export class CactusDartsScene extends Phaser.Scene {
     if (this.passed) {
       this.scoreText.setText(`Score: ${this.score} ✓`);
     } else {
-      this.scoreText.setText(`Score: ${this.score} / ${CFG.passThreshold}`);
+      this.scoreText.setText(`Score: ${this.score} / ${this.cfg.passThreshold}`);
     }
   }
 
@@ -447,7 +449,7 @@ export class CactusDartsScene extends Phaser.Scene {
 
   private checkPass(): void {
     if (this.passed) return;
-    if (this.score >= CFG.passThreshold) {
+    if (this.score >= this.cfg.passThreshold) {
       this.markUnlocked();
     }
   }

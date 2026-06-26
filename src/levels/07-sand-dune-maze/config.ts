@@ -49,3 +49,15 @@ export const DUNE_MAZE_CONFIG = {
   // Background
   backgroundColor: 0x4a3a26,
 } as const;
+
+export function scaledConfig(completedRuns: number) {
+  const t = Math.min(completedRuns, 10) / 10;
+  const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  return {
+    ...DUNE_MAZE_CONFIG,
+    timerSeconds: lerp(45, 28),
+    trapCount: lerp(4, 8),
+    quicksandCount: lerp(4, 8),
+    trapRevealRadius: lerp(120, 60),
+  };
+}

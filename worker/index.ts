@@ -261,6 +261,16 @@ async function route(
     return json({ id, nickname: cleaned });
   }
 
+  const completedRunsMatch = pathname.match(/^\/api\/players\/([^/]+)\/completed-runs$/);
+  if (completedRunsMatch && method === 'GET') {
+    const playerId = completedRunsMatch[1];
+    const row = await env.DB
+      .prepare('SELECT COUNT(*) AS count FROM runs WHERE player_id = ?1 AND completed_at IS NOT NULL')
+      .bind(playerId)
+      .first<{ count: number }>();
+    return json({ count: row?.count ?? 0 });
+  }
+
   const activeRunMatch = pathname.match(/^\/api\/players\/([^/]+)\/active-run$/);
   if (activeRunMatch && method === 'GET') {
     const playerId = activeRunMatch[1];
