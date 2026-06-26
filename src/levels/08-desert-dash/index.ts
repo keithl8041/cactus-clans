@@ -9,7 +9,7 @@ export const desertDashLevel: LevelDefinition = {
   blurb: 'Sprint across the dunes, then face the Giant Sand Tarantula. Stomp it three times to win the journey!',
   passThreshold: DESERT_DASH_CONFIG.passThreshold,
   instructions: {
-    objective: `Run, jump, and dodge across the dunes — then defeat the Giant Sand Tarantula at the end. You have ${DESERT_DASH_CONFIG.startingLives} lives. Stomp the boss three times to win the grand finale.`,
+    objective: `Run, jump, and dodge across the dunes — then defeat the Giant Sand Tarantula at the end. You have ${DESERT_DASH_CONFIG.startingLives} lives. Stomp the boss to win the grand finale.`,
     controls: [
       { label: 'Jump', value: 'Tap the ↑ button on the right · Space, W, or ↑ on the keyboard' },
       { label: 'Double jump', value: 'Tap again mid-air for a second, smaller jump — clear stacked obstacles and grab high stars' },

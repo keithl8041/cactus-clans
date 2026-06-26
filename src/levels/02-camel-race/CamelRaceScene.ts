@@ -40,6 +40,7 @@ export class CamelRaceScene extends Phaser.Scene {
   private lane = 1;
   private targetLane = 1;
   private laneTween: Phaser.Tweens.Tween | null = null;
+  private pendingLaneDir: number | null = null;
 
   private stamina: number = CFG.staminaStart;
   private staminaDisabled = false;
@@ -401,9 +402,14 @@ export class CamelRaceScene extends Phaser.Scene {
 
   private requestLaneChange(dir: number): void {
     if (this.finished) return;
-    if (this.laneTween) return; // wait for current tween
+    if (this.laneTween) {
+      // Queue the most recent direction; flush it when the current tween ends.
+      this.pendingLaneDir = dir;
+      return;
+    }
     const target = Phaser.Math.Clamp(this.lane + dir, 0, CFG.laneCount - 1);
     if (target === this.lane) return;
+    this.pendingLaneDir = null;
     this.targetLane = target;
     // Snap depth to the target lane at tween start so the camel correctly
     // weaves in front of / behind obstacles in adjacent lanes during the move.
@@ -419,6 +425,11 @@ export class CamelRaceScene extends Phaser.Scene {
       onComplete: () => {
         this.lane = this.targetLane;
         this.laneTween = null;
+        if (this.pendingLaneDir !== null) {
+          const queued = this.pendingLaneDir;
+          this.pendingLaneDir = null;
+          this.requestLaneChange(queued);
+        }
       },
     });
     this.tweens.add({

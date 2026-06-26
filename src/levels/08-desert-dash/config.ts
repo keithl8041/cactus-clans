@@ -9,7 +9,7 @@ export const DESERT_DASH_CONFIG = {
   totalDistancePx: 10_800,             // runningDistancePx + bossOutroDistancePx — used for leaderboard math
   courseTimeLimitMs: 110_000,          // hard cap on the whole level
   passDistanceFraction: 0.80,          // unlock latches at this fraction of runningDistancePx
-  startingLives: 3,
+  startingLives: 5,
 
   // Player physics (Arcade physics — gravity for jumping)
   playerSize: 96,
@@ -24,8 +24,8 @@ export const DESERT_DASH_CONFIG = {
   groundedY: 0,                        // computed at runtime as height - floorPaddingPx - playerSize/2
 
   // Scroll speed
-  baseSpeed: 260,                      // px/sec at start of run
-  baseSpeedFinal: 360,                 // px/sec at the end of the running phase
+  baseSpeed: 250,                      // px/sec at start of run
+  baseSpeedFinal: 340,                 // px/sec at the end of the running phase
   hitSpeedMult: 0.55,                  // multiplier for hitSpeedPenaltyMs after a hit
   hitSpeedPenaltyMs: 700,
 
@@ -34,10 +34,10 @@ export const DESERT_DASH_CONFIG = {
   stompPlayerIframesMs: 2000,          // i-frames granted to the player after a successful boss stomp
 
   // Obstacles (running phase)
-  obstacleWarmupPx: 900,               // grace period at start before first obstacle
-  obstacleBaseGapPx: 480,
-  obstacleEndGapPx: 280,
-  obstaclePairChance: 0.22,            // chance of spawning two side-by-side
+  obstacleWarmupPx: 1_050,             // grace period at start before first obstacle
+  obstacleBaseGapPx: 540,
+  obstacleEndGapPx: 320,
+  obstaclePairChance: 0.17,            // chance of spawning two side-by-side
   obstaclePairSpacingPx: 95,           // worldX gap inside a pair
   obstacleRockChance: 0.5,
   obstacleSize: 80,
@@ -99,8 +99,12 @@ export const DESERT_DASH_CONFIG = {
   bossDefeatedDelayMs: 1500,           // pause showing defeated state before scroll resumes
 
   // Spike spit attack (high projectile — player must NOT jump into it).
-  bossSpitMs: 1200,                    // travel time across the arena
-  bossSpitSpeed: 680,                  // px/sec horizontal projectile speed (leftward)
+  bossSpitMs: 1000,                    // travel time across the arena
+  bossSpitSpeed: 800,                  // px/sec horizontal projectile speed (leftward)
+  bossSpitSpeedJitter: 0.3,            // ±fraction randomised on each spit
+  bossSpitDoubleChance: 0.35,          // chance a spit fires a second projectile staggered behind the first
+  bossSpitDoubleDelayMs: 280,          // delay between first and second spit projectile
+  bossImmediateLeapChance: 0.3,        // chance a leap attack skips the telegraph entirely
   bossSpitYOffsetMinPx: -26,            // random launch height range relative to boss center (just above player head)
   bossSpitYOffsetMaxPx: 72,             // (just above ground level)
   bossSpitColliderRadiusPx: 38,
@@ -142,17 +146,25 @@ export const DESERT_DASH_CONFIG = {
 export function scaledConfig(completedRuns: number) {
   const t = Math.min(completedRuns, 10) / 10;
   const lerp = (a: number, b: number) => Math.round(a + (b - a) * t);
+  const lerpF = (a: number, b: number) => parseFloat((a + (b - a) * t).toFixed(3));
   const runningDistancePx = lerp(9_600, 13_000);
   return {
     ...DESERT_DASH_CONFIG,
-    baseSpeed: lerp(260, 340),
-    baseSpeedFinal: lerp(360, 460),
-    obstacleBaseGapPx: lerp(480, 300),
+    baseSpeed: lerp(250, 340),
+    baseSpeedFinal: lerp(340, 460),
+    obstacleBaseGapPx: lerp(540, 340),
     courseTimeLimitMs: lerp(110_000, 80_000),
     runningDistancePx,
     passThreshold: lerp(100, 130),
-    startingLives: Math.max(1, lerp(3, 2)),
+    startingLives: Math.max(2, lerp(5, 3)),
     bossHp: lerp(3, 5),
     totalDistancePx: runningDistancePx + DESERT_DASH_CONFIG.bossOutroDistancePx,
+    // Boss aggression scales with run count:
+    // faster projectiles, more doubles, more immediate leaps, tighter telegraph window
+    bossSpitSpeed: lerp(800, 1100),
+    bossSpitDoubleChance: lerpF(0.35, 0.70),
+    bossImmediateLeapChance: lerpF(0.3, 0.65),
+    bossTelegraphMs: lerp(700, 400),
+    bossLobLaunchVx: lerp(-420, -580),
   };
 }

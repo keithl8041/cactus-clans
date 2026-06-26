@@ -775,11 +775,27 @@ export class DesertDashScene extends Phaser.Scene {
 
   private startNextBossAttack(): void {
     if (!this.boss || this.phase !== 'bossCycle') return;
-    // Rotate leap → spit → ground-lob so the player has to switch between
-    // jumping in, ducking under (i.e. not jumping into), and jumping over.
-    const cycle: ('leap' | 'spit' | 'lob')[] = ['leap', 'spit', 'lob'];
-    const kind = cycle[this.bossAttackCount % cycle.length];
+    // Pick randomly from the attack pool. Guarantee no two consecutive leaps,
+    // and ensure the player sees each type at least once per 4 attacks by
+    // keeping a small history. Otherwise fully random.
+    const pool: ('leap' | 'spit' | 'lob')[] = ['leap', 'leap', 'spit', 'spit', 'lob', 'lob', 'spit', 'lob'];
+    const kind = pool[Math.floor(Math.random() * pool.length)];
     this.bossAttackCount += 1;
+
+    // Leap can optionally skip the telegraph entirely — sudden charge.
+    const skipTelegraph = kind === 'leap' && Math.random() < CFG.bossImmediateLeapChance;
+
+    if (skipTelegraph) {
+      this.bossSubstate = 'telegraph';
+      this.bossSubstateUntil = this.time.now;
+      if (this.boss) {
+        this.tweens.killTweensOf(this.boss);
+        this.boss.setAlpha(1).setFlipX(false).setAngle(0);
+      }
+      this.beginBossLeap();
+      return;
+    }
+
     this.bossSubstate = 'telegraph';
     this.bossSubstateUntil = this.time.now + CFG.bossTelegraphMs;
 
@@ -820,21 +836,35 @@ export class DesertDashScene extends Phaser.Scene {
     this.bossLeapTargetX = targetX;
   }
 
-  private beginBossSpit(): void {
+  private spawnSpitProjectile(speedOverride?: number): void {
     if (!this.boss) return;
-    this.bossSubstate = 'spit';
-    // The spit IS the attack — there's no landed phase after it.
-    this.bossSubstateUntil = this.time.now + CFG.bossSpitMs;
-
+    const jitter = 1 + (Math.random() * 2 - 1) * CFG.bossSpitSpeedJitter;
+    const speed = speedOverride ?? CFG.bossSpitSpeed * jitter;
     const spitYOffset = Phaser.Math.Between(CFG.bossSpitYOffsetMinPx, CFG.bossSpitYOffsetMaxPx);
     const sprite = this.add.image(this.boss.x - CFG.bossSize * 0.4, this.boss.y + spitYOffset, 'boss.spike').setDepth(8);
     sprite.setScale(CFG.bossSpitSize / sprite.height);
-    sprite.setAngle(-90); // point leftward (the cactus.spike points up by default; -90 rotates it left)
-    this.spits.push({ sprite, vx: -CFG.bossSpitSpeed, spent: false });
+    sprite.setAngle(-90);
+    this.spits.push({ sprite, vx: -speed, spent: false });
     sfx.throw();
+  }
 
-    // After the spit travels, return to home and queue next attack.
-    this.time.delayedCall(CFG.bossSpitMs, () => {
+  private beginBossSpit(): void {
+    if (!this.boss) return;
+    this.bossSubstate = 'spit';
+    const isDouble = Math.random() < CFG.bossSpitDoubleChance;
+    // Travel time for the slower of two possible projectiles; give enough time
+    // for both to clear the arena before queuing the next attack.
+    const totalMs = CFG.bossSpitMs + (isDouble ? CFG.bossSpitDoubleDelayMs : 0);
+    this.bossSubstateUntil = this.time.now + totalMs;
+
+    this.spawnSpitProjectile();
+    if (isDouble) {
+      this.time.delayedCall(CFG.bossSpitDoubleDelayMs, () => {
+        if (this.phase === 'bossCycle') this.spawnSpitProjectile();
+      });
+    }
+
+    this.time.delayedCall(totalMs, () => {
       if (this.phase !== 'bossCycle') return;
       this.startNextBossAttack();
     });
