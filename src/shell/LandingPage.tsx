@@ -31,9 +31,7 @@ const STORY_TABS = [
           set of trading cards, a digital download, and a website with eight mini-games.
         </p>
         <p>
-          A huge shout-out to Ms Pippa and her Young CEOs Club for sparking it all. You'll be able to meet
-          the team at the <strong><a href="https://www.fojkps.org/events/2026/6/13/jkps-summer-festical" target="_blank" rel="noopener noreferrer">JKPS Summer Festival</a></strong>, where they'll have a stall to showcase
-          and sell their creations — please do go along and support them!
+          A huge shout-out to Ms Pippa at JKPS and her Young CEOs Club for sparking it all. The club is a brilliant place for kids to explore their ideas, learn about business, and get inspired to create.
         </p>
       </>
     ),
